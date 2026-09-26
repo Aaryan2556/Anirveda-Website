@@ -1,29 +1,40 @@
 /**
- * The single place that decides which repository adapter the app uses.
+ * The single place that decides which repository adapter (and matching admin
+ * auth) the app uses.
  *
- * Default: the local (browser-only) adapter.
- * Dev-only opt-in: VITE_IPL_AUCTION_ADAPTER=appwrite reads the auction from the
- * IPL dev database (read-only until Phase 3). Needs VITE_IPL_AUCTION_DATABASE_ID;
- * VITE_IPL_AUCTION_ID is optional (defaults to the newest auction).
+ * Default: the local (browser-only) adapter, no login.
+ * VITE_IPL_AUCTION_ADAPTER=appwrite: the auction lives in the IPL Appwrite
+ * database; admins sign in with an Appwrite account carrying the admin label.
+ * Needs VITE_IPL_AUCTION_DATABASE_ID; VITE_IPL_AUCTION_ID is optional (defaults
+ * to the newest auction).
  */
-import { IPL_AUCTION_DATABASE_ID, Query, tablesDB } from "../../../config/appwrite.js";
+import { ID, IPL_AUCTION_DATABASE_ID, Query, account, tablesDB } from "../../../config/appwrite.js";
+import { createAppwriteAdminAuth, createLocalAdminAuth } from "../auth/adminAuth.js";
 import { createAppwriteRepository } from "./appwriteAdapter.js";
 import { createLocalRepository } from "./localAdapter.js";
 import { createMockAuctionState } from "./mockSeed.js";
 
+const useAppwrite = import.meta.env.VITE_IPL_AUCTION_ADAPTER === "appwrite";
+
 let repository = null;
+let adminAuth = null;
 
 export function getAuctionRepository() {
   if (!repository) {
-    repository =
-      import.meta.env.VITE_IPL_AUCTION_ADAPTER === "appwrite"
-        ? createAppwriteRepository({
-          tablesDB,
-          Query,
-          databaseId: IPL_AUCTION_DATABASE_ID,
-          auctionId: import.meta.env.VITE_IPL_AUCTION_ID || null,
-        })
-        : createLocalRepository({ createSeedState: () => createMockAuctionState() });
+    repository = useAppwrite
+      ? createAppwriteRepository({
+        tablesDB,
+        Query,
+        ID,
+        databaseId: IPL_AUCTION_DATABASE_ID,
+        auctionId: import.meta.env.VITE_IPL_AUCTION_ID || null,
+      })
+      : createLocalRepository({ createSeedState: () => createMockAuctionState() });
   }
   return repository;
+}
+
+export function getAdminAuth() {
+  if (!adminAuth) adminAuth = useAppwrite ? createAppwriteAdminAuth({ account }) : createLocalAdminAuth();
+  return adminAuth;
 }

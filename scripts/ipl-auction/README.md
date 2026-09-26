@@ -20,7 +20,15 @@ The schema itself lives in `src/lib/iplAuction/repository/appwriteSchema.js`.
 | `npm run ipl:seed` | Writes a fresh auction from the FICTIONAL mock data. Refuses if IPL rows exist. |
 | `npm run ipl:seed -- --reset` | Deletes **every row in the IPL tables**, then seeds. Dev database only. |
 
-## Pointing the app at Appwrite (read-only until Phase 3)
+## Creating an admin account
+
+Only users with the label `ipladmin` can change the auction (enforced by table permissions).
+
+1. Appwrite console → **Auth → Users → Create user** (email + password).
+2. Open the user → **Labels** → add `ipladmin` → **Update**.
+3. Sign in at `/ipl-auction/admin`.
+
+## Pointing the app at Appwrite
 
 Create `.env.local` (git-ignored) with:
 
@@ -33,5 +41,5 @@ VITE_IPL_AUCTION_DATABASE_ID=ipl-auction-dev
 VITE_IPL_AUCTION_ID=
 ```
 
-Then `npm run dev` and open `/ipl-auction/admin`. Without `VITE_IPL_AUCTION_ADAPTER=appwrite` the app keeps
+Then `npm run dev`, open `/ipl-auction/admin` and sign in with an admin account. Without `VITE_IPL_AUCTION_ADAPTER=appwrite` the app keeps
 using the local (browser-only) adapter. Remove `VITE_IPL_AUCTION_ADAPTER` before building for production.

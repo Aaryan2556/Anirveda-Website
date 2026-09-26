@@ -4,15 +4,14 @@
  *
  *   npm run ipl:setup            (reads .env.ipl.local)
  *
- * Safe to run repeatedly: it only creates what is missing and reports any
- * existing column or index that differs from the schema (it never alters or
- * deletes anything). Refuses to run against the existing site database.
+ * Safe to run repeatedly: it creates what is missing, brings table permissions
+ * in line with the schema, and reports any existing column or index that
+ * differs (columns and indexes are never altered or deleted). Refuses to run
+ * against the existing site database.
  */
-import { SCHEMA } from "../../src/lib/iplAuction/repository/appwriteSchema.js";
+import { SCHEMA, TABLE_PERMISSIONS } from "../../src/lib/iplAuction/repository/appwriteSchema.js";
 import { createRestClient, isNotFound, query, readScriptEnv } from "./appwriteRest.mjs";
 
-// Dev database: anyone can read, nobody can write from a client. Phase 7 narrows reads.
-const TABLE_PERMISSIONS = ['read("any")'];
 const COLUMN_WAIT_MS = 1000;
 const COLUMN_WAIT_ATTEMPTS = 60;
 
@@ -94,8 +93,15 @@ async function ensureDatabase() {
 async function ensureTable(table) {
   const tablePath = `${db}/tables/${table.id}`;
   try {
-    await call("GET", tablePath);
+    const existingTable = await call("GET", tablePath);
     log(`✓ table ${table.id}`);
+    const current = [...(existingTable.$permissions ?? [])].sort();
+    if (JSON.stringify(current) !== JSON.stringify([...TABLE_PERMISSIONS].sort()) || existingTable.rowSecurity) {
+      await call("PUT", tablePath, {
+        body: { name: existingTable.name, permissions: TABLE_PERMISSIONS, rowSecurity: false, enabled: true },
+      });
+      log(`  ~ permissions set to ${TABLE_PERMISSIONS.join(", ")}`);
+    }
   } catch (error) {
     if (!isNotFound(error)) throw error;
     await call("POST", `${db}/tables`, {

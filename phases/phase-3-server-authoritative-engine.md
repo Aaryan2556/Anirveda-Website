@@ -1,70 +1,64 @@
-# Phase 3 — Server-Authoritative Engine (Appwrite Function)
+# Phase 3 — Authoritative Writes (admin client + Appwrite transactions)
 
-> **Scope change (2026-09-26):** only the admin sends commands (bidding is offline). Replace the `PLACE_BID` concurrency test with: two parallel `SELL_PLAYER` for the same lot → exactly one accepted.
+**Status:** ✅ Code done and verified against real Appwrite (2026-09-26); browser run needs an admin account · **Depends on:** Phase 2
+**Goal:** every change to an auction is validated by the engine against the **latest stored state** and saved **atomically**; only admins can write, enforced by Appwrite.
 
-**Status:** ⬜ Not started · **Depends on:** Phase 2 · **Parallel with:** Phases 4, 5
-**Goal:** every change to an auction goes through **one Appwrite Function** that runs the same `reduce()` as the browser, against the latest stored state, and writes the result. Clients never write to the auction collections directly.
+## Decision (2026-09-26): no Appwrite Function
 
-## Approvals needed before starting
-
-- [ ] Creating and deploying an Appwrite Function in the **dev** project (Node runtime).
-- [ ] A Function-scoped API key (database read/write on the IPL dev database only).
-
-## Design
+Bidding is offline, so **only admins send commands**. The owner chose the simpler design:
 
 ```
-Browser ── functions.createExecution("ipl-auction-command", { auctionId, command }) ──▶ Function
-Function:
-  1. actor = resolveActor(request)            ← pluggable; see "Actor resolution"
-  2. state = documentsToState(load(auctionId))
-  3. result = reduce(state, { ...command, actor, at: Date.now() })
-  4. if !result.ok → return result.error
-  5. claim: create ipl_activity { auctionId, seq: state.counters.activity + 1, ... }
-       └─ unique (auctionId, seq) conflict → another command won → go back to step 2 (max 3 retries)
-  6. apply diffToWrites(state, result.state)  (inside a transaction if the Phase 2 spike found them)
-  7. return { ok: true, version: result.state.version }
+Admin browser  ── dispatch(command) ──▶ appwriteAdapter
+  1. latest  = read the auction from Appwrite (consistent read)
+  2. result  = reduce(latest, { ...command, at: now() })        ← same engine as everywhere
+  3. if !result.ok → return the engine error (nothing written)
+  4. writes  = diffToWrites(latest, result.state)                 ← always includes 1 new activity row
+  5. one TablesDB transaction: stage all writes → commit (rollback on any error)
+       └─ 409 (someone committed first) → back to step 1 (max 3 attempts) → STALE_STATE
 ```
 
-- **Step 5 is the concurrency guard.** Two bids racing for the same auction both compute the same next activity `seq`; the unique index lets exactly one through, and the other retries against fresh state (where it will usually fail with `BID_TOO_LOW`, which is correct).
-- **Partial-write safety.** If transactions are not available: the claimed activity document stores the full write list (`writes` JSON). Writes are idempotent (fixed IDs, `seq`-based). A `REPAIR` step at the start of each execution re-applies the writes of the latest activity if the auction's `version` is behind it.
-- The unique `(auctionId, playerId)` index on `ipl_purchases` is a second, independent guard against selling a player twice.
+- **Who can write:** table permissions are `read("any")` + `create/update/delete("label:ipladmin")`, row security off. Appwrite rejects writes from anyone without the label — verified live: anonymous create/update → `401 user_unauthorized`.
+- **Concurrency guard:** each accepted command adds exactly one activity row, and `(auctionId, seq)` is unique. Two admins acting on the same state produce the same `seq`; Appwrite commits one and rejects the other with `409 transaction_conflict`; the loser re-runs against the new state (e.g. a second SOLD becomes `NO_ACTIVE_LOT`).
+- **Atomicity:** verified live: a transaction containing one conflicting create writes **nothing**.
+- **Second guard against double sales:** purchase row ID = player ID.
+- **Trade-off (accepted):** rule checks run in the admin's browser. A malicious *admin* could bypass them; teams cannot.
 
-## Sharing the engine with the Function
+## Gotcha found while verifying (important for anyone writing to Appwrite here)
 
-- Engine files already use Node-compatible ESM imports with `.js` extensions and have no dependencies.
-- `scripts/ipl-auction/sync-engine.mjs` copies `src/lib/iplAuction/{engine/,config.js,money.js}` into `functions/ipl-auction-command/src/shared/` before each deploy.
-- A test compares file hashes so the copy can never silently drift from the source.
+Inside **transaction operations**, Appwrite does **not** expand the `"unique()"` row-ID placeholder — it stores the literal text as the ID. Always generate IDs client-side (`ID.unique()` from the SDK does). The adapter now requires an `ID` generator, and the test fake rejects `"unique()"` inside transactions.
 
-## Actor resolution (pluggable)
+## Admin sign-in (pulled forward from Phase 7)
 
-`functions/ipl-auction-command/src/resolveActor.js` exports `resolveActor(request) → actor | error`.
+- `src/lib/iplAuction/auth/adminAuth.js`: `createAppwriteAdminAuth({ account })` (email + password session; admin = user has label `ipladmin`) and `createLocalAdminAuth()` (local mode, no login).
+- `src/lib/iplAuction/hooks/useAdminAuth.js` + `repository/index.js → getAdminAuth()`.
+- `/ipl-auction/admin` shows a sign-in form in Appwrite mode; signed-in non-admins see "not an IPL admin". The UI check is convenience only — permissions are the real guard.
+- Team pages stay public and read-only.
 
-- **Phase 3 (dev only):** if Function env `ALLOW_CLIENT_ACTOR === "true"`, accept `command.actor` from the body. **Must be off in any non-dev deployment.**
-- **Phase 7:** replaced by a resolver that reads the Appwrite user from the execution headers and checks team memberships. Nothing else in the Function changes.
+### Creating an admin (Appwrite console)
 
-## Client side
+1. **Auth → Users → Create user** (email + password).
+2. Open the user → **Labels** → add `ipladmin` → Update.
+3. Sign in at `/ipl-auction/admin` (with `VITE_IPL_AUCTION_ADAPTER=appwrite`).
 
-- `appwriteAdapter.dispatch(command)` calls the Function and returns the engine-shaped result. Network and Function failures map to `NETWORK_ERROR` / `SERVER_ERROR` (contract §8).
-- After a successful dispatch, the adapter refetches state (Phase 6 replaces this with realtime).
-- `getAuctionRepository()` picks the Appwrite adapter only when a dev flag is set; the local adapter stays the default until Phase 7 ships.
+## Files
 
-## Files owned
+`repository/appwriteAdapter.js` (dispatch + commit), `repository/appwriteSchema.js` (`ADMIN_LABEL`, `TABLE_PERMISSIONS`), `repository/index.js`, `auth/adminAuth.js`, `hooks/useAdminAuth.js`, `Pages/IPLAuction/AdminPage.jsx` (sign-in gate), `components/IPLAuction/DevPanels.jsx` (banner shows the mode), `scripts/ipl-auction/setup-appwrite.mjs` (enforces table permissions), tests `__tests__/fakeTablesDB.js`, `appwriteAdapter.test.js`, `adminAuth.test.js`.
 
-`functions/ipl-auction-command/**`, `scripts/ipl-auction/sync-engine.mjs`, `src/lib/iplAuction/repository/appwriteAdapter.js` (dispatch), `repository/index.js` (adapter selection only), new tests.
+## Verification performed
 
-## Tests
-
-- Function handler unit tests run in Node with an **in-memory fake database** that enforces the unique indexes. They cover: accepted command, rejected command (nothing written), conflict and retry, partial-write repair, and a double sale blocked by the index.
-- Concurrency test: 20 parallel `PLACE_BID` executions at the same amount → exactly one accepted.
-- Parity test: replay the same command list through the local adapter and the Function handler, then compare final states.
+- `npm run test:ipl`: **111/111**. New: commit of accepted commands; engine rejection writes nothing; TEAM actor rejected before any request; no-permission → `UNAUTHORIZED` + rollback; dispatch uses latest stored state; **two admin tabs selling the same lot → exactly one purchase**; repeated conflicts → `STALE_STATE`; network failure → `NETWORK_ERROR`; **parity** — 13 commands through the Appwrite adapter and the local adapter give identical final states; admin-auth logic.
+- Live Appwrite (dev project `6a6712190021f81a8a96`): permissions applied by `npm run ipl:setup`; transaction probes (stale writer → 409, all-or-nothing) and anonymous write probes (401) as above. Probe rows removed.
+- `npm run build` passes.
 
 ## Definition of done
 
-- [ ] All Phase 1 behaviours work end-to-end against the dev Appwrite database.
-- [ ] The concurrency and parity tests above pass.
-- [ ] Measured bid latency (click → confirmed) recorded below; target under 1 s on campus Wi-Fi.
-- [ ] `ALLOW_CLIENT_ACTOR` documented as dev-only; the production checklist in Phase 7 depends on it.
+- [x] Writes validated by the engine against the latest stored state, committed atomically.
+- [x] Only admins can write (enforced by Appwrite, verified live).
+- [x] Concurrency (double SOLD) and parity tests pass.
+- [ ] Owner creates an admin account and runs a lot end-to-end in the browser (steps above). Record click → confirmed latency below (target < 1 s).
 
 ## Handoff notes
 
-_(fill in when done)_
+- Realtime (Phase 6) replaces polling; after a successful dispatch the adapter already updates its own snapshot immediately.
+- Phase 7 is now smaller: admin identity exists. Remaining: decide whether team pages should require login at all (they are read-only), managing admin accounts, and production switch-over.
+- A transaction is limited to 100 operations per command (`MAX_OPERATIONS_PER_COMMAND`); normal commands use 2–5.

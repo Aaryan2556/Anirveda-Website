@@ -35,13 +35,16 @@ export function Button({ children, variant = "default", ...props }) {
   );
 }
 
-export function DevBanner() {
+export function DevBanner({ kind = "local" }) {
+  const storage =
+    kind === "appwrite"
+      ? "State lives in the IPL Appwrite dev database; only signed-in admins can change it."
+      : "State lives only in this browser (localStorage) and syncs between tabs. No Appwrite, no network.";
   return (
     <div className="border border-yellow-500/60 bg-yellow-500/10 p-3 text-xs text-yellow-200">
       <strong>LOCAL DEVELOPMENT — FUNCTIONAL TEST UI.</strong> All teams and players are{" "}
       <strong>FICTIONAL mock data</strong>; names and statistics are invented and are not real. Bidding happens in
-      the room; the admin records each result here. State lives only in this browser (localStorage) and syncs between
-      tabs. No Appwrite, no network.
+      the room; the admin records each result here. {storage}
     </div>
   );
 }

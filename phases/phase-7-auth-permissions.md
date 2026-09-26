@@ -1,5 +1,7 @@
 # Phase 7 — Authentication & Permissions
 
+> **Update (2026-09-26, Phase 3):** admin sign-in already exists — Appwrite account + label `ipladmin`, and tables only allow writes by that label (verified live). See the Phase 3 file. What remains here: team logins (optional, since teams are read-only), admin account management, production switch-over.
+>
 > **Scope change (2026-09-26):** team members are **view-only** (bidding is offline). The server must reject **every** command from a TEAM actor; teams only need read access to their auction.
 
 **Status:** ⬜ Not started · **Depends on:** Phase 3 (Function), Phases 4 and 5 (pages use `useAuctionActor`) · **Parallel with:** Phase 6

@@ -126,7 +126,9 @@ Every adapter exports an object with:
 | `reset()` | **Development only.** Optional: the Appwrite adapter does not have it, and the admin page hides the button when it is missing. |
 | `refresh()` | Optional (Appwrite adapter): fetch now instead of waiting for the next poll. |
 
-Adapter-level error codes (`ADAPTER_ERROR` in `appwriteAdapter.js`): `NETWORK_ERROR`, `SERVER_ERROR`, `NOT_IMPLEMENTED` (the Appwrite adapter's `dispatch` until Phase 3).
+Adapter-level error codes (`ADAPTER_ERROR` in `appwriteAdapter.js`): `NETWORK_ERROR`, `SERVER_ERROR`. A write refused by Appwrite permissions returns the engine's `UNAUTHORIZED`; a write that keeps losing races returns `STALE_STATE`.
+
+Adapters expose `kind` (`"local"` | `"appwrite"`). The matching admin auth comes from `getAdminAuth()` in `repository/index.js`.
 | `destroy()` | Releases channels, subscriptions and timers. |
 
 `getAuctionRepository()` in `repository/index.js` is the **only** place that chooses an adapter.
@@ -158,5 +160,6 @@ Adapter-level error codes (`ADAPTER_ERROR` in `appwriteAdapter.js`): `NETWORK_ER
 | Date | Change | Affects |
 |---|---|---|
 | 2026-09-25 | Contract created from the Phase 1 implementation. | all |
+| 2026-09-26 | **Phase 3 writes.** Appwrite adapter `dispatch` re-reads, runs `reduce`, commits `diffToWrites` in one TablesDB transaction, retries on 409, else `STALE_STATE`. Permission failures map to engine `UNAUTHORIZED`. Adapter requires an `ID` generator (Appwrite does not expand `unique()` in transactions). Adapters expose `kind`. Admin = Appwrite user with label `ipladmin`; tables allow writes only to that label. `NOT_IMPLEMENTED` removed. | 6, 7 |
 | 2026-09-26 | **Phase 2 persistence.** IDs (§7): purchase row `$id` = player ID; `makeId` ≤ 36 chars. Repository (§8): `reset` optional, `refresh` added, adapter error codes. Schema lives in `repository/appwriteSchema.js` (TablesDB). | 3, 6, 7 |
 | 2026-09-26 | **Offline bidding.** Removed `PLACE_BID`, `bids`, lot bid fields, `bidIncrements`, `allowJumpBids` and the bid-ladder helpers. `SELL_PLAYER` now takes `{ playerId, teamId, price }`. Added `REORDER_PLAYERS`, `CANCEL_SALE`, `OPEN_LOT` without `playerId` (next in sequence), and selectors `getUpcomingPlayers`, `getNextPlayerInSequence`, `getRecentSales`. Teams are view-only. `SCHEMA_VERSION` 1 → 2 (local data is discarded and reseeded). | 2 (no `ipl_bids` collection), 3, 4, 5 (view-only dashboard), 6, 7 (teams need read access only) |

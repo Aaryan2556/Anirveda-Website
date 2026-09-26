@@ -1,5 +1,5 @@
 /**
- * /ipl-auction/admin — functional admin console (local only). Final design is Phase 8.
+ * /ipl-auction/admin — functional admin console. Final design is Phase 8.
  * All business rules live in src/lib/iplAuction.
  *
  * Flow: players come up in sequence, teams bid in the room, and the admin
@@ -7,6 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { useAdminAuth } from "../../lib/iplAuction/hooks/useAdminAuth";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { ROLE_LABELS, ROLE_LIST } from "../../lib/iplAuction/config";
 import {
@@ -37,8 +38,76 @@ import {
 const ADMIN_ACTOR = { role: ACTOR_ROLES.ADMIN };
 const STATUS_FILTERS = ["ALL", ...Object.values(PLAYER_STATUS)];
 
+/** Appwrite mode requires a signed-in user with the admin label; local mode needs no login. */
 export default function AdminPage() {
-  const { state, dispatch, reset } = useAuction();
+  const auth = useAdminAuth();
+  if (auth.status === "loading") return <Shell>Checking sign-in…</Shell>;
+  if (!auth.isAdmin) return <SignIn auth={auth} />;
+  return <AdminConsole auth={auth} />;
+}
+
+function Shell({ children }) {
+  return (
+    <div className="min-h-screen bg-tertiary px-4 py-6 font-Lato text-white">
+      <div className="mx-auto max-w-md space-y-4">
+        <h1 className="font-Bebas text-4xl tracking-wide">IPL Auction · Admin</h1>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function SignIn({ auth }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    await auth.signIn(email, password);
+    setBusy(false);
+  };
+  return (
+    <Shell>
+      {auth.user ? (
+        <div className="space-y-2 border border-red-500/60 p-3 text-sm">
+          <p>
+            Signed in as <strong>{auth.user.email}</strong>, but this account is not an IPL admin.
+          </p>
+          <Button onClick={auth.signOut}>Sign out</Button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="grid gap-2 border border-white/15 p-4 text-sm">
+          <input
+            required
+            type="email"
+            placeholder="Admin email"
+            autoComplete="username"
+            className="border border-white/30 bg-black px-2 py-1"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            required
+            type="password"
+            placeholder="Password"
+            autoComplete="current-password"
+            className="border border-white/30 bg-black px-2 py-1"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <Button variant="primary" type="submit" disabled={busy}>
+            {busy ? "Signing in…" : "Sign in"}
+          </Button>
+        </form>
+      )}
+      {auth.error && <p className="text-sm text-red-300">{auth.error}</p>}
+    </Shell>
+  );
+}
+
+function AdminConsole({ auth }) {
+  const { state, dispatch, reset, kind } = useAuction();
   const { status, lot } = state;
   const isLive = status === AUCTION_STATUS.LIVE;
   const isSetup = status === AUCTION_STATUS.SETUP;
@@ -152,7 +221,13 @@ export default function AdminPage() {
       <Toaster position="top-right" />
       <div className="mx-auto max-w-7xl space-y-4">
         <h1 className="font-Bebas text-4xl tracking-wide">IPL Auction · Admin (dev)</h1>
-        <DevBanner />
+        <DevBanner kind={kind} />
+        {auth.user && (
+          <div className="flex items-center gap-3 text-xs text-white/60">
+            Signed in as {auth.user.email}
+            <Button onClick={auth.signOut}>Sign out</Button>
+          </div>
+        )}
         <AuctionHeader state={state} />
 
         <Section title="Auction controls">

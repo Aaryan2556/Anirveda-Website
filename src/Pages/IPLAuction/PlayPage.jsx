@@ -47,7 +47,7 @@ function TeamPicker({ state, onPick }) {
 }
 
 export default function PlayPage() {
-  const { state } = useAuction();
+  const { state, kind } = useAuction();
   const [params, setParams] = useSearchParams();
   const teamId = params.get("team");
   const team = teamId ? state.teams[teamId] : null;
@@ -59,7 +59,7 @@ export default function PlayPage() {
         <h1 className="font-Bebas text-4xl tracking-wide">
           IPL Auction · {team ? team.name : "Team dashboard"} (dev)
         </h1>
-        <DevBanner />
+        <DevBanner kind={kind} />
         <AuctionHeader state={state} />
 
         {!team ? (

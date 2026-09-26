@@ -16,6 +16,24 @@
 import { ROLE_LIST } from "../config.js";
 import { AUCTION_STATUS, PLAYER_STATUS } from "../engine/constants.js";
 
+/**
+ * Appwrite user label that marks an IPL auction admin (set on the user in the
+ * Appwrite console: Auth → user → Labels). Labels must be alphanumeric.
+ */
+export const ADMIN_LABEL = "ipladmin";
+
+/**
+ * Table-level permissions (row security off). Anyone may read — teams are
+ * view-only — and only labelled admins may write. Appwrite enforces this, so a
+ * team cannot change the auction even by calling the API directly.
+ */
+export const TABLE_PERMISSIONS = Object.freeze([
+  'read("any")',
+  `create("label:${ADMIN_LABEL}")`,
+  `update("label:${ADMIN_LABEL}")`,
+  `delete("label:${ADMIN_LABEL}")`,
+]);
+
 export const TABLES = Object.freeze({
   AUCTIONS: "ipl_auctions",
   TEAMS: "ipl_teams",

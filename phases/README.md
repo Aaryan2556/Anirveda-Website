@@ -14,7 +14,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 |---|---|---|---|---|
 | 1 | [Architecture, engine & local simulation](./phase-1-architecture-and-engine.md) | ✅ Done (2026-09-25) | — | — |
 | 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | ✅ Done (2026-09-26) | 1 | 4, 5 |
-| 3 | [Server-authoritative engine (Appwrite Function)](./phase-3-server-authoritative-engine.md) | ⬜ Not started | 2 | 4, 5 |
+| 3 | [Authoritative writes (admin client + transactions)](./phase-3-server-authoritative-engine.md) | ✅ Code done (2026-09-26); browser run needs an admin account | 2 | 4, 5 |
 | 4 | [Admin functionality](./phase-4-admin.md) | ⬜ Not started | 1 | 2, 3, 5 |
 | 5 | [Participant functionality](./phase-5-participant.md) | ⬜ Not started | 1 | 2, 3, 4 |
 | 6 | [Real-time synchronization](./phase-6-realtime.md) | ⬜ Not started | 3 | — |
@@ -100,7 +100,7 @@ Players come up **in sequence**. **Bidding happens offline in the room.** When t
 | Decision | Needed by | Recommendation |
 |---|---|---|
 | Login method for admins and participants | Phase 7 (design in Phase 3) | Appwrite Account (email + password or email OTP); don't introduce Auth0. |
-| Is an Appwrite Function acceptable (needs an API key + deployment)? | Phase 3 | Yes. Without it, admin-only commands and sale rules can't be enforced on the server. |
+| ~~Is an Appwrite Function acceptable?~~ | Phase 3 | **Decided 2026-09-26: no Function.** Admin browser commits in Appwrite transactions; admin-only writes enforced by table permissions (label `ipladmin`). |
 | Real event rules (purse, squad size, overseas, role limits, increments) | Phase 4 | Keep in config; dev defaults stay in `DEV_DEFAULT_CONFIG` until decided. |
 | One shared login per team, or several members? | Phase 7 | Several members per Appwrite Team; all are view-only (bidding is offline, the admin records sales). |
 | Separate Appwrite project/database for IPL development? | Phase 2 | Yes: a separate **dev** database so the live site's data is never touched. |
