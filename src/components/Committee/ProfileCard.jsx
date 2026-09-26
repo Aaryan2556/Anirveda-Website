@@ -1,85 +1,149 @@
-import React, { useEffect } from "react"
-import { Icon } from "@iconify/react"
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Icon } from "@iconify/react";
 
 export default function ProfileCard(props) {
-  const { data, heading } = props
-
-  let [current, setCurrent] = React.useState(0)
-
-  const dataList = data.map((item) => (
-    <div
-      key={item.id}
-      className="w-full max-w-xs rounded-3xl bg-gray-800 shadow-lg p-6 font-Abel transition-transform duration-300 hover:scale-105 hover:shadow-xl xs:w-4/5 sm:w-3/5 md:w-1/4 md:px-8 flex flex-col items-center justify-between"
-    >
-      <div className="relative mb-6">
-        <div className="mx-auto h-36 w-36 rounded-full border-4 border-white overflow-hidden">
-          <img
-            src={item.img_src}
-            className="h-full w-full object-cover object-center"
-            alt={item.name}
-          />
-        </div>
-        <div className="absolute top-0 right-0 p-2">
-          <a href={item.linkedIn} target="_blank" rel="noopener noreferrer">
-            <Icon
-              icon="mdi:linkedin"
-              className="text-3xl text-primary hover:text-secondary transition duration-200"
-            />
-          </a>
-        </div>
-      </div>
-      <h2 className="text-center text-3xl font-bold text-white">{item.name}</h2>
-      <h3 className="mt-2 text-center text-2xl text-gray-400">{item.position}</h3>
-      <div className="w-full mt-6">
-        <a href={item.linkedIn} target="_blank" rel="noopener noreferrer">
-          <button className="w-full rounded-full bg-primary py-2 text-lg font-bold text-white hover:bg-secondary transition duration-200">
-            Contact
-          </button>
-        </a>
-      </div>
-    </div>
-  ))
+  const { data, heading } = props;
+  const [current, setCurrent] = useState(0);
 
   return (
-    <div>
-      <h1 className="bg-black py-20 text-center font-Bebas text-[5rem] text-8xl font-light uppercase text-primary">
+    <div className="w-full py-10 bg-background text-foreground">
+      <h2 className="py-8 text-center font-Bebas text-5xl sm:text-7xl md:text-8xl font-normal uppercase text-primary tracking-wide">
         {heading}
-      </h1>
-      <div className="relative mt-8 flex items-center justify-between gap-4 xs:px-6 sm:p-10 md:mt-0 md:justify-center md:px-5 lg:px-8">
-        <div className="ml-3 md:hidden">
-          <Icon
-            icon="ic:baseline-chevron-left"
-            className="cursor-pointer rounded-full bg-secondary p-1 text-4xl text-gray-700 hover:text-primary transition duration-300"
-            onClick={() => {
-              if (current === 0) {
-                setCurrent(dataList.length - 1)
-              } else {
-                setCurrent(current - 1)
-              }
-            }}
-          />
+      </h2>
+
+      <div className="relative mt-6 flex items-center justify-between gap-4 px-4 sm:px-8 md:mt-0 md:justify-center">
+        {/* Mobile Left Chevron */}
+        <div className="ml-1 md:hidden z-10">
+          <button
+            onClick={() => setCurrent((prev) => (prev === 0 ? data.length - 1 : prev - 1))}
+            className="p-2 rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
+            aria-label="Previous Profile"
+          >
+            <Icon icon="carbon:chevron-left" className="text-xl" />
+          </button>
         </div>
-        {/* All Profile Cards */}
+
+        {/* Mobile View: Single Active Card */}
         <div className="relative flex w-full justify-center md:hidden">
-          {dataList[current]}
+          {data[current] && (
+            <motion.div
+              key={data[current].id}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-xs rounded-3xl bg-card border border-border p-6 shadow-xl relative overflow-hidden backdrop-blur-xl flex flex-col items-center justify-between"
+            >
+              {/* Top Accent Gradient Bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary via-primary to-accent" />
+
+              <div className="relative mb-5 mt-2">
+                <div className="mx-auto h-32 w-32 rounded-full border-2 border-primary/40 p-1 bg-muted/50 overflow-hidden shadow-inner">
+                  <img
+                    src={data[current].img_src}
+                    className="h-full w-full rounded-full object-cover object-center transition-transform duration-500 hover:scale-110"
+                    alt={data[current].name}
+                  />
+                </div>
+                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-secondary border-2 border-card animate-pulse" />
+              </div>
+
+              <span className="font-mono text-[10px] text-secondary bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-full uppercase mb-2">
+                NODE-{data[current].id < 10 ? `0${data[current].id}` : data[current].id}
+              </span>
+
+              <h3 className="text-center text-xl font-bold font-sans text-foreground tracking-tight">
+                {data[current].name}
+              </h3>
+              <h4 className="mt-1 text-center font-mono text-xs font-semibold text-primary uppercase">
+                {data[current].position}
+              </h4>
+
+              <div className="w-full mt-6">
+                <a
+                  href={data[current].linkedIn}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-2.5 px-4 font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary-hsl)/0.3)] hover:scale-105 transition-transform"
+                >
+                  <Icon icon="carbon:logo-linkedin" className="text-sm" />
+                  <span>Connect Node</span>
+                </a>
+              </div>
+            </motion.div>
+          )}
         </div>
-        <div className="hidden md:flex md:flex-wrap md:justify-center md:gap-8 lg:mx-auto lg:w-[90%] lg:gap-10">
-          {dataList}
+
+        {/* Desktop View: Full Responsive Grid */}
+        <div className="hidden md:flex md:flex-wrap md:justify-center md:gap-6 lg:mx-auto lg:max-w-7xl lg:gap-8">
+          {data.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.08 }}
+              whileHover={{ y: -8 }}
+              className="w-72 rounded-3xl bg-card border border-border p-6 shadow-xl relative overflow-hidden backdrop-blur-xl flex flex-col items-center justify-between group hover:border-primary/50 transition-all duration-300"
+            >
+              {/* Top Accent Gradient Bar */}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary via-primary to-accent opacity-70 group-hover:opacity-100 transition-opacity" />
+
+              <div className="relative mb-5 mt-2">
+                <div className="mx-auto h-32 w-32 rounded-full border-2 border-primary/30 p-1 bg-muted/40 overflow-hidden shadow-inner group-hover:border-primary transition-colors">
+                  <img
+                    src={item.img_src}
+                    className="h-full w-full rounded-full object-cover object-center transition-transform duration-500 group-hover:scale-110"
+                    alt={item.name}
+                  />
+                </div>
+                <span className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-secondary border-2 border-card animate-pulse" />
+              </div>
+
+              <span className="font-mono text-[10px] text-secondary bg-secondary/10 border border-secondary/20 px-2 py-0.5 rounded-full uppercase mb-2">
+                NODE-{item.id < 10 ? `0${item.id}` : item.id}
+              </span>
+
+              <h3 className="text-center text-xl font-bold font-sans text-foreground tracking-tight">
+                {item.name}
+              </h3>
+              <h4 className="mt-1 text-center font-mono text-xs font-semibold text-primary uppercase">
+                {item.position}
+              </h4>
+
+              {/* Callout box */}
+              <div className="w-full mt-4 p-2.5 rounded-xl bg-muted/60 border border-border text-center">
+                <span className="font-mono text-[10px] text-muted-foreground uppercase">
+                  FINANCIAL & COMPUTE GOVERNANCE
+                </span>
+              </div>
+
+              <div className="w-full mt-5">
+                <a
+                  href={item.linkedIn}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-2.5 px-4 font-mono text-xs font-bold uppercase tracking-wider shadow-[0_0_20px_hsl(var(--primary-hsl)/0.3)] group-hover:scale-105 transition-transform"
+                >
+                  <Icon icon="carbon:logo-linkedin" className="text-sm" />
+                  <span>Connect Node</span>
+                </a>
+              </div>
+            </motion.div>
+          ))}
         </div>
-        <div className="mr-3 md:hidden">
-          <Icon
-            icon="ic:baseline-chevron-right"
-            className="cursor-pointer rounded-full bg-secondary p-1 text-4xl text-gray-700 hover:text-primary transition duration-300"
-            onClick={() => {
-              if (current === dataList.length - 1) {
-                setCurrent(0)
-              } else {
-                setCurrent(current + 1)
-              }
-            }}
-          />
+
+        {/* Mobile Right Chevron */}
+        <div className="mr-1 md:hidden z-10">
+          <button
+            onClick={() => setCurrent((prev) => (prev === data.length - 1 ? 0 : prev + 1))}
+            className="p-2 rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
+            aria-label="Next Profile"
+          >
+            <Icon icon="carbon:chevron-right" className="text-xl" />
+          </button>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -49,10 +49,10 @@ export default function HamburgerNav() {
       </div>
 
       {/* Hamburger bar items */}
-<div
-  className={`fixed inset-0 z-50 h-full w-full bg-secondary-opacity px-5 pt-3 font-Lato text-secondary transition-transform duration-300 ease-in  
+      <div
+        className={`fixed inset-0 z-50 h-full w-full bg-secondary-opacity px-5 pt-3 font-Lato text-secondary transition-transform duration-300 ease-in  
     ${isOpen ? "translate-x-0" : "translate-x-[-100%]"}`}
->
+      >
         {/* Top Bar inside drawer */}
         <div className="flex items-center justify-between">
           <div>
@@ -110,9 +110,9 @@ export default function HamburgerNav() {
           </div>
           {isMoreClicked && (
             <div>
-          <Link to="/economania" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Economania</h1>
-          </Link>
+              <Link to="/economania" onClick={handleHamburgerClick}>
+                <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Economania</h1>
+              </Link>
               <Link to={"/galaxecon"} onClick={handleHamburgerClick}>
                 <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">GalaxEcon</h1>
               </Link>
@@ -128,7 +128,7 @@ export default function HamburgerNav() {
               href="https://docs.google.com/forms/d/e/1FAIpQLSfeI3Bi013_xIiV8P3sNSc6wa46X52Qy3gCDdDjCfDD3MfnNw/viewform"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full bg-[#0F0F0F] px-6 py-3 text-lg uppercase text-[#B69575] shadow-md transition hover:scale-105 hover:text-[#C9872B]"
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-lg uppercase text-primary shadow-md transition-all duration-300 hover:scale-105 hover:border-primary hover:text-accent hover:shadow-lg hover:shadow-primary/20"
               onClick={handleHamburgerClick}
             >
               <OrgLogo />

@@ -6,7 +6,7 @@ export default function Main() {
     <div className="mt-12 overflow-hidden px-3 btwnMdAndLg:mt-20 btwnMdAndLg:px-12 lg:px-16 xl:px-20">
       <div className="text-center btwnMdAndLg:text-left">
         <h1 className="font-Bebas text-[7rem] uppercase leading-[8rem] text-primary xs:text-9xl xs:leading-none  xl:text-[9rem]">
-          Sponsors 
+          Sponsors
         </h1>
         <h2 className="-mt-2 font-Abel text-4xl text-secondary btwnMdAndLg:text-3xl xl:text-4xl" >
           <TypingText 

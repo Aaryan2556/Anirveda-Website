@@ -1,11 +1,10 @@
 import React, { useRef, useState } from "react";
 import emailjs from "@emailjs/browser";
-import { FiSend } from "react-icons/fi";
+import { Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
-export default function Form(props) {
-  const { showStrip, setStripText } = props;
-
+export default function Form({ showStrip, setStripText }) {
   const [submitting, setSubmitting] = useState(false);
+  const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -29,157 +28,209 @@ export default function Form(props) {
     e.preventDefault();
 
     if (
-      formData.email === "" ||
-      formData.message === "" ||
-      formData.phone === "" ||
-      formData.subject === ""
+      !formData.firstName ||
+      !formData.email ||
+      !formData.message ||
+      !formData.phone ||
+      !formData.subject
     ) {
-      alert("Please fill all the fields");
-    } else if (formData.phone.length !== 10) {
-      alert("Please enter a valid phone number");
-    } else {
-      setSubmitting(true);
-
-      emailjs
-        .sendForm(
-          "service_sw8ehgj",
-          "template_ls82fgr",
-          form.current,
-          "8ZriNqr0I8M9ftNbI"
-        )
-        .then(
-          () => {
-            showStrip();
-            setFormData({
-              firstName: "",
-              lastName: "",
-              email: "",
-              phone: "",
-              subject: "",
-              message: "",
-            });
-            setSubmitting(false);
-          },
-          (error) => {
-            console.log(error);
-            setSubmitting(false);
-            setStripText("Something went wrong. Please try again later");
-            showStrip();
-          }
-        );
+      alert("Please fill all the required fields");
+      return;
     }
+
+    if (formData.phone.length < 10) {
+      alert("Please enter a valid phone number");
+      return;
+    }
+
+    setSubmitting(true);
+
+    emailjs
+      .sendForm(
+        "service_sw8ehgj",
+        "template_ls82fgr",
+        form.current,
+        "8ZriNqr0I8M9ftNbI"
+      )
+      .then(
+        () => {
+          setSubmitting(false);
+          setSubmittedSuccess(true);
+          if (showStrip) showStrip();
+          if (setStripText) setStripText("Form submitted successfully!");
+          setFormData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            subject: "",
+            message: "",
+          });
+          setTimeout(() => setSubmittedSuccess(false), 5000);
+        },
+        (error) => {
+          console.error(error);
+          setSubmitting(false);
+          if (setStripText) setStripText("Something went wrong. Please try again later");
+          if (showStrip) showStrip();
+        }
+      );
   };
 
   return (
     <div
-      className="mx-auto mt-3 w-[90%] bg-secondary py-5 sm:w-3/4 sm:py-6 md:px-9 btwnMdAndLg:w-3/5 lg:w-full lg:py-14 xl:w-[90%] xl:px-[70px] xl:py-16 btwnXlAnd2xl:w-[85%] btwnXlAnd2xl:py-20 rounded-lg"
       id="contact"
+      className="w-full rounded-3xl bg-slate-900/60 border border-amber-500/20 hover:border-amber-500/40 p-6 sm:p-8 backdrop-blur-xl shadow-2xl transition-all duration-500 relative overflow-hidden"
     >
-      <h1 className="relative pb-1 text-center text-xl font-bold after:absolute after:bottom-0 after:left-0 after:mx-4 after:h-[2px] after:w-[90%] after:bg-black sm:text-2xl md:pb-2 lg:text-left lg:after:mx-0 lg:after:h-[1px] lg:after:w-full xl:text-3xl">
-        Let's Connect
-      </h1>
-      <form
-        className="mt-4 space-y-2 px-4 xs:px-8 md:mt-7 md:space-y-3 md:text-xl lg:grid lg:grid-cols-2 lg:gap-x-7 lg:gap-y-5 lg:space-y-0 lg:px-0"
-        ref={form}
-        onSubmit={sendEmail}
-      >
-        {/* Form Fields */}
-        {[
-          ["firstName", "First name"],
-          ["lastName", "Last name"],
-          ["email", "Email address"],
-          ["phone", "Phone number"],
-        ].map(([name, label]) => (
-          <div
-            key={name}
-            className="flex items-center justify-between gap-3 lg:flex-col lg:items-start lg:justify-start lg:gap-2"
-          >
-            <label htmlFor={name} className="text-lg xl:text-[21px]">
-              {label}
-            </label>
-            <div className="mt-1 w-3/5 lg:mt-0 lg:w-full">
-              <input
-                type={name === "email" ? "email" : "text"}
-                name={name}
-                id={name}
-                className="w-full rounded-lg bg-inputFieldColor px-2 py-1 **focus:outline-none focus:border-2 focus:border-[#b69575]**"
-                onChange={handleChange}
-                value={formData[name]}
-              />
-            </div>
-          </div>
-        ))}
+      {/* Subtle Top Gradient Accent */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
 
-        {/* Subject */}
-        <div className="flex items-center justify-between gap-3 lg:col-span-2 lg:flex-col lg:items-start lg:justify-start lg:gap-2">
-          <label htmlFor="subject" className="text-lg xl:text-[21px]">
-            Subject
-          </label>
-          <div className="mt-1 w-3/5 lg:mt-0 lg:w-full">
+      {/* Card Header */}
+      <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800">
+        <div>
+          <h3 className="text-xl sm:text-2xl font-bold text-white">
+            Send Us a Message
+          </h3>
+          <p className="text-xs text-slate-400 font-sans mt-0.5">
+            Fill out the form and our team will get back to you within 24 hours.
+          </p>
+        </div>
+        <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.8)]" />
+      </div>
+
+      <form ref={form} onSubmit={sendEmail} className="space-y-4 font-sans text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* First Name */}
+          <div className="space-y-1.5">
+            <label htmlFor="firstName" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+              First Name <span className="text-amber-400">*</span>
+            </label>
             <input
               type="text"
-              name="subject"
-              id="subject"
-              className=" w-full rounded-lg bg-inputFieldColor px-2 py-1 **focus:outline-none focus:border-2 focus:border-[#b69575]**"
+              name="firstName"
+              id="firstName"
+              required
+              placeholder="Yourname"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
               onChange={handleChange}
-              value={formData.subject}
+              value={formData.firstName}
             />
           </div>
+
+          {/* Last Name */}
+          <div className="space-y-1.5">
+            <label htmlFor="lastName" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="lastName"
+              id="lastName"
+              placeholder=""
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              onChange={handleChange}
+              value={formData.lastName}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Email */}
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+              Email Address <span className="text-amber-400">*</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              required
+              placeholder="@gmail.com"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              onChange={handleChange}
+              value={formData.email}
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="space-y-1.5">
+            <label htmlFor="phone" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+              Phone Number <span className="text-amber-400">*</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              id="phone"
+              required
+              placeholder=""
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              onChange={handleChange}
+              value={formData.phone}
+            />
+          </div>
+        </div>
+
+        {/* Subject */}
+        <div className="space-y-1.5">
+          <label htmlFor="subject" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+            Subject / Inquiry Type <span className="text-amber-400">*</span>
+          </label>
+          <input
+            type="text"
+            name="subject"
+            id="subject"
+            required
+            placeholder="Sponsorship / Partnership / Event Query"
+            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+            onChange={handleChange}
+            value={formData.subject}
+          />
         </div>
 
         {/* Message */}
-        <div className="flex items-center justify-between gap-3 lg:col-span-2 lg:flex-col lg:items-start lg:justify-start lg:gap-2">
-          <label htmlFor="message" className="text-lg xl:text-[21px]">
-            Message
+        <div className="space-y-1.5">
+          <label htmlFor="message" className="block text-xs font-mono text-slate-300 uppercase tracking-wider">
+            Message <span className="text-amber-400">*</span>
           </label>
-          <div className="mt-1 w-3/5 lg:mt-0 lg:w-full">
-            <textarea
-              rows={4}
-              name="message"
-              id="message"
-              className=" w-full rounded-lg bg-inputFieldColor px-2 py-1 **focus:outline-none focus:border-2 focus:border-[#b69575]**"
-              onChange={handleChange}
-              value={formData.message}
-            />
-          </div>
+          <textarea
+            rows={4}
+            name="message"
+            id="message"
+            required
+            placeholder="Tell us about your proposal or message..."
+            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+            onChange={handleChange}
+            value={formData.message}
+          />
         </div>
 
         {/* Submit Button */}
-        <div className="mt-5 flex justify-center md:mt-7 lg:justify-start">
+        <div className="pt-2">
           <button
             type="submit"
             disabled={submitting}
-            className="flex items-center gap-2 cursor-pointer rounded-lg bg-black px-8 py-2 text-white md:text-xl transition-transform duration-200 hover:bg-[#655341] border border-[#b69575]"
+            className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-gold text-slate-950 font-bold text-sm shadow-lg hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v8z"
-                  ></path>
-                </svg>
-                Submitting...
+                <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                <span>Sending Message...</span>
               </>
             ) : (
               <>
-                <FiSend className="text-lg" /> Send
+                <Send className="w-4 h-4 text-slate-950" />
+                <span>Send Message</span>
               </>
             )}
           </button>
         </div>
+
+        {submittedSuccess && (
+          <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 font-mono text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>Message sent successfully! We will get back to you soon.</span>
+          </div>
+        )}
       </form>
     </div>
   );

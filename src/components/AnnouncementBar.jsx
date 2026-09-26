@@ -1,163 +1,111 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Icon } from "@iconify/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const AnnouncementBar = () => {
-  const announcements = [
-    {
-      id: 1,
-      text: "🚀 Tesseract 2025 - Registration open now for our flagship events!",
-      priority: "high"
-    },
-   
-    {
-      id: 2,
-      text: "💵 Take the MOCK-RBI Challenge on 10th October.",
-      priority: "high"
-    },
-    
-    {
-      id: 3,
-      text: "🎉 Blogs Section Coming Soon - Stay tuned for insightful articles on tech & economics!",
-      priority: "low"
-    }
-  
-    
+    const announcements = [
+  {
+    id: 1,
+    text: "🏏 IPL Auction 2026 — Registrations opening soon. Your auction strategy starts now.",
+    badge: "AUCTION",
+    link: "/ipl-auction",
+  },
+  {
+    id: 2,
+    text: "⚡ Tesseract 2026 — Registrations opening soon. Ctrl + Alt + Get Ready.",
+    badge: "FLAGSHIP",
+    link: "/events",
+  },
+
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
 
-  const [fadeState, setFadeState] = useState('fade-in');
-
-  useEffect(() => {
-    if (!isVisible) return;
-    
-    const transitionInterval = 5000; // Total time for each announcement (5 seconds)
-    const fadeTime = 400; // Time for fade transition (400ms)
-    
-    const interval = setInterval(() => {
-      // Start fade out transition
-      setFadeState('fade-out');
-      
-      // Change the index after fade out completes
-      setTimeout(() => {
-        setCurrentIndex((prevIndex) => 
-          prevIndex === announcements.length - 1 ? 0 : prevIndex + 1
-        );
-        setFadeState('fade-in');
-      }, fadeTime);
-      
-    }, transitionInterval);
-
-    return () => clearInterval(interval);
-  }, [announcements.length, isVisible]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-  };
-
-  const handleShowAnnouncements = () => {
-    console.log('Show announcements clicked');
-    setIsVisible(true);
-    setCurrentIndex(0);
-  };
-
-  const handlePrevious = () => {
-    setCurrentIndex(currentIndex === 0 ? announcements.length - 1 : currentIndex - 1);
-  };
-
   const handleNext = () => {
-    setCurrentIndex(currentIndex === announcements.length - 1 ? 0 : currentIndex + 1);
+    setCurrentIndex((prev) => (prev + 1) % announcements.length);
   };
 
-  const currentAnnouncement = announcements[currentIndex];
-
-  // CSS for fade animations
-  const fadeStyles = {
-    'fade-in': 'opacity-100 translate-y-0',
-    'fade-out': 'opacity-0 -translate-y-1'
+  const handlePrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
   };
+
+  if (!isVisible) {
+    return (
+      <button
+        onClick={() => setIsVisible(true)}
+        className="fixed top-4 right-4 z-50 bg-obsidian-800 text-gold border border-gold/40 w-9 h-9 rounded-full flex items-center justify-center shadow-lg hover:shadow-goldGlow transform hover:scale-110 transition-all duration-300 backdrop-blur-md"
+        aria-label="Open Announcement Ticker"
+      >
+        <Icon icon="carbon:notification" className="text-lg animate-pulse" />
+      </button>
+    );
+  }
+
+  const current = announcements[currentIndex];
 
   return (
-    <>
-      {/* Expand button - Only shown when announcement bar is closed */}
-      {!isVisible && (
-        <button 
-          onClick={handleShowAnnouncements}
-          className="fixed top-4 right-4 z-50 bg-gradient-to-r from-primary to-secondary w-8 h-8 rounded-full flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-110 transition-all duration-300"
-          aria-label="Show announcements"
-        >
-          <Icon icon="carbon:notification" className="text-white text-lg" />
-        </button>
-      )}
-      
-      {/* Content area */}
-      <div className="transition-all duration-500 ease-in-out">
-        {/* Sleek announcement bar */}
-        <div 
-          className={`bg-gradient-to-r from-primary via-secondary to-primary text-black transition-all duration-500 ease-out overflow-hidden shadow-md border-b border-secondary-15 ${
-            isVisible 
-              ? 'h-14 md:h-14 sm:h-16 opacity-100 py-2 px-2 md:px-4' 
-              : 'h-0 opacity-0 py-0 px-2 md:px-4'
-          }`}
-        >
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-10 md:h-10 sm:h-12">
-          {/* Enhanced indicator dots with priority colors - Hidden on mobile */}
-          <div className="hidden md:flex items-center space-x-2 mr-4">
-            {announcements.map((announcement, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-300 cursor-pointer hover:scale-125 transform ${index === currentIndex ? 'scale-110' : ''} ${
-                  index === currentIndex 
-                    ? announcement.priority === 'high' ? "bg-red-500 ring-2 ring-red-200" : "bg-green-500 ring-2 ring-green-200"
-                    : "bg-black bg-opacity-25 hover:bg-opacity-40"
-                }`}
-                onClick={() => setCurrentIndex(index)}
-                aria-label={`Go to announcement ${index + 1}`}
-              />
-            ))}
-          </div>
-          
-          {/* Enhanced announcement text - Responsive */}
-          <div className="flex-1 min-w-0 text-center px-2 md:px-0 flex items-center justify-center">
-            <div className="inline-flex items-center space-x-2">
-              <div className={`hidden md:block h-4 w-1 rounded-full ${currentAnnouncement.priority === 'high' ? 'bg-red-500' : 'bg-green-500'} animate-pulse`}></div>
-              <p className={`font-Abel text-sm md:text-lg font-semibold truncate tracking-wide drop-shadow-sm transition-all duration-300 ${fadeStyles[fadeState]}`}>
-                {currentAnnouncement.text}
-              </p>
-            </div>
+    <div className="relative z-50 pt-3 px-3 sm:px-6 max-w-7xl mx-auto">
+      {/* Floating marquee banner with token-based gradient border */}
+      <div className="relative rounded-full p-[1px] bg-gradient-to-r from-primary/50 via-accent/60 to-secondary/50 shadow-md backdrop-blur-xl">
+        <div className="bg-obsidian-900/90 rounded-full px-4 py-2 sm:py-2.5 flex items-center justify-between overflow-hidden">
+          {/* Left Live Status Indicator */}
+          <div className="flex items-center space-x-2 shrink-0 pr-2 sm:pr-4 border-r border-slate-800">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <span className="font-mono text-[10px] sm:text-xs font-bold text-gold uppercase tracking-wider hidden xs:inline">
+              LIVE SIGNAL
+            </span>
           </div>
 
-          {/* Enhanced controls - Elegant on all devices */}
-          <div className="flex items-center space-x-2 ml-2 md:ml-4">
+          {/* Center Marquee Content */}
+          <div className="flex-1 overflow-hidden px-3 text-center">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={current.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-medium text-slate-200"
+              >
+                <span className="bg-gold/20 text-gold-light border border-gold/30 px-2 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase tracking-wider hidden md:inline-block">
+                  {current.badge}
+                </span>
+                <span className="truncate">{current.text}</span>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Controls */}
+          <div className="flex items-center space-x-1.5 shrink-0 pl-2 sm:pl-4 border-l border-slate-800">
             <button
-              onClick={handlePrevious}
-              className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-black bg-opacity-10 hover:bg-opacity-20 flex items-center justify-center transition-all duration-300 transform hover:scale-105 hover:shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-              aria-label="Previous"
+              onClick={handlePrev}
+              className="p-1 rounded-full text-slate-400 hover:text-gold hover:bg-slate-800/60 transition-colors"
+              aria-label="Previous announcement"
             >
-              <Icon icon="carbon:chevron-left" className="text-black text-xs md:text-sm" />
+              <Icon icon="carbon:chevron-left" className="text-sm" />
             </button>
-            
             <button
               onClick={handleNext}
-              className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-black bg-opacity-10 hover:bg-opacity-20 flex items-center justify-center transition-all duration-300 transform hover:scale-105 hover:shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-              aria-label="Next"
+              className="p-1 rounded-full text-slate-400 hover:text-gold hover:bg-slate-800/60 transition-colors"
+              aria-label="Next announcement"
             >
-              <Icon icon="carbon:chevron-right" className="text-black text-xs md:text-sm" />
+              <Icon icon="carbon:chevron-right" className="text-sm" />
             </button>
-
             <button
-              onClick={handleClose}
-              className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-black bg-opacity-10 hover:bg-red-400 hover:bg-opacity-20 flex items-center justify-center transition-all duration-300 transform hover:scale-105 hover:shadow-sm focus:outline-none focus:ring-1 focus:ring-red-400 ml-1 md:ml-2"
-              aria-label="Close"
+              onClick={() => setIsVisible(false)}
+              className="p-1 rounded-full text-slate-400 hover:text-red-400 hover:bg-slate-800/60 transition-colors ml-1"
+              aria-label="Close announcement bar"
             >
-              <Icon icon="carbon:close" className="text-black text-xs md:text-sm" />
+              <Icon icon="carbon:close" className="text-sm" />
             </button>
           </div>
         </div>
-        </div>
       </div>
-    </>
+    </div>
   );
 };
 

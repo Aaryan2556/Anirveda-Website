@@ -12,36 +12,81 @@ module.exports = {
     },
     extend: {
       colors: {
-        primary: "#C9872B",
-        secondary: {
-          DEFAULT: "#B69575",
-          opacity: "#161616",
-          15: "rgba(182, 149, 117, 0.15)",
+        obsidian: {
+          900: "#07090E",
+          800: "#0B0E14",
+          700: "#121722",
+          600: "#1A202C",
         },
-        tertiary: "#0F0F0F",
-        inputFieldColor: "rgba(0, 0, 0, 0.06)",
+        gold: {
+          light: "#FDF0A6",
+          DEFAULT: "#D4AF37",
+          dark: "#AA820A",
+          accent: "#F59E0B",
+        },
+        neon: {
+          cyan: "#06B6D4",
+          emerald: "#10B981",
+          amber: "#F59E0B",
+        },
+        primary: "#D4AF37",
+        secondary: {
+          DEFAULT: "#CBD5E1",
+          opacity: "#0B0E14",
+          15: "rgba(212, 175, 55, 0.15)",
+        },
+        tertiary: "#07090E",
+        inputFieldColor: "rgba(255, 255, 255, 0.04)",
       },
       gridTemplateColumns: {
         contactSection: "1fr 2fr",
         mockrbiSidebar: "20% 80%",
+        heroSplit: "1.1fr 1fr",
       },
       fontFamily: {
-        Lato: ["Lato", "sans-serif"],
-        Bebas: ["Bebas Neue", "sans-serif"],
-        Yeseva: ["Yeseva One", "sans-serif"],
-        Abel: ["Abel", "sans-serif"],
+        sans: ["Inter", "Space Grotesk", ...defaultTheme.fontFamily.sans],
+        mono: ["JetBrains Mono", "Space Mono", "monospace"],
+        Lato: ["Inter", "sans-serif"],
+        Bebas: ["Space Grotesk", "sans-serif"],
+        Abel: ["Inter", "sans-serif"],
       },
       animation: {
         moveShapes: "moveShapes 10s linear infinite",
+        shimmer: "shimmer 3s ease-in-out infinite",
+        pulseGlow: "pulseGlow 2s ease-in-out infinite",
+        marquee: "marquee 25s linear infinite",
+        float: "float 6s ease-in-out infinite",
+        spinSlow: "spin 20s linear infinite",
       },
       keyframes: {
         moveShapes: {
           "0%": { transform: "translate3d(0, 0, 0)" },
           "100%": { transform: "translate3d(100vw, 100vh, 0)" },
         },
+        shimmer: {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" },
+        },
+        pulseGlow: {
+          "0%, 100%": { opacity: "0.4", filter: "drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))" },
+          "50%": { opacity: "0.9", filter: "drop-shadow(0 0 20px rgba(245, 158, 11, 0.8))" },
+        },
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
       },
       boxShadow: {
-        hovershadow: "1px 2px 10px rgb(245,158,11)", // 👈 Custom hover shadow
+        hovershadow: "0 0 25px rgba(245, 158, 11, 0.35)",
+        goldGlow: "0 0 30px rgba(212, 175, 55, 0.25)",
+        glassGlow: "0 8px 32px 0 rgba(0, 0, 0, 0.5)",
+      },
+      backdropBlur: {
+        super: "20px",
       },
     },
   },
