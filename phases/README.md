@@ -13,7 +13,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 | Phase | Name | Status | Depends on | Can run in parallel with |
 |---|---|---|---|---|
 | 1 | [Architecture, engine & local simulation](./phase-1-architecture-and-engine.md) | ✅ Done (2026-09-25) | — | — |
-| 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | 🟡 Code done (2026-09-26); needs a run against real Appwrite | 1 | 4, 5 |
+| 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | ✅ Done (2026-09-26) | 1 | 4, 5 |
 | 3 | [Server-authoritative engine (Appwrite Function)](./phase-3-server-authoritative-engine.md) | ⬜ Not started | 2 | 4, 5 |
 | 4 | [Admin functionality](./phase-4-admin.md) | ⬜ Not started | 1 | 2, 3, 5 |
 | 5 | [Participant functionality](./phase-5-participant.md) | ⬜ Not started | 1 | 2, 3, 4 |

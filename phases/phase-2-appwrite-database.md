@@ -2,7 +2,7 @@
 
 > **Scope change (2026-09-26):** there is no in-app bidding, so the `ipl_bids` collection and `bids` mapping are **not needed**. Purchases have no `bidSeq`. See the contract changelog.
 
-**Status:** 🟡 Code done 2026-09-26 — waiting on a real Appwrite API key to run setup/seed · **Depends on:** Phase 1 · **Parallel with:** Phases 4, 5
+**Status:** ✅ Done (2026-09-26) · **Depends on:** Phase 1 · **Parallel with:** Phases 4, 5
 **Goal:** define the Appwrite schema, write a pure, tested mapper between Appwrite documents and engine state, and add a **read-only** Appwrite adapter. Writes come in Phase 3.
 
 ## Approvals needed before starting
@@ -106,11 +106,12 @@ Schema differences from the proposal above: no `ipl_bids`; no lot bid fields on 
 - Scripts run against a local fake Appwrite REST server: refuse without credentials; refuse when pointed at the protected site database; setup twice = no changes; seed refuses a second time; `--reset` wipes and reseeds; legacy `string` fallback works.
 - `npm run build` passes. Headless Chrome: `/ipl-auction/admin`, `/ipl-auction/play` and `/` render **with no Appwrite env vars** (K1 fixed).
 
-### Still to do (needs the owner)
+### Verified against real Appwrite (2026-09-26)
 
-1. Create a server API key (scopes in `scripts/ipl-auction/README.md`) and fill `.env.ipl.local`.
-2. `npm run ipl:setup`, then `npm run ipl:seed`.
-3. Set the `VITE_IPL_AUCTION_*` vars in `.env.local`, `npm run dev`, and confirm `/ipl-auction/admin` shows the seeded auction (read-only).
+- The IPL dev database lives in its **own Appwrite project** (`6a6712190021f81a8a96`), separate from the live site's project, so live data cannot be affected.
+- `npm run ipl:setup` → "Schema is up to date" (all 5 tables present); `npm run ipl:seed` loaded the fictional auction (4 teams, 29 players); a second seed correctly refused.
+- Anonymous read through the real `appwrite` SDK and `appwriteAdapter.js` (no API key) returned the full auction: public read works, mapping is correct.
+- `npm run dev` with `.env.local` (`VITE_IPL_AUCTION_ADAPTER=appwrite`): `/ipl-auction/admin` and `/ipl-auction/play` render the Appwrite auction in Chrome (no "Reset local data" button, confirming the Appwrite adapter is active); localhost CORS works.
 
 ### Recommendation for Phase 3
 
