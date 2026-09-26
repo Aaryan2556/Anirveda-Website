@@ -9,7 +9,8 @@
     "build": "vite build",
     "vercel-build": "npm install && vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext .js,.jsx,.ts,.tsx"
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "test:ipl": "node --test \"src/lib/iplAuction/__tests__/*.test.js\""
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.0.1",

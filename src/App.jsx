@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import LoadingScreen from "./LoadingScreen"; 
 
@@ -42,6 +42,10 @@ import PlayerLogin from "./Pages/MockRBI/PlayerLogin";
 import PlayerPanel from "./Pages/MockRBI/PlayerPanel";
 import LeaderBoard from "./Pages/MockRBI/LeaderBoard";
 
+// IPL Auction (Phase 1: local-only functional pages), lazy-loaded to keep it out of the main bundle
+const IPLAuctionAdmin = lazy(() => import("./Pages/IPLAuction/AdminPage"));
+const IPLAuctionPlay = lazy(() => import("./Pages/IPLAuction/PlayPage"));
+
 
 
 const AppContent = ({ symbols, heading }) => {
@@ -55,10 +59,12 @@ const AppContent = ({ symbols, heading }) => {
                          location.pathname.startsWith('/playerlogin') ||
                          location.pathname.startsWith('/playerpanel') ||
                          location.pathname.startsWith('/leaderboard');
+  const isIPLAuctionRoute = location.pathname.startsWith('/ipl-auction');
+  const skipLoadingScreen = isMockRBIRoute || isIPLAuctionRoute;
 
   useEffect(() => {
-    // Skip loading screen for Mock RBI routes
-    if (isMockRBIRoute) {
+    // Skip loading screen for Mock RBI and IPL Auction routes
+    if (skipLoadingScreen) {
       setIsLoading(false);
       return;
     }
@@ -68,11 +74,11 @@ const AppContent = ({ symbols, heading }) => {
     }, 4000); //time to change after which the loading page ends
 
     return () => clearTimeout(timer); 
-  }, [location.pathname, isMockRBIRoute]);
+  }, [location.pathname, skipLoadingScreen]);
 
   return (
     <>
-      {isLoading && !isMockRBIRoute ? (
+      {isLoading && !skipLoadingScreen ? (
         <LoadingScreen symbols={symbols} heading={heading} />
       ) : (
         <>
@@ -171,6 +177,9 @@ const AppContent = ({ symbols, heading }) => {
       <Route path="/mock-rbi/playerlogin" element={<PlayerLogin />} />
       <Route path="/mock-rbi/playerpanel" element={<PlayerPanel />} />
       <Route path="/mock-rbi/leaderboard" element={<LeaderBoard />} />
+            {/* IPL Auction (local development) */}
+            <Route path="/ipl-auction/admin" element={<Suspense fallback={null}><IPLAuctionAdmin /></Suspense>} />
+            <Route path="/ipl-auction/play" element={<Suspense fallback={null}><IPLAuctionPlay /></Suspense>} />
           
           
           </Routes>
