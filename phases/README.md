@@ -55,10 +55,20 @@ flowchart LR
 3. Get the approvals the phase file asks for **before** any Appwrite, `.env`, dependency, deploy or git action.
 4. Finish with the phase's **Definition of done** plus the universal one below, then fill in *Handoff notes* and update the status table above.
 
-## Git workflow: one branch per phase (stacked)
+## Git workflow: one branch per phase, merged into an integration branch
 
-- Each phase lives on its own branch: `feat/ipl-auction-phase-1`, `feat/ipl-auction-phase-2`, …
-- Branches are **stacked**: phase N+1 branches from phase N, so each PR shows only that phase's changes. Open phase N+1's PR against phase N's branch (or against `main` once phase N is merged).
+```
+main ─────────────────────────────────────────► (live site)
+  └─ feat/ipl-auction ──●────●──── ... ──●──► one merge into main, before the event
+                        ↑    ↑           ↑
+                    phase-1 phase-2 ... phase-8
+```
+
+- `feat/ipl-auction` is the integration branch. It is created from `main` and holds finished phases.
+- Each phase lives on its own branch (`feat/ipl-auction-phase-N`), **created from the latest `feat/ipl-auction`**.
+- When a phase is done, open a PR **phase branch → `feat/ipl-auction`**; the owner reviews and merges it.
+- Occasionally merge `main` into `feat/ipl-auction` to keep the final merge small.
+- `feat/ipl-auction` → `main` happens **once**, after Phases 7 (auth) and 8 (UI) are done and tested, so no unprotected admin page reaches the live site.
 - Never commit IPL work directly to `main`. Push only when the owner says so.
 
 ## Universal definition of done (every phase)
