@@ -64,11 +64,10 @@ main ─────────────────────────
                     phase-1 phase-2 ... phase-8
 ```
 
-- `feat/ipl-auction` is the integration branch. It is created from `main` and holds finished phases.
-- Each phase lives on its own branch (`feat/ipl-auction-phase-N`), **created from the latest `feat/ipl-auction`**.
-- When a phase is done, open a PR **phase branch → `feat/ipl-auction`**; the owner reviews and merges it.
-- Occasionally merge `main` into `feat/ipl-auction` to keep the final merge small.
-- `feat/ipl-auction` → `main` happens **once**, after Phases 7 (auth) and 8 (UI) are done and tested, so no unprotected admin page reaches the live site.
+- **Nothing is merged until every phase is finished** (the website is live from `main`).
+- Each phase lives on its own branch (`feat/ipl-auction-phase-N`), **created from the previous phase's branch** (phase-2 from phase-1, and so on), so every branch contains all earlier phases.
+- Each phase branch is pushed when done, for review; no merges in between.
+- At the end: merge `feat/ipl-auction-phase-8` → `feat/ipl-auction` (integration branch, created from `main`), test, then `feat/ipl-auction` → `main` **once**, after Phases 7 (auth) and 8 (UI) are done, so no unprotected admin page reaches the live site.
 - Never commit IPL work directly to `main`. Push only when the owner says so.
 
 ## Universal definition of done (every phase)
