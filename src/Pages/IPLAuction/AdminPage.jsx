@@ -188,7 +188,7 @@ export default function AdminPage() {
             >
               End auction
             </Button>
-            {confirmReset ? (
+            {!reset ? null : confirmReset ? (
               <>
                 <Button
                   variant="danger"

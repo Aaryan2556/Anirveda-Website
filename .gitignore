@@ -19,6 +19,8 @@ appwrite.json
 
 # Environment files
 *.env
+.env.local
+*.local
 .env.development
 .env.production
 

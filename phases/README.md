@@ -13,7 +13,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 | Phase | Name | Status | Depends on | Can run in parallel with |
 |---|---|---|---|---|
 | 1 | [Architecture, engine & local simulation](./phase-1-architecture-and-engine.md) | ✅ Done (2026-09-25) | — | — |
-| 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | ⬜ Not started | 1 | 4, 5 |
+| 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | 🟡 Code done (2026-09-26); needs a run against real Appwrite | 1 | 4, 5 |
 | 3 | [Server-authoritative engine (Appwrite Function)](./phase-3-server-authoritative-engine.md) | ⬜ Not started | 2 | 4, 5 |
 | 4 | [Admin functionality](./phase-4-admin.md) | ⬜ Not started | 1 | 2, 3, 5 |
 | 5 | [Participant functionality](./phase-5-participant.md) | ⬜ Not started | 1 | 2, 3, 4 |
@@ -88,9 +88,9 @@ Players come up **in sequence**. **Bidding happens offline in the room.** When t
 
 | # | Issue | Impact | Planned fix |
 |---|---|---|---|
-| K1 | No `.env` exists locally, and `src/config/appwrite.js` throws when `VITE_APPWRITE_ENDPOINT` is missing. `App.jsx` imports MockRBI pages eagerly, so **the whole site renders blank** without env vars. | Can't run the site locally without setting env vars. Workaround: set them on the dev-server process only (see Phase 1 file). | Phase 2 prerequisite (needs approval): make the config tolerate missing env vars. |
-| K2 | `.gitignore` covers `.env` but **not** `.env.local`. | A local env file could be committed by accident. | Add `.env.local` / `*.local` to `.gitignore` (needs approval). |
-| K3 | `makeId()` in `src/lib/iplAuction/repository/mockSeed.js` produces IDs longer than 36 characters. | Appwrite rejects document IDs over 36 characters. | Phase 2: switch to Appwrite-compatible IDs (see contract §7). |
+| K1 | No `.env` exists locally, and `src/config/appwrite.js` throws when `VITE_APPWRITE_ENDPOINT` is missing. `App.jsx` imports MockRBI pages eagerly, so **the whole site renders blank** without env vars. | Can't run the site locally without setting env vars. Workaround: set them on the dev-server process only (see Phase 1 file). | ✅ Fixed in Phase 2: config only sets what is defined. |
+| K2 | `.gitignore` covers `.env` but **not** `.env.local`. | A local env file could be committed by accident. | ✅ Fixed in Phase 2. |
+| K3 | `makeId()` in `src/lib/iplAuction/repository/mockSeed.js` produces IDs longer than 36 characters. | Appwrite rejects document IDs over 36 characters. | ✅ Fixed in Phase 2. |
 | K4 | Phase 1 has no login: a team tab picks its team from the URL. | Anyone can act as any team **locally**. | Phase 7. |
 | K5 | MockRBI uses hardcoded admin credentials and plain-text team passwords in the browser. | Out of scope for IPL; don't copy this pattern. | Not planned here. Raise separately. |
 | K6 | `Claude.md` is cut off after section 18. | Requirements after that point may be missing. | Owner to restore. |

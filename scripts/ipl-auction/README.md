@@ -1,0 +1,37 @@
+# IPL Auction — Appwrite dev scripts
+
+Schema-as-code and seed data for the IPL Auction **development** database.
+The schema itself lives in `src/lib/iplAuction/repository/appwriteSchema.js`.
+
+## One-time setup
+
+1. In the Appwrite console (project from `VITE_APPWRITE_PROJECT_ID`), create a **server API key** with the
+   scopes: `databases.read/write`, `tables.read/write`, `columns.read/write`, `indexes.read/write`, `rows.read/write`.
+2. `cp .env.ipl.example .env.ipl.local` and fill it in. `.env.ipl.local` is git-ignored — never commit it,
+   and never put the API key in a `VITE_` variable.
+3. Use a **separate** database ID for IPL (default `ipl-auction-dev`). Set `PROTECTED_DATABASE_ID` to the
+   existing site database so the scripts refuse to run against it.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `npm run ipl:setup` | Creates the database, tables, columns and indexes that are missing. Safe to re-run; never alters or deletes. Reports differences. |
+| `npm run ipl:seed` | Writes a fresh auction from the FICTIONAL mock data. Refuses if IPL rows exist. |
+| `npm run ipl:seed -- --reset` | Deletes **every row in the IPL tables**, then seeds. Dev database only. |
+
+## Pointing the app at Appwrite (read-only until Phase 3)
+
+Create `.env.local` (git-ignored) with:
+
+```
+VITE_APPWRITE_ENDPOINT=https://fra.cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=<project id>
+VITE_IPL_AUCTION_ADAPTER=appwrite
+VITE_IPL_AUCTION_DATABASE_ID=ipl-auction-dev
+# optional; defaults to the newest auction
+VITE_IPL_AUCTION_ID=
+```
+
+Then `npm run dev` and open `/ipl-auction/admin`. Without `VITE_IPL_AUCTION_ADAPTER=appwrite` the app keeps
+using the local (browser-only) adapter. Remove `VITE_IPL_AUCTION_ADAPTER` before building for production.

@@ -17,16 +17,10 @@
  * - After a write, the new state is broadcast over BroadcastChannel to the other tabs.
  */
 import { SCHEMA_VERSION, reduce } from "../engine/index.js";
+import { isNewer } from "./isNewer.js";
 
 export const LOCAL_STORAGE_KEY = "iplAuction.local.v1";
 
-/** True when `candidate` is a later state than `current` (a newer reset, or a higher version). */
-function isNewer(candidate, current) {
-  if (!current) return true;
-  if (candidate.createdAt !== current.createdAt) return candidate.createdAt > current.createdAt;
-  if (candidate.auctionId !== current.auctionId) return true;
-  return candidate.version > current.version;
-}
 
 function defaultStorage() {
   try {

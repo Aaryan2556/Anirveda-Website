@@ -2,7 +2,7 @@
 
 > **Scope change (2026-09-26):** there is no in-app bidding, so the `ipl_bids` collection and `bids` mapping are **not needed**. Purchases have no `bidSeq`. See the contract changelog.
 
-**Status:** ⬜ Not started · **Depends on:** Phase 1 · **Parallel with:** Phases 4, 5
+**Status:** 🟡 Code done 2026-09-26 — waiting on a real Appwrite API key to run setup/seed · **Depends on:** Phase 1 · **Parallel with:** Phases 4, 5
 **Goal:** define the Appwrite schema, write a pure, tested mapper between Appwrite documents and engine state, and add a **read-only** Appwrite adapter. Writes come in Phase 3.
 
 ## Approvals needed before starting
@@ -77,4 +77,41 @@ Indexes: **unique `(auctionId, seq)`** (Phase 3 uses this as the per-auction wri
 
 ## Handoff notes
 
-_(fill in when done)_
+### What was built (branch `feat/ipl-auction-phase-2`)
+
+| Piece | File |
+|---|---|
+| Schema as code (TablesDB) | `src/lib/iplAuction/repository/appwriteSchema.js` |
+| Pure mapper: `stateToRows`, `rowsToState`, `diffToWrites` | `src/lib/iplAuction/repository/appwriteMapper.js` |
+| Read-only adapter (polling, consistent reads, never goes backwards) | `src/lib/iplAuction/repository/appwriteAdapter.js` |
+| Dev-only adapter switch `VITE_IPL_AUCTION_ADAPTER=appwrite` | `src/lib/iplAuction/repository/index.js` |
+| Setup + seed scripts (REST via built-in `fetch`, **no new dependency**) | `scripts/ipl-auction/` (`npm run ipl:setup`, `npm run ipl:seed`) |
+| Credentials template (placeholders only) | `.env.ipl.example` → copy to git-ignored `.env.ipl.local` |
+| K1 / K2 / K3 fixes | `src/config/appwrite.js`, `.gitignore`, `repository/mockSeed.js` |
+
+Schema differences from the proposal above: no `ipl_bids`; no lot bid fields on the auction row; purchases have no `bidSeq` and use the **player ID as row ID**; teams and players have an `order` column. Tables are readable by anyone (`read("any")`) with **no client writes**; Phase 7 narrows reads.
+
+### Spike findings
+
+- **API:** use **TablesDB** (tables / rows / columns). `appwrite@21.5.0` has it, and it is where new features land. MockRBI keeps using `Databases`; both work side by side.
+- **Transactions: available.** The SDK has `createTransaction` / `createOperations` and Appwrite Cloud supports them. `diffToWrites` already returns operations in the transaction shape, so Phase 3 can commit a whole command atomically.
+- **Column types:** server 1.9 deprecates `string` in favour of `varchar` / `text` / `mediumtext` / `longtext`. The setup script tries the new types and falls back to `string` on older servers (both paths tested against a fake server).
+- **Large integers:** epoch-ms columns are created with an explicit `max` of `Number.MAX_SAFE_INTEGER` so they are 64-bit.
+- **Realtime channels** (Phase 6): `databases.<db>.tables.<table>.rows` style channels for TablesDB — confirm against the live server in Phase 6.
+- **Not verified yet (needs the real server):** exact Cloud server version, and text-column size limits in practice. The first `npm run ipl:setup` run will show both.
+
+### Verification performed
+
+- `npm run test:ipl`: **99/99** pass (new: mapper round-trips for fresh, busy and mock auctions; every mapped row checked against the schema's columns, types, sizes and required flags; step-by-step `diffToWrites` replay reproduces the engine state; adapter paging, torn-read retry, never-backwards, error handling, read-only dispatch; `makeId` validity).
+- Scripts run against a local fake Appwrite REST server: refuse without credentials; refuse when pointed at the protected site database; setup twice = no changes; seed refuses a second time; `--reset` wipes and reseeds; legacy `string` fallback works.
+- `npm run build` passes. Headless Chrome: `/ipl-auction/admin`, `/ipl-auction/play` and `/` render **with no Appwrite env vars** (K1 fixed).
+
+### Still to do (needs the owner)
+
+1. Create a server API key (scopes in `scripts/ipl-auction/README.md`) and fill `.env.ipl.local`.
+2. `npm run ipl:setup`, then `npm run ipl:seed`.
+3. Set the `VITE_IPL_AUCTION_*` vars in `.env.local`, `npm run dev`, and confirm `/ipl-auction/admin` shows the seeded auction (read-only).
+
+### Recommendation for Phase 3
+
+With offline bidding, **only admins write**. That opens a simpler option than an Appwrite Function: the admin's browser runs the engine and commits `diffToWrites(...)` in **one TablesDB transaction**, while table permissions allow writes only to an admin team/label. Teams still cannot write anything (enforced by Appwrite, not the UI), and the unique `(auctionId, seq)` activity index rejects a write based on a stale state. Trade-off: rule enforcement then trusts the admin's client — acceptable if admins are trusted organisers. Decide at the start of Phase 3.

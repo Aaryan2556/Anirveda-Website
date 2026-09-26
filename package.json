@@ -10,7 +10,9 @@
     "vercel-build": "npm install && vite build",
     "preview": "vite preview",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
-    "test:ipl": "node --test \"src/lib/iplAuction/__tests__/*.test.js\""
+    "test:ipl": "node --test \"src/lib/iplAuction/__tests__/*.test.js\"",
+    "ipl:setup": "node --env-file=.env.ipl.local scripts/ipl-auction/setup-appwrite.mjs",
+    "ipl:seed": "node --env-file=.env.ipl.local scripts/ipl-auction/seed-dev.mjs"
   },
   "dependencies": {
     "@auth0/auth0-react": "^2.0.1",
