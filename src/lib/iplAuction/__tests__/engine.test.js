@@ -6,6 +6,7 @@ import {
   ERROR,
   PLAYER_STATUS,
   createInitialState,
+  getAuctionSummary,
   getMaxBid,
   getNextPlayerInSequence,
   getRecentSales,
@@ -487,6 +488,129 @@ describe("players and teams during setup", () => {
     const state = apply(setup(), { type: COMMANDS.ADD_TEAM, team: { id: "t4", name: "Fourth" } });
     assert.equal(state.teams.t4.shortName, "FOU");
     reject(state, { type: COMMANDS.ADD_TEAM, team: { id: "t4", name: "Again" } }, ERROR.DUPLICATE_ID);
+  });
+});
+
+describe("removing players and managing teams (setup only)", () => {
+  const { REMOVE_PLAYER, UPDATE_TEAM, REMOVE_TEAM, START_AUCTION } = COMMANDS;
+
+  it("removes a player from the pool and the sequence", () => {
+    const state = apply(setup(), { type: REMOVE_PLAYER, playerId: "bat2" });
+    assert.equal(state.players.bat2, undefined);
+    assert.ok(!state.playerOrder.includes("bat2"));
+    assert.equal(state.playerOrder.length, PLAYERS.length - 1);
+    assert.equal(state.activity.at(-1).type, REMOVE_PLAYER);
+  });
+
+  it("clears undo entries that could resurrect a removed player", () => {
+    let state = apply(setup(), { type: WITHDRAW_PLAYER, playerId: "bat2" });
+    assert.equal(state.undoStack.length, 1);
+    state = apply(state, { type: REMOVE_PLAYER, playerId: "bat2" });
+    assert.equal(state.undoStack.length, 0);
+    reject(state, { type: UNDO }, ERROR.NOTHING_TO_UNDO);
+  });
+
+  it("rejects removing unknown players or removing after the start", () => {
+    reject(setup(), { type: REMOVE_PLAYER, playerId: "nobody" }, ERROR.NOT_FOUND);
+    reject(live(), { type: REMOVE_PLAYER, playerId: "bat1" }, ERROR.AUCTION_NOT_IN_SETUP);
+  });
+
+  it("edits a team's name, short name and logo; the id cannot change", () => {
+    const state = apply(setup(), {
+      type: UPDATE_TEAM,
+      teamId: "t1",
+      changes: { id: "hijack", name: "  Renamed  ", shortName: "REN", logo: "https://example.com/logo.png" },
+    });
+    assert.deepEqual(state.teams.t1, { id: "t1", name: "Renamed", shortName: "REN", logo: "https://example.com/logo.png" });
+    assert.equal(state.teams.hijack, undefined);
+  });
+
+  it("rejects invalid team edits", () => {
+    reject(setup(), { type: UPDATE_TEAM, teamId: "nope", changes: { name: "X" } }, ERROR.NOT_FOUND);
+    reject(setup(), { type: UPDATE_TEAM, teamId: "t1", changes: { name: " " } }, ERROR.INVALID_INPUT);
+    reject(setup(), { type: UPDATE_TEAM, teamId: "t1", changes: { shortName: "WAY-TOO-LONG-SHORTNAME" } }, ERROR.INVALID_INPUT);
+    reject(live(), { type: UPDATE_TEAM, teamId: "t1", changes: { name: "Late" } }, ERROR.AUCTION_NOT_IN_SETUP);
+  });
+
+  it("removes a team; the auction then needs 2 teams to start", () => {
+    let state = apply(setup(), { type: REMOVE_TEAM, teamId: "t3" });
+    assert.equal(state.teams.t3, undefined);
+    assert.deepEqual(state.teamOrder, ["t1", "t2"]);
+    state = apply(state, { type: REMOVE_TEAM, teamId: "t2" });
+    reject(state, { type: START_AUCTION }, ERROR.NOT_ENOUGH_PARTICIPANTS);
+  });
+
+  it("rejects removing unknown teams or removing after the start", () => {
+    reject(setup(), { type: REMOVE_TEAM, teamId: "nope" }, ERROR.NOT_FOUND);
+    reject(live(), { type: REMOVE_TEAM, teamId: "t1" }, ERROR.AUCTION_NOT_IN_SETUP);
+  });
+
+  it("teams cannot manage players or teams", () => {
+    for (const command of [
+      { type: REMOVE_PLAYER, playerId: "bat1" },
+      { type: UPDATE_TEAM, teamId: "t1", changes: { name: "Mine" } },
+      { type: REMOVE_TEAM, teamId: "t2" },
+    ]) {
+      const result = reduce(setup(), { ...command, actor: teamActor("t1") });
+      assert.equal(result.error.code, ERROR.UNAUTHORIZED);
+    }
+  });
+});
+
+describe("player field validation", () => {
+  const base = { id: "v1", name: "Valid Fictional", role: "BATTER", basePrice: 20, isOverseas: false };
+  const add = (player) => ({ type: COMMANDS.ADD_PLAYER, player: { ...base, ...player } });
+
+  it("accepts full profiles and trims text; blank optional text becomes null", () => {
+    const state = apply(setup(), add({
+      nationality: " India ", age: 24, battingStyle: "", image: null,
+      stats: { batting: { runs: 100 } }, recentPerformance: ["12 (9)"], dataSource: "MANUAL_ENTRY",
+    }));
+    const player = state.players.v1;
+    assert.equal(player.nationality, "India");
+    assert.equal(player.battingStyle, null);
+    assert.deepEqual(player.stats, { batting: { runs: 100 } });
+  });
+
+  it("rejects values the database could not store", () => {
+    const cases = [
+      { name: "x".repeat(129) },
+      { nationality: "x".repeat(65) },
+      { bowlingStyle: 12 },
+      { image: "x".repeat(2001) },
+      { dataSource: "x".repeat(33) },
+      { age: 24.5 },
+      { age: "old" },
+      { stats: ["not", "an", "object"] },
+      { recentPerformance: "12 (9)" },
+      { recentPerformance: [12] },
+    ];
+    for (const fields of cases) reject(setup(), add(fields), ERROR.INVALID_INPUT);
+  });
+
+  it("applies the same checks to edits", () => {
+    reject(setup(), { type: COMMANDS.UPDATE_PLAYER, playerId: "bat1", changes: { age: -1 } }, ERROR.INVALID_INPUT);
+  });
+});
+
+describe("auction summary", () => {
+  it("reports each team's squad, spend, minimums and pool totals", () => {
+    let state = live({ config: testConfig({ squad: { min: 2, max: 4 }, roleLimits: {
+      BATTER: { min: 1, max: 2 }, BOWLER: { min: 1, max: 2 }, ALL_ROUNDER: { min: 0, max: 2 }, WICKETKEEPER: { min: 0, max: 1 },
+    } }) });
+    state = buy(buy(state, "t1", "bat1", 40), "t1", "bowl1");
+    state = buy(state, "t2", "bat2", 60);
+    state = apply(apply(state, { type: OPEN_LOT, playerId: "wk1" }), { type: MARK_UNSOLD });
+
+    const summary = getAuctionSummary(state);
+    const [t1, t2, t3] = summary.teams;
+    assert.equal(summary.totalSpent, 40 + 20 + 60);
+    assert.deepEqual([t1.stats.spent, t1.squad.length, t1.meetsSquadMinimum, t1.rolesShort], [60, 2, true, []]);
+    assert.deepEqual([t2.meetsSquadMinimum, t2.rolesShort], [false, ["BOWLER"]]);
+    assert.deepEqual(t3.rolesShort, ["BATTER", "BOWLER"]);
+    assert.equal(summary.players.byStatus.SOLD, 3);
+    assert.equal(summary.players.byStatus.UNSOLD, 1);
+    assert.equal(summary.players.total, PLAYERS.length);
   });
 });
 

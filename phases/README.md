@@ -15,7 +15,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 | 1 | [Architecture, engine & local simulation](./phase-1-architecture-and-engine.md) | ✅ Done (2026-09-25) | — | — |
 | 2 | [Appwrite database & persistence mapping](./phase-2-appwrite-database.md) | ✅ Done (2026-09-26) | 1 | 4, 5 |
 | 3 | [Authoritative writes (admin client + transactions)](./phase-3-server-authoritative-engine.md) | ✅ Code done (2026-09-26); browser run needs an admin account | 2 | 4, 5 |
-| 4 | [Admin functionality](./phase-4-admin.md) | ⬜ Not started | 1 | 2, 3, 5 |
+| 4 | [Admin functionality](./phase-4-admin.md) | ✅ Done locally (2026-09-28); Appwrite re-check pending | 1 | 2, 3, 5 |
 | 5 | [Participant functionality](./phase-5-participant.md) | ⬜ Not started | 1 | 2, 3, 4 |
 | 6 | [Real-time synchronization](./phase-6-realtime.md) | ⬜ Not started | 3 | — |
 | 7 | [Authentication & permissions](./phase-7-auth-permissions.md) | ⬜ Not started | 3 (and 4, 5 for guards) | 6 |
@@ -94,6 +94,7 @@ Players come up **in sequence**. **Bidding happens offline in the room.** When t
 | K4 | Phase 1 has no login: a team tab picks its team from the URL. | Anyone can act as any team **locally**. | Phase 7. |
 | K5 | MockRBI uses hardcoded admin credentials and plain-text team passwords in the browser. | Out of scope for IPL; don't copy this pattern. | Not planned here. Raise separately. |
 | K6 | `Claude.md` is cut off after section 18. | Requirements after that point may be missing. | Owner to restore. |
+| K7 | One command must fit in one Appwrite transaction (100 row writes). `order` is stored as the index in `playerOrder`, so removing or moving a player near the **top** of a long list renumbers every later player. With 100+ players this fails cleanly with `SERVER_ERROR` (nothing written; covered by a test). | Only with large pools, in Appwrite mode. Workaround: remove/move players near the end, or do it before importing the rest. | Store a sparse order key in state (schema v3) so only the moved row is written. Decide before the real player list is loaded. |
 
 ## Decisions still open
 

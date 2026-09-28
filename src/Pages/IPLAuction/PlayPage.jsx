@@ -7,7 +7,6 @@
  * There is no authentication yet: the team is chosen from the URL. Real identity
  * arrives with the Appwrite phases; teams cannot send any command either way.
  */
-import { useSearchParams } from "react-router-dom";
 import { ROLE_LABELS, ROLE_LIST } from "../../lib/iplAuction/config";
 import {
   getMaxBid,
@@ -19,6 +18,7 @@ import {
 } from "../../lib/iplAuction/engine";
 import { formatLakhs } from "../../lib/iplAuction/money";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
+import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import {
   ActivityLog,
   AuctionHeader,
@@ -48,10 +48,8 @@ function TeamPicker({ state, onPick }) {
 
 export default function PlayPage() {
   const { state, kind } = useAuction();
-  const [params, setParams] = useSearchParams();
-  const teamId = params.get("team");
+  const { teamId, setTeamId: pickTeam } = useTeamActor();
   const team = teamId ? state.teams[teamId] : null;
-  const pickTeam = (id) => setParams({ team: id });
 
   return (
     <div className="min-h-screen bg-tertiary px-4 py-6 font-Lato text-white">

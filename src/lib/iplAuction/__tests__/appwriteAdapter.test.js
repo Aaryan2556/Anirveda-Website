@@ -45,6 +45,30 @@ function storedState(db) {
 
 const cmd = (type, extra = {}) => ({ type, actor: ADMIN, ...extra });
 
+/** Runs `commands` through the Appwrite adapter (fake DB) and the local adapter; final states must match. */
+async function assertParity(seed, commands) {
+  const db = createFakeTablesDB();
+  db.store(seed);
+  const { repo: remote } = repoFor(db);
+  let clock = 10_000;
+  const local = createLocalRepository({
+    createSeedState: () => seed,
+    storage: null,
+    BroadcastChannelImpl: null,
+    locks: null,
+    now: () => (clock += 1000),
+  });
+  openRepos.push(local);
+
+  for (const command of commands) {
+    const [a, b] = [await remote.dispatch(command), await local.dispatch(command)];
+    assert.equal(a.ok, b.ok, `${command.type}: ${a.error?.message ?? b.error?.message}`);
+    assert.equal(a.ok, true, `${command.type}: ${a.error?.message}`);
+  }
+  assert.deepStrictEqual(storedState(db), local.getSnapshot());
+  assert.deepStrictEqual(remote.getSnapshot(), local.getSnapshot());
+}
+
 describe("appwrite adapter: reading", () => {
   it("shows a placeholder, then loads the newest auction once subscribed", async () => {
     const db = createFakeTablesDB();
@@ -295,24 +319,41 @@ describe("appwrite adapter: writing (transactions)", () => {
       cmd(COMMANDS.END_AUCTION),
     ];
 
-    const db = createFakeTablesDB();
-    db.store(seed);
-    const { repo: remote } = repoFor(db);
-    let clock = 10_000;
-    const local = createLocalRepository({
-      createSeedState: () => seed,
-      storage: null,
-      BroadcastChannelImpl: null,
-      locks: null,
-      now: () => (clock += 1000),
-    });
-    openRepos.push(local);
+    await assertParity(seed, commands);
+  });
 
-    for (const command of commands) {
-      const [a, b] = [await remote.dispatch(command), await local.dispatch(command)];
-      assert.equal(a.ok, b.ok, `${command.type}: ${a.error?.message ?? b.error?.message}`);
-    }
-    assert.deepStrictEqual(storedState(db), local.getSnapshot());
-    assert.deepStrictEqual(remote.getSnapshot(), local.getSnapshot());
+  it("parity: setup commands that delete rows (players, teams) match the local adapter", async () => {
+    const seed = setup();
+    await assertParity(seed, [
+      cmd(COMMANDS.UPDATE_TEAM, { teamId: "t1", changes: { name: "Renamed One", shortName: "RN1" } }),
+      cmd(COMMANDS.REMOVE_TEAM, { teamId: "t3" }),
+      cmd(COMMANDS.ADD_PLAYER, { player: { id: "imp1", name: "Imported", role: "BOWLER", basePrice: 25, isOverseas: false, dataSource: "FICTIONAL" } }),
+      cmd(COMMANDS.WITHDRAW_PLAYER, { playerId: "bat2" }),
+      cmd(COMMANDS.REMOVE_PLAYER, { playerId: "bat2" }),
+      cmd(COMMANDS.REMOVE_PLAYER, { playerId: "bat1" }),
+      cmd(COMMANDS.UPDATE_PLAYER, { playerId: "imp1", changes: { age: 30, stats: { bowling: { wickets: 4 } } } }),
+      cmd(COMMANDS.START_AUCTION),
+      cmd(COMMANDS.OPEN_LOT),
+      cmd(COMMANDS.SELL_PLAYER, { playerId: "bat3", teamId: "t1", price: 100 }),
+    ]);
+  });
+
+  it("a command touching more rows than one transaction allows fails cleanly (known limit)", async () => {
+    // Removing the FIRST of many players renumbers every later player's `order`.
+    const players = Array.from({ length: 120 }, (_, i) => ({
+      id: `p${i}`, name: `Fictional ${i}`, role: "BATTER", basePrice: 20, isOverseas: false, dataSource: "FICTIONAL",
+    }));
+    const db = createFakeTablesDB();
+    db.store(setup({ players }));
+    const { repo } = repoFor(db);
+    const before = storedState(db);
+
+    const result = await repo.dispatch(cmd(COMMANDS.REMOVE_PLAYER, { playerId: "p0" }));
+    assert.equal(result.error.code, ADAPTER_ERROR.SERVER_ERROR);
+    assert.match(result.error.message, /limit is 100/);
+    assert.deepStrictEqual(storedState(db), before, "nothing was written");
+
+    const last = await repo.dispatch(cmd(COMMANDS.REMOVE_PLAYER, { playerId: "p119" }));
+    assert.equal(last.ok, true, "removing a later player touches few rows and works");
   });
 });

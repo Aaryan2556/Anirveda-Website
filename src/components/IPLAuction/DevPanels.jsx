@@ -5,6 +5,7 @@
 import { ROLE_LABELS, ROLE_LIST } from "../../lib/iplAuction/config";
 import { getMaxBid, getRecentSales, getTeamStats, getTeamsInOrder, getUpcomingPlayers } from "../../lib/iplAuction/engine";
 import { formatLakhs } from "../../lib/iplAuction/money";
+import { STAT_FIELD_LABELS, STAT_GROUPS, isFictional } from "../../lib/iplAuction/playerFields";
 
 export function Section({ title, children, actions }) {
   return (
@@ -70,7 +71,7 @@ function StatTable({ title, stats }) {
         <tbody>
           {Object.entries(stats).map(([key, value]) => (
             <tr key={key}>
-              <td className="pr-3 text-white/60">{key}</td>
+              <td className="pr-3 text-white/60">{STAT_FIELD_LABELS[key] ?? key}</td>
               <td>{value}</td>
             </tr>
           ))}
@@ -81,11 +82,12 @@ function StatTable({ title, stats }) {
 }
 
 export function PlayerDetails({ player }) {
+  const sourceNote = isFictional(player) ? " (fictional)" : "";
   return (
     <div className="space-y-2 text-sm">
       <div className="text-xl font-bold">
         {player.name}
-        {player.dataSource === "FICTIONAL" && (
+        {isFictional(player) && (
           <span className="ml-2 border border-yellow-500/60 px-1.5 py-0.5 align-middle text-[10px] font-normal text-yellow-200">
             FICTIONAL
           </span>
@@ -103,12 +105,17 @@ export function PlayerDetails({ player }) {
         Base price: <strong>{formatLakhs(player.basePrice)}</strong>
       </div>
       <div className="flex flex-wrap gap-6">
-        <StatTable title="Batting (fictional)" stats={player.stats?.batting} />
-        <StatTable title="Bowling (fictional)" stats={player.stats?.bowling} />
-        <StatTable title="Keeping (fictional)" stats={player.stats?.keeping} />
+        {Object.entries(STAT_GROUPS).map(([group, { label }]) => (
+          <StatTable key={group} title={`${label}${sourceNote}`} stats={player.stats?.[group]} />
+        ))}
       </div>
       {player.recentPerformance?.length > 0 && (
-        <div className="text-xs text-white/70">Recent (fictional): {player.recentPerformance.join(" | ")}</div>
+        <div className="text-xs text-white/70">
+          Recent{sourceNote}: {player.recentPerformance.join(" | ")}
+        </div>
+      )}
+      {!isFictional(player) && player.dataSource && (
+        <div className="text-[10px] uppercase text-white/40">Source: {player.dataSource}</div>
       )}
     </div>
   );

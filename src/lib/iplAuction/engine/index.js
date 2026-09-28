@@ -14,7 +14,7 @@
  */
 import { DEV_DEFAULT_CONFIG, ROLE_LIST, validateConfig } from "../config.js";
 import { formatLakhs } from "../money.js";
-import { ACTOR_ROLES, AUCTION_STATUS, COMMANDS, PLAYER_STATUS } from "./constants.js";
+import { ACTOR_ROLES, AUCTION_STATUS, COMMANDS, PLAYER_STATUS, TEXT_LIMITS } from "./constants.js";
 import { ERROR, fail } from "./errors.js";
 import { validateSale } from "./rules.js";
 import { getNextPlayerInSequence } from "./selectors.js";
@@ -44,6 +44,17 @@ const EDITABLE_PLAYER_STATUSES = [PLAYER_STATUS.AVAILABLE, PLAYER_STATUS.UNSOLD,
 // Construction
 // ---------------------------------------------------------------------------
 
+/** Trimmed text, null when empty; `undefined` when the value is not text or is too long. */
+function optionalText(value, maxLength) {
+  if (value == null) return null;
+  if (typeof value !== "string") return undefined;
+  const text = value.trim();
+  if (text.length > maxLength) return undefined;
+  return text || null;
+}
+
+const jsonLength = (value) => JSON.stringify(value).length;
+
 function normalizePlayer(input) {
   const invalid = (message) => ({ error: fail(ERROR.INVALID_INPUT, message) });
   if (!input || typeof input !== "object") return invalid("Player data is required.");
@@ -51,11 +62,42 @@ function normalizePlayer(input) {
   const name = typeof input.name === "string" ? input.name.trim() : "";
   if (!id) return invalid("Player id is required.");
   if (!name) return invalid("Player name is required.");
+  if (name.length > TEXT_LIMITS.name) return invalid(`Player name is longer than ${TEXT_LIMITS.name} characters.`);
   if (!ROLE_LIST.includes(input.role)) return invalid(`Unknown role "${input.role}".`);
   if (!Number.isSafeInteger(input.basePrice) || input.basePrice <= 0) {
     return invalid("Base price must be a positive whole number of lakhs.");
   }
   if (typeof input.isOverseas !== "boolean") return invalid("isOverseas must be true or false.");
+
+  const textLimits = {
+    nationality: TEXT_LIMITS.nationality,
+    battingStyle: TEXT_LIMITS.style,
+    bowlingStyle: TEXT_LIMITS.style,
+    image: TEXT_LIMITS.url,
+    dataSource: TEXT_LIMITS.dataSource,
+  };
+  const text = {};
+  for (const [field, maxLength] of Object.entries(textLimits)) {
+    text[field] = optionalText(input[field], maxLength);
+    if (text[field] === undefined) return invalid(`${field} must be text of at most ${maxLength} characters.`);
+  }
+  text.dataSource ??= "UNSPECIFIED";
+  const age = input.age ?? null;
+  if (age !== null && (!Number.isSafeInteger(age) || age < 0 || age > 100)) {
+    return invalid("Age must be a whole number between 0 and 100.");
+  }
+  const stats = input.stats ?? null;
+  if (stats !== null && (typeof stats !== "object" || Array.isArray(stats) || jsonLength(stats) > TEXT_LIMITS.stats)) {
+    return invalid("Statistics must be an object (and not too large).");
+  }
+  const recentPerformance = input.recentPerformance ?? [];
+  if (
+    !Array.isArray(recentPerformance)
+    || !recentPerformance.every((entry) => typeof entry === "string")
+    || jsonLength(recentPerformance) > TEXT_LIMITS.recentPerformance
+  ) {
+    return invalid("Recent performance must be a list of short text entries.");
+  }
 
   return {
     player: {
@@ -64,14 +106,14 @@ function normalizePlayer(input) {
       role: input.role,
       isOverseas: input.isOverseas,
       basePrice: input.basePrice,
-      nationality: input.nationality ?? null,
-      age: input.age ?? null,
-      battingStyle: input.battingStyle ?? null,
-      bowlingStyle: input.bowlingStyle ?? null,
-      image: input.image ?? null,
-      stats: input.stats ?? null,
-      recentPerformance: input.recentPerformance ?? [],
-      dataSource: input.dataSource ?? "UNSPECIFIED",
+      nationality: text.nationality,
+      age,
+      battingStyle: text.battingStyle,
+      bowlingStyle: text.bowlingStyle,
+      image: text.image,
+      stats,
+      recentPerformance,
+      dataSource: text.dataSource,
       status: PLAYER_STATUS.AVAILABLE,
       soldTo: null,
       soldPrice: null,
@@ -86,10 +128,16 @@ function normalizeTeam(input) {
   const name = typeof input.name === "string" ? input.name.trim() : "";
   if (!id) return invalid("Team id is required.");
   if (!name) return invalid("Team name is required.");
+  if (name.length > TEXT_LIMITS.name) return invalid(`Team name is longer than ${TEXT_LIMITS.name} characters.`);
   const shortName = typeof input.shortName === "string" && input.shortName.trim()
     ? input.shortName.trim()
     : name.slice(0, 3).toUpperCase();
-  return { team: { id, name, shortName, logo: input.logo ?? null } };
+  if (shortName.length > TEXT_LIMITS.shortName) {
+    return invalid(`Short name is longer than ${TEXT_LIMITS.shortName} characters.`);
+  }
+  const logo = optionalText(input.logo, TEXT_LIMITS.url);
+  if (logo === undefined) return invalid(`Logo must be a URL of at most ${TEXT_LIMITS.url} characters.`);
+  return { team: { id, name, shortName, logo } };
 }
 
 /**
@@ -218,6 +266,32 @@ const handlers = {
     );
   },
 
+  [COMMANDS.UPDATE_TEAM](state, { teamId, changes }) {
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
+    const current = state.teams[teamId];
+    if (!current) return rejected(ERROR.NOT_FOUND, "Unknown team.");
+    const { team, error } = normalizeTeam({ ...current, ...changes, id: current.id });
+    if (error) return { error };
+    return accepted(
+      { ...state, teams: { ...state.teams, [teamId]: team } },
+      { teamId, message: `Team ${team.name} updated.` }
+    );
+  },
+
+  /** SETUP only, so the team cannot own any purchases yet. */
+  [COMMANDS.REMOVE_TEAM](state, { teamId }) {
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
+    const team = state.teams[teamId];
+    if (!team) return rejected(ERROR.NOT_FOUND, "Unknown team.");
+    const { [teamId]: removed, ...teams } = state.teams; // eslint-disable-line no-unused-vars
+    return accepted(
+      { ...state, teams, teamOrder: state.teamOrder.filter((id) => id !== teamId) },
+      { message: `Team ${team.name} removed.` }
+    );
+  },
+
   [COMMANDS.ADD_PLAYER](state, { player: input }) {
     const completed = requireNotCompleted(state);
     if (completed) return completed;
@@ -249,6 +323,24 @@ const handlers = {
     return accepted(
       { ...state, players: { ...state.players, [playerId]: updated } },
       { playerId, message: `Player ${updated.name} updated.` }
+    );
+  },
+
+  /**
+   * Deletes a player from the pool (SETUP only, so they cannot be on the block or
+   * sold). Withdraw/reinstate are allowed in SETUP and are undoable, so the undo
+   * stack may hold entries for this player; undoing one would bring back a
+   * half-deleted player, so the stack is cleared.
+   */
+  [COMMANDS.REMOVE_PLAYER](state, { playerId }) {
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
+    const player = state.players[playerId];
+    if (!player) return rejected(ERROR.NOT_FOUND, "Unknown player.");
+    const { [playerId]: removed, ...players } = state.players; // eslint-disable-line no-unused-vars
+    return accepted(
+      { ...state, players, playerOrder: state.playerOrder.filter((id) => id !== playerId), undoStack: [] },
+      { message: `Player ${player.name} removed from the pool.` }
     );
   },
 

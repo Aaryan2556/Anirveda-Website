@@ -14,7 +14,7 @@
  *   player. Activity rows use a generated ID plus a unique (auctionId, seq) index.
  */
 import { ROLE_LIST } from "../config.js";
-import { AUCTION_STATUS, PLAYER_STATUS } from "../engine/constants.js";
+import { AUCTION_STATUS, PLAYER_STATUS, TEXT_LIMITS as L } from "../engine/constants.js";
 
 /**
  * Appwrite user label that marks an IPL auction admin (set on the user in the
@@ -56,7 +56,7 @@ export const SCHEMA = Object.freeze([
     id: TABLES.AUCTIONS,
     name: "IPL Auctions",
     columns: [
-      str("name", 128, true),
+      str("name", L.name, true),
       enumeration("status", Object.values(AUCTION_STATUS)),
       int("schemaVersion", { required: true }),
       int("version", { required: true }),
@@ -76,9 +76,9 @@ export const SCHEMA = Object.freeze([
     columns: [
       id("auctionId"),
       int("order", { required: true }),
-      str("name", 128, true),
-      str("shortName", 16, true),
-      str("logo", 2000),
+      str("name", L.name, true),
+      str("shortName", L.shortName, true),
+      str("logo", L.url),
     ],
     indexes: [index("auctionId", ["auctionId"])],
   },
@@ -88,18 +88,18 @@ export const SCHEMA = Object.freeze([
     columns: [
       id("auctionId"),
       int("order", { required: true }),
-      str("name", 128, true),
+      str("name", L.name, true),
       enumeration("role", ROLE_LIST),
       bool("isOverseas"),
       int("basePrice", { required: true, min: 1 }),
-      str("nationality", 64),
+      str("nationality", L.nationality),
       int("age"),
-      str("battingStyle", 64),
-      str("bowlingStyle", 64),
-      str("image", 2000),
-      json("stats", 20000),
-      json("recentPerformance", 5000, true),
-      str("dataSource", 32, true),
+      str("battingStyle", L.style),
+      str("bowlingStyle", L.style),
+      str("image", L.url),
+      json("stats", L.stats),
+      json("recentPerformance", L.recentPerformance, true),
+      str("dataSource", L.dataSource, true),
       enumeration("status", Object.values(PLAYER_STATUS)),
       id("soldTo", false),
       int("soldPrice"),

@@ -17,7 +17,7 @@ Adapters                          localAdapter.js (Phase 1) · appwriteAdapter.j
         │  call ↓
 Engine (pure)                     src/lib/iplAuction/engine/  +  config.js  +  money.js
 ```
-\* `useAuctionActor` is introduced in Phase 4/5.
+\* `hooks/useAuctionActor.js` (Phase 4) exports `useAdminActor()` and `useTeamActor()`, both returning `{ actor, isAdmin, teamId, status }`. Commands go through `hooks/useAuctionCommand.js` (`{ send, pending, lastError }`), which adds the actor. Pages never build actors.
 
 Rules:
 - **Business rules exist only in the engine.** Adapters, hooks and JSX never decide whether something is allowed.
@@ -50,8 +50,11 @@ reduce(state, command)
 |---|---|---|---|
 | `UPDATE_CONFIG` | `{ config }` (full replacement) | ADMIN, SETUP only | no |
 | `ADD_TEAM` | `{ team: { id, name, shortName?, logo? } }` | ADMIN, SETUP only | no |
+| `UPDATE_TEAM` | `{ teamId, changes: { name?, shortName?, logo? } }` | ADMIN, SETUP only | no |
+| `REMOVE_TEAM` | `{ teamId }` | ADMIN, SETUP only | no |
 | `ADD_PLAYER` | `{ player }` (see §5) | ADMIN, not COMPLETED | no |
 | `UPDATE_PLAYER` | `{ playerId, changes }` | ADMIN; player AVAILABLE/UNSOLD/WITHDRAWN | no |
+| `REMOVE_PLAYER` | `{ playerId }` | ADMIN, SETUP only. **Clears the undo stack** (a setup withdraw/reinstate entry could otherwise resurrect the player) | no |
 | `START_AUCTION` | — | ADMIN; ≥2 teams, ≥1 player | no |
 | `PAUSE_AUCTION` / `RESUME_AUCTION` | — | ADMIN | no |
 | `END_AUCTION` | — | ADMIN; no open lot | no |
@@ -95,6 +98,8 @@ reduce(state, command)
   dataSource,                                        // "FICTIONAL" | "MANUAL_ENTRY" | (Phase 4) verified source
   status, soldTo, soldPrice }                        // owned by the engine; cannot be edited directly
 ```
+Text limits (`engine/constants.js → TEXT_LIMITS`, also used to size the Appwrite columns): name 128, shortName 16, image/logo URL 2000, nationality and styles 64, dataSource 32, stats JSON 20 000, recentPerformance JSON 5 000. `age` is null or a whole number 0–100; `stats` is an object keyed by `batting | bowling | keeping` (field lists in `playerFields.js`). The engine rejects anything else with `INVALID_INPUT`, so both adapters behave the same.
+
 Roles: `BATTER | BOWLER | ALL_ROUNDER | WICKETKEEPER` (`config.js → ROLES`). Player statuses: `AVAILABLE | ON_BLOCK | SOLD | UNSOLD | WITHDRAWN`.
 
 **Data honesty:** any record with `dataSource: "FICTIONAL"` must be labelled as fictional wherever it is shown. Never present invented statistics as real.
@@ -160,6 +165,7 @@ Adapters expose `kind` (`"local"` | `"appwrite"`). The matching admin auth comes
 | Date | Change | Affects |
 |---|---|---|
 | 2026-09-25 | Contract created from the Phase 1 implementation. | all |
+| 2026-09-28 | **Phase 4 admin.** New commands `UPDATE_TEAM`, `REMOVE_TEAM`, `REMOVE_PLAYER` (SETUP only; `REMOVE_PLAYER` clears undo). Engine now enforces `TEXT_LIMITS` and age/stats/recentPerformance shapes. New selector `getAuctionSummary`. Pure helpers `io/playerImport.js` (CSV/JSON → dry-run ADD_PLAYER plan) and `io/auctionExport.js`. Hooks `useAdminActor` / `useTeamActor` / `useAuctionCommand`. No state-shape change (`SCHEMA_VERSION` stays 2). | 5 (use the hooks), 6, 7 (only `useAuctionActor.js` changes) |
 | 2026-09-26 | **Phase 3 writes.** Appwrite adapter `dispatch` re-reads, runs `reduce`, commits `diffToWrites` in one TablesDB transaction, retries on 409, else `STALE_STATE`. Permission failures map to engine `UNAUTHORIZED`. Adapter requires an `ID` generator (Appwrite does not expand `unique()` in transactions). Adapters expose `kind`. Admin = Appwrite user with label `ipladmin`; tables allow writes only to that label. `NOT_IMPLEMENTED` removed. | 6, 7 |
 | 2026-09-26 | **Phase 2 persistence.** IDs (§7): purchase row `$id` = player ID; `makeId` ≤ 36 chars. Repository (§8): `reset` optional, `refresh` added, adapter error codes. Schema lives in `repository/appwriteSchema.js` (TablesDB). | 3, 6, 7 |
 | 2026-09-26 | **Offline bidding.** Removed `PLACE_BID`, `bids`, lot bid fields, `bidIncrements`, `allowJumpBids` and the bid-ladder helpers. `SELL_PLAYER` now takes `{ playerId, teamId, price }`. Added `REORDER_PLAYERS`, `CANCEL_SALE`, `OPEN_LOT` without `playerId` (next in sequence), and selectors `getUpcomingPlayers`, `getNextPlayerInSequence`, `getRecentSales`. Teams are view-only. `SCHEMA_VERSION` 1 → 2 (local data is discarded and reseeded). | 2 (no `ipl_bids` collection), 3, 4, 5 (view-only dashboard), 6, 7 (teams need read access only) |

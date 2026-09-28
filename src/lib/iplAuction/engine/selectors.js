@@ -58,3 +58,29 @@ export function getRecentSales(state, limit = Infinity) {
     .reverse()
     .map((purchase) => ({ ...purchase, player: state.players[purchase.playerId], team: state.teams[purchase.teamId] }));
 }
+
+/**
+ * End-of-auction (or running) summary for organisers: per team squad, spend,
+ * role mix and whether the squad/role minimums are met, plus pool totals.
+ */
+export function getAuctionSummary(state) {
+  const { squad, roleLimits } = state.config;
+  const teams = getTeamsInOrder(state).map((team) => {
+    const stats = getTeamStats(state, team.id);
+    const rolesShort = ROLE_LIST.filter((role) => stats.roles[role] < roleLimits[role].min);
+    return {
+      team,
+      stats,
+      squad: getSquad(state, team.id),
+      meetsSquadMinimum: stats.count >= squad.min,
+      rolesShort,
+    };
+  });
+  const byStatus = Object.fromEntries(Object.values(PLAYER_STATUS).map((status) => [status, 0]));
+  for (const player of Object.values(state.players)) byStatus[player.status] += 1;
+  return {
+    teams,
+    players: { total: state.playerOrder.length, byStatus },
+    totalSpent: state.purchases.reduce((sum, purchase) => sum + purchase.price, 0),
+  };
+}
