@@ -26,3 +26,6 @@ export const tablesDB = new TablesDB(client);
 export const IPL_AUCTION_DATABASE_ID = import.meta.env.VITE_IPL_AUCTION_DATABASE_ID;
 
 export { ID, Query };
+
+// IPL Auction realtime (Phase 6) subscribes through the shared client.
+export { client };

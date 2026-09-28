@@ -4,6 +4,7 @@
  */
 import { ROLE_LABELS, ROLE_LIST } from "../../lib/iplAuction/config";
 import { getMaxBid, getRecentSales, getTeamStats, getTeamsInOrder, getUpcomingPlayers } from "../../lib/iplAuction/engine";
+import { useConnectionStatus } from "../../lib/iplAuction/hooks/useConnectionStatus";
 import { formatLakhs } from "../../lib/iplAuction/money";
 import { STAT_FIELD_LABELS, STAT_GROUPS, isFictional } from "../../lib/iplAuction/playerFields";
 
@@ -58,7 +59,28 @@ export function AuctionHeader({ state }) {
       </span>
       <span className="text-white/60">Auction: {state.name}</span>
       <span className="text-white/60">Version: {state.version}</span>
+      <ConnectionIndicator />
     </div>
+  );
+}
+
+const CONNECTION_LABELS = {
+  live: { text: "Live", className: "text-green-400" },
+  polling: { text: "Syncing (polling)", className: "text-white/60" },
+  connecting: { text: "Connecting…", className: "text-yellow-300" },
+  reconnecting: { text: "Reconnecting…", className: "text-yellow-300" },
+  offline: { text: "Offline — showing last known state", className: "text-red-400" },
+};
+
+/** Small sync indicator; hidden for the browser-only (local) adapter. */
+export function ConnectionIndicator() {
+  const { status } = useConnectionStatus();
+  const label = CONNECTION_LABELS[status];
+  if (!label) return null;
+  return (
+    <span className={label.className} role="status">
+      ● {label.text}
+    </span>
   );
 }
 

@@ -129,12 +129,15 @@ Every adapter exports an object with:
 | `subscribe(listener)` | Calls `listener()` after every change; returns an unsubscribe function. |
 | `dispatch(command)` | Adds `at` and runs the command against the **latest authoritative** state. Resolves to the engine result shape in §2. Never throws for rule violations. Network or server failures resolve to `{ ok: false, error: { code: "NETWORK_ERROR" \| "SERVER_ERROR", message } }`. |
 | `reset()` | **Development only.** Optional: the Appwrite adapter does not have it, and the admin page hides the button when it is missing. |
-| `refresh()` | Optional (Appwrite adapter): fetch now instead of waiting for the next poll. |
+| `refresh()` | Optional (Appwrite adapter): fetch now instead of waiting for the next poll. Calls made while a read is in flight make that read run once more. |
+| `connection` | Optional (Appwrite adapter): `{ getStatus(), subscribe(listener) }`. `getStatus()` returns `{ status, lastSyncAt }` (same reference until it changes); status is `polling \| connecting \| live \| reconnecting \| offline`. Read it through `hooks/useConnectionStatus.js` (returns `status: "local"` for adapters without it). |
+| `destroy()` | Releases channels, subscriptions and timers. |
 
 Adapter-level error codes (`ADAPTER_ERROR` in `appwriteAdapter.js`): `NETWORK_ERROR`, `SERVER_ERROR`. A write refused by Appwrite permissions returns the engine's `UNAUTHORIZED`; a write that keeps losing races returns `STALE_STATE`.
 
 Adapters expose `kind` (`"local"` | `"appwrite"`). The matching admin auth comes from `getAdminAuth()` in `repository/index.js`.
-| `destroy()` | Releases channels, subscriptions and timers. |
+
+**Sync rule (Phase 6):** realtime events are only "something changed" signals. The adapter refetches the whole auction (debounced) and applies it only if it is newer (§4). Pages never read event payloads.
 
 `getAuctionRepository()` in `repository/index.js` is the **only** place that chooses an adapter.
 
@@ -165,6 +168,7 @@ Adapters expose `kind` (`"local"` | `"appwrite"`). The matching admin auth comes
 | Date | Change | Affects |
 |---|---|---|
 | 2026-09-25 | Contract created from the Phase 1 implementation. | all |
+| 2026-09-28 | **Phase 6 realtime.** Appwrite adapter subscribes to Appwrite Realtime (`repository/appwriteRealtime.js`); events trigger a debounced (100 ms), version-gated full refetch; refetch also on reconnect, tab visible and `online`; safety-net poll 10 s (2 s without realtime; `VITE_IPL_AUCTION_REALTIME=off` disables it). Repository gains optional `connection` (§8) and hook `useConnectionStatus`. `src/config/appwrite.js` additively exports `client`. No state or command change. | 7, 8 (show the connection status) |
 | 2026-09-28 | **Phase 5 participant.** New selectors `getMarket`, `getTeamPurchaseHistory`, `getRoleNeeds`, `getLotHistory` (rebuilt from activity; honours undo and `CANCEL_SALE`). Team dashboard is read-only and imports no admin code. No state or command change. | 6 (dashboard re-renders from snapshots only), 8 |
 | 2026-09-28 | **Phase 4 admin.** New commands `UPDATE_TEAM`, `REMOVE_TEAM`, `REMOVE_PLAYER` (SETUP only; `REMOVE_PLAYER` clears undo). Engine now enforces `TEXT_LIMITS` and age/stats/recentPerformance shapes. New selector `getAuctionSummary`. Pure helpers `io/playerImport.js` (CSV/JSON → dry-run ADD_PLAYER plan) and `io/auctionExport.js`. Hooks `useAdminActor` / `useTeamActor` / `useAuctionCommand`. No state-shape change (`SCHEMA_VERSION` stays 2). | 5 (use the hooks), 6, 7 (only `useAuctionActor.js` changes) |
 | 2026-09-26 | **Phase 3 writes.** Appwrite adapter `dispatch` re-reads, runs `reduce`, commits `diffToWrites` in one TablesDB transaction, retries on 409, else `STALE_STATE`. Permission failures map to engine `UNAUTHORIZED`. Adapter requires an `ID` generator (Appwrite does not expand `unique()` in transactions). Adapters expose `kind`. Admin = Appwrite user with label `ipladmin`; tables allow writes only to that label. `NOT_IMPLEMENTED` removed. | 6, 7 |

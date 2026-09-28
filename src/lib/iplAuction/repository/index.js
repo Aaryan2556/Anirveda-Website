@@ -8,9 +8,11 @@
  * Needs VITE_IPL_AUCTION_DATABASE_ID; VITE_IPL_AUCTION_ID is optional (defaults
  * to the newest auction).
  */
-import { ID, IPL_AUCTION_DATABASE_ID, Query, account, tablesDB } from "../../../config/appwrite.js";
+import { Realtime } from "appwrite";
+import { ID, IPL_AUCTION_DATABASE_ID, Query, account, client, tablesDB } from "../../../config/appwrite.js";
 import { createAppwriteAdminAuth, createLocalAdminAuth } from "../auth/adminAuth.js";
 import { createAppwriteRepository } from "./appwriteAdapter.js";
+import { createAppwriteRealtimeSource } from "./appwriteRealtime.js";
 import { createLocalRepository } from "./localAdapter.js";
 import { createMockAuctionState } from "./mockSeed.js";
 
@@ -28,6 +30,11 @@ export function getAuctionRepository() {
         ID,
         databaseId: IPL_AUCTION_DATABASE_ID,
         auctionId: import.meta.env.VITE_IPL_AUCTION_ID || null,
+        // VITE_IPL_AUCTION_REALTIME=off falls back to polling only (every 2 s).
+        realtime:
+          import.meta.env.VITE_IPL_AUCTION_REALTIME === "off"
+            ? null
+            : createAppwriteRealtimeSource({ realtime: new Realtime(client) }),
       })
       : createLocalRepository({ createSeedState: () => createMockAuctionState() });
   }

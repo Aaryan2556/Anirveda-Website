@@ -3,8 +3,16 @@
  *
  * Same contract as localAdapter.js (getSnapshot / subscribe / dispatch / destroy):
  * - Reads the auction from Appwrite TablesDB and maps it with appwriteMapper.js.
- * - Polls while anything is subscribed (realtime replaces polling in Phase 6).
- * - Never goes backwards: a fetched state replaces the current one only if it is newer.
+ * - While anything is subscribed: listens to Appwrite Realtime (Phase 6) and polls
+ *   as a safety net (every 10 s with realtime, every 2 s without).
+ * - Realtime events are only "something changed" signals: a burst of events is
+ *   collapsed into ONE full refetch (debounced), and an event that arrives while a
+ *   read is in flight schedules another read afterwards, so a write that landed
+ *   mid-read is never missed. The same refetch runs when the socket reconnects,
+ *   the tab becomes visible again, or the browser comes back online.
+ * - Never goes backwards: a fetched state replaces the current one only if it is
+ *   newer (contract §4), so out-of-order, duplicate or partial events can't show
+ *   an older or mixed state.
  * - dispatch(command): re-reads the latest stored state, runs the engine, and
  *   commits every resulting write in ONE TablesDB transaction (all or nothing).
  *   Every accepted command creates exactly one activity row, and the unique
@@ -23,6 +31,7 @@ import { ERROR, SCHEMA_VERSION, createInitialState, reduce } from "../engine/ind
 import { TABLES } from "./appwriteSchema.js";
 import { diffToWrites, rowsToState } from "./appwriteMapper.js";
 import { isNewer } from "./isNewer.js";
+import { realtimeChannels } from "./appwriteRealtime.js";
 
 /** Adapter-level failure codes (the engine's ERROR codes cover rule violations). */
 export const ADAPTER_ERROR = Object.freeze({
@@ -52,6 +61,31 @@ function toContractError(error) {
 /** A commit that lost a race (unique index clash or transaction conflict). */
 const isConflict = (error) => error?.code === 409;
 
+/** Connection states reported by `connection.getStatus().status`. */
+export const CONNECTION_STATUS = Object.freeze({
+  POLLING: "polling", // no realtime source: polling only
+  CONNECTING: "connecting", // first socket connection in progress
+  LIVE: "live", // realtime socket open
+  RECONNECTING: "reconnecting", // socket dropped; the SDK is retrying, polling covers the gap
+  OFFLINE: "offline", // the browser reports no network
+});
+
+/** Calls `onWake` when the tab becomes visible or the network returns; `onOffline` when it drops. */
+function browserLifecycle({ onWake, onOffline }) {
+  if (typeof document === "undefined" || typeof window === "undefined") return () => {};
+  const onVisibility = () => {
+    if (document.visibilityState === "visible") onWake();
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+  window.addEventListener("online", onWake);
+  window.addEventListener("offline", onOffline);
+  return () => {
+    document.removeEventListener("visibilitychange", onVisibility);
+    window.removeEventListener("online", onWake);
+    window.removeEventListener("offline", onOffline);
+  };
+}
+
 /** Stand-in state shown before the first successful load, or when loading fails. */
 function placeholderState(name) {
   return createInitialState({ auctionId: "appwrite-placeholder", name, config: DEV_DEFAULT_CONFIG, at: -1 });
@@ -64,9 +98,16 @@ export function createAppwriteRepository({
   databaseId,
   auctionId = null,
   pollMs = 2000,
+  realtime = null,
+  realtimePollMs = 10_000,
+  refetchDebounceMs = 100,
+  idleStopMs = 1000,
+  watchLifecycle = browserLifecycle,
   now = () => Date.now(),
   setIntervalImpl = globalThis.setInterval,
   clearIntervalImpl = globalThis.clearInterval,
+  setTimeoutImpl = globalThis.setTimeout,
+  clearTimeoutImpl = globalThis.clearTimeout,
   onError = (error) => console.error("[IPL Auction] Appwrite read failed:", error),
 }) {
   if (!tablesDB || !Query || !ID) throw new Error("createAppwriteRepository: tablesDB, Query and ID are required.");
@@ -77,10 +118,28 @@ export function createAppwriteRepository({
   let loaded = false;
   let timer = null;
   let inFlight = null;
+  let rerun = false;
+  let debounceTimer = null;
+  let idleTimer = null;
+  let stopRealtime = null;
+  let stopLifecycle = null;
+
+  const connectionListeners = new Set();
+  let socketStatus = realtime ? CONNECTION_STATUS.CONNECTING : CONNECTION_STATUS.POLLING;
+  let online = true;
+  let connection = { status: socketStatus, lastSyncAt: null };
 
   function setState(next) {
     state = next;
     listeners.forEach((listener) => listener());
+  }
+
+  function publishConnection(changes) {
+    const status = online ? socketStatus : CONNECTION_STATUS.OFFLINE;
+    const next = { ...connection, status, ...changes };
+    if (next.status === connection.status && next.lastSyncAt === connection.lastSyncAt) return;
+    connection = next;
+    connectionListeners.forEach((listener) => listener());
   }
 
   async function fetchAuctionRow() {
@@ -126,22 +185,64 @@ export function createAppwriteRepository({
     throw new Error("The auction kept changing while it was being read. Will retry on the next poll.");
   }
 
-  function refresh() {
-    if (!inFlight) {
-      inFlight = readConsistentState()
-        .then((next) => {
-          if (!loaded || isNewer(next, state)) setState(next);
-          loaded = true;
-        })
-        .catch((error) => {
-          onError(error);
-          if (!loaded) setState(placeholderState(`Could not load from Appwrite: ${error.message}`));
-        })
-        .finally(() => {
-          inFlight = null;
-        });
+  async function loadOnce() {
+    try {
+      const next = await readConsistentState();
+      if (!loaded || isNewer(next, state)) setState(next);
+      loaded = true;
+      publishConnection({ lastSyncAt: now() });
+    } catch (error) {
+      onError(error);
+      if (!loaded) setState(placeholderState(`Could not load from Appwrite: ${error.message}`));
     }
+  }
+
+  /**
+   * Reads now. Concurrent calls share one read; a call made while a read is in
+   * flight (for example a realtime event for a write that landed mid-read) makes
+   * that read run once more when it finishes, and the returned promise covers it.
+   */
+  function refresh() {
+    if (inFlight) {
+      rerun = true;
+      return inFlight;
+    }
+    inFlight = (async () => {
+      do {
+        rerun = false;
+        await loadOnce();
+      } while (rerun);
+    })().finally(() => {
+      inFlight = null;
+    });
     return inFlight;
+  }
+
+  /** Collapses a burst of change signals into one refetch (the first signal starts the window). */
+  function scheduleRefresh() {
+    if (debounceTimer !== null) return;
+    debounceTimer = setTimeoutImpl(() => {
+      debounceTimer = null;
+      refresh();
+    }, refetchDebounceMs);
+  }
+
+  function onRealtimeEvent({ tableId, auctionId: rowAuctionId }) {
+    const pinned = auctionId ?? (loaded ? state.auctionId : null);
+    // Without a pinned auction, a new auction row may be a newer auction to switch to.
+    const maybeNewAuction = !auctionId && tableId === TABLES.AUCTIONS;
+    if (pinned && rowAuctionId && rowAuctionId !== pinned && !maybeNewAuction) return;
+    scheduleRefresh();
+  }
+
+  function onRealtimeStatus(status) {
+    const wasDown = socketStatus === CONNECTION_STATUS.RECONNECTING;
+    if (status === "open") socketStatus = CONNECTION_STATUS.LIVE;
+    else if (status === "closed") socketStatus = CONNECTION_STATUS.RECONNECTING;
+    else if (socketStatus !== CONNECTION_STATUS.RECONNECTING) socketStatus = CONNECTION_STATUS.CONNECTING;
+    publishConnection();
+    // Events sent while the socket was down are lost: catch up with a full read.
+    if (status === "open" && wasDown) scheduleRefresh();
   }
 
   /** Applies all writes atomically; rolls the transaction back if anything fails. */
@@ -166,14 +267,50 @@ export function createAppwriteRepository({
     }
   }
 
-  function startPolling() {
+  function start() {
+    if (idleTimer !== null) {
+      clearTimeoutImpl(idleTimer);
+      idleTimer = null;
+    }
+    if (timer !== null) return; // still running (the last listener left moments ago)
     refresh();
-    timer = setIntervalImpl(refresh, pollMs);
+    timer = setIntervalImpl(refresh, realtime ? realtimePollMs : pollMs);
+    if (realtime) stopRealtime = realtime.subscribe(realtimeChannels(databaseId), onRealtimeEvent, onRealtimeStatus);
+    stopLifecycle = watchLifecycle({
+      onWake: () => {
+        online = true;
+        publishConnection();
+        scheduleRefresh();
+      },
+      onOffline: () => {
+        online = false;
+        publishConnection();
+      },
+    });
   }
 
-  function stopPolling() {
+  function stop() {
     if (timer !== null) clearIntervalImpl(timer);
-    timer = null;
+    if (debounceTimer !== null) clearTimeoutImpl(debounceTimer);
+    if (idleTimer !== null) clearTimeoutImpl(idleTimer);
+    timer = debounceTimer = idleTimer = null;
+    stopRealtime?.();
+    stopLifecycle?.();
+    stopRealtime = stopLifecycle = null;
+    if (realtime) socketStatus = CONNECTION_STATUS.CONNECTING;
+    online = true;
+  }
+
+  /**
+   * Waits a moment before closing the socket when the last listener leaves, so a
+   * page change (or React StrictMode's mount/unmount/mount) doesn't reconnect.
+   */
+  function stopWhenIdle() {
+    if (idleStopMs <= 0) return stop();
+    idleTimer = setTimeoutImpl(() => {
+      idleTimer = null;
+      if (listeners.size === 0) stop();
+    }, idleStopMs);
   }
 
   return {
@@ -183,10 +320,10 @@ export function createAppwriteRepository({
 
     subscribe(listener) {
       listeners.add(listener);
-      if (listeners.size === 1) startPolling();
+      if (listeners.size === 1) start();
       return () => {
-        listeners.delete(listener);
-        if (listeners.size === 0) stopPolling();
+        if (!listeners.delete(listener)) return;
+        if (listeners.size === 0) stopWhenIdle();
       };
     },
 
@@ -223,9 +360,19 @@ export function createAppwriteRepository({
     /** Fetches now instead of waiting for the next poll. */
     refresh,
 
+    /** Sync health for a "reconnecting…" indicator: `{ status, lastSyncAt }` (same reference until it changes). */
+    connection: {
+      getStatus: () => connection,
+      subscribe(listener) {
+        connectionListeners.add(listener);
+        return () => connectionListeners.delete(listener);
+      },
+    },
+
     destroy() {
-      stopPolling();
+      stop();
       listeners.clear();
+      connectionListeners.clear();
     },
   };
 }
