@@ -8,9 +8,9 @@ import AnnouncementBar from "../components/AnnouncementBar";
 import CustomCursor from "../components/common/CustomCursor";
 
 import blogData, { BLOG_CATEGORIES } from "../data/blogs";
-import FeaturedDossierCard from "../components/blogs/FeaturedDossierCard";
-import BlogArticleCard from "../components/blogs/BlogArticleCard";
-import BlogsGridCanvas from "../components/blogs/BlogsGridCanvas";
+import FeaturedDossierCard from "../components/Blogs/FeaturedDossierCard";
+import BlogArticleCard from "../components/Blogs/BlogArticleCard";
+import BlogsGridCanvas from "../components/Blogs/BlogsGridCanvas";
 
 export default function Blogs() {
   const [activeCategory, setActiveCategory] = useState("all");

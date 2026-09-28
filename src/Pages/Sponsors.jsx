@@ -8,9 +8,9 @@ import AnnouncementBar from "../components/AnnouncementBar";
 import CustomCursor from "../components/common/CustomCursor";
 
 import { sponsorsData, sponsorsCategoryTabs } from "../data/sponsorsData";
-import SponsorCard from "../components/sponsors/SponsorCard";
-import SponsorModal from "../components/sponsors/SponsorModal";
-import AmbientGridCanvas from "../components/sponsors/AmbientGridCanvas";
+import SponsorCard from "../components/Sponsors/SponsorCard";
+import SponsorModal from "../components/Sponsors/SponsorModal";
+import AmbientGridCanvas from "../components/Sponsors/AmbientGridCanvas";
 
 // Dedicated Sponsors Page Component
 export default function Sponsors() {
