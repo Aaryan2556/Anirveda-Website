@@ -84,3 +84,95 @@ export function getAuctionSummary(state) {
     totalSpent: state.purchases.reduce((sum, purchase) => sum + purchase.price, 0),
   };
 }
+
+/**
+ * The player pool in auction order with its position and buyer, filtered.
+ * `status`: a PLAYER_STATUS or "ALL"; `role`: a role or "ALL";
+ * `overseas`: true / false / null (any); `query`: case-insensitive name match.
+ */
+export function getMarket(state, { status = "ALL", role = "ALL", overseas = null, query = "" } = {}) {
+  const text = query.trim().toLowerCase();
+  return getPlayersInOrder(state)
+    .map((player, index) => ({
+      player,
+      position: index + 1,
+      team: player.soldTo ? state.teams[player.soldTo] ?? null : null,
+    }))
+    .filter(({ player }) =>
+      (status === "ALL" || player.status === status)
+      && (role === "ALL" || player.role === role)
+      && (overseas === null || player.isOverseas === overseas)
+      && (!text || player.name.toLowerCase().includes(text)));
+}
+
+/** One team's purchases in the order they happened, with each player. */
+export function getTeamPurchaseHistory(state, teamId) {
+  return state.purchases
+    .filter((purchase) => purchase.teamId === teamId)
+    .map((purchase) => ({ ...purchase, player: state.players[purchase.playerId] }));
+}
+
+/**
+ * What a team still needs: open squad slots, players short of the squad
+ * minimum, overseas slots left, and per-role have / min / max / need.
+ */
+export function getRoleNeeds(state, teamId) {
+  const { squad, maxOverseas, roleLimits } = state.config;
+  const stats = getTeamStats(state, teamId);
+  const roles = Object.fromEntries(
+    ROLE_LIST.map((role) => {
+      const { min, max } = roleLimits[role];
+      const have = stats.roles[role];
+      return [role, { have, min, max, need: Math.max(0, min - have), full: max !== null && have >= max }];
+    })
+  );
+  return {
+    slotsLeft: Math.max(0, squad.max - stats.count),
+    squadShort: Math.max(0, squad.min - stats.count),
+    overseasLeft: maxOverseas === null ? null : Math.max(0, maxOverseas - stats.overseas),
+    roles,
+  };
+}
+
+const LOT_RESULT_EVENTS = {
+  SELL_PLAYER: "SOLD",
+  MARK_UNSOLD: "UNSOLD",
+  WITHDRAW_PLAYER: "WITHDRAWN",
+};
+
+/**
+ * Every lot so far, oldest first, rebuilt from the activity log:
+ *   { playerId, player, openedAt, closedAt, result, teamId, team, price, cancelled }
+ * `result` is SOLD / UNSOLD / WITHDRAWN, or OPEN for the lot on the block.
+ * Undone actions are ignored (an undone sale re-opens its lot, an undone
+ * OPEN_LOT never happened); a sale later reversed with CANCEL_SALE stays in
+ * the history with `cancelled: true`.
+ */
+export function getLotHistory(state) {
+  const undone = new Set(state.activity.filter((entry) => entry.undoneSeq != null).map((entry) => entry.undoneSeq));
+  const lots = [];
+  let open = null;
+  for (const entry of state.activity) {
+    if (undone.has(entry.seq)) continue;
+    if (entry.type === "OPEN_LOT") {
+      open = { playerId: entry.playerId, openedAt: entry.at, closedAt: null, result: "OPEN", teamId: null, price: null, cancelled: false };
+      lots.push(open);
+    } else if (open && LOT_RESULT_EVENTS[entry.type] && entry.playerId === open.playerId) {
+      Object.assign(open, {
+        result: LOT_RESULT_EVENTS[entry.type],
+        closedAt: entry.at,
+        teamId: entry.type === "SELL_PLAYER" ? entry.teamId : null,
+        price: entry.type === "SELL_PLAYER" ? entry.amount : null,
+      });
+      open = null;
+    } else if (entry.type === "CANCEL_SALE") {
+      const sale = lots.findLast((lot) => lot.playerId === entry.playerId && lot.result === "SOLD" && !lot.cancelled);
+      if (sale) sale.cancelled = true;
+    }
+  }
+  return lots.map((lot) => ({
+    ...lot,
+    player: state.players[lot.playerId] ?? null,
+    team: lot.teamId ? state.teams[lot.teamId] ?? null : null,
+  }));
+}
