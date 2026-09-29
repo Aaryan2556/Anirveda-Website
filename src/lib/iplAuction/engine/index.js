@@ -255,8 +255,8 @@ const handlers = {
   },
 
   [COMMANDS.ADD_TEAM](state, { team: input }) {
-    const notSetup = requireSetup(state);
-    if (notSetup) return notSetup;
+    const completed = requireNotCompleted(state);
+    if (completed) return completed;
     const { team, error } = normalizeTeam(input);
     if (error) return { error };
     if (state.teams[team.id]) return rejected(ERROR.DUPLICATE_ID, `Team id "${team.id}" already exists.`);
@@ -267,8 +267,8 @@ const handlers = {
   },
 
   [COMMANDS.UPDATE_TEAM](state, { teamId, changes }) {
-    const notSetup = requireSetup(state);
-    if (notSetup) return notSetup;
+    const completed = requireNotCompleted(state);
+    if (completed) return completed;
     const current = state.teams[teamId];
     if (!current) return rejected(ERROR.NOT_FOUND, "Unknown team.");
     const { team, error } = normalizeTeam({ ...current, ...changes, id: current.id });
@@ -279,12 +279,15 @@ const handlers = {
     );
   },
 
-  /** SETUP only, so the team cannot own any purchases yet. */
+  /** Can be removed anytime before auction ends, as long as it has no purchases. */
   [COMMANDS.REMOVE_TEAM](state, { teamId }) {
-    const notSetup = requireSetup(state);
-    if (notSetup) return notSetup;
+    const completed = requireNotCompleted(state);
+    if (completed) return completed;
     const team = state.teams[teamId];
     if (!team) return rejected(ERROR.NOT_FOUND, "Unknown team.");
+    if (state.purchases.some((p) => p.teamId === teamId)) {
+      return rejected(ERROR.INVALID_INPUT, "Cannot remove a team that has already bought players.");
+    }
     const { [teamId]: removed, ...teams } = state.teams; // eslint-disable-line no-unused-vars
     return accepted(
       { ...state, teams, teamOrder: state.teamOrder.filter((id) => id !== teamId) },
@@ -472,6 +475,13 @@ const handlers = {
     );
   },
 
+  [COMMANDS.UPDATE_BID](state, { price, teamId }) {
+    const notLive = requireLive(state);
+    if (notLive) return notLive;
+    if (!state.lot) return rejected(ERROR.NO_ACTIVE_LOT, "No player is up for bidding.");
+    return accepted({ ...state, lot: { ...state.lot, currentBid: price, currentBidTeamId: teamId } }, { message: "" });
+  },
+
   /**
    * Corrects an earlier sale: the purchase is removed (refunding the team) and the
    * player returns to the pool at their place in the sequence. Removing a purchase
@@ -598,6 +608,11 @@ export function reduce(state, command) {
 
   const outcome = handlers[command.type](state, command);
   if (outcome.error) return reject(outcome.error);
+
+  if (command.type === COMMANDS.UPDATE_BID) {
+    let next = { ...outcome.state, version: state.version + 1 };
+    return { ok: true, state: next, events: [] };
+  }
 
   const activitySeq = state.counters.activity + 1;
   const { actor } = command;

@@ -109,6 +109,14 @@ export function OnTheBlock({ state, send, actor, pending }) {
     setSalePrice(lotBasePrice == null ? "" : String(lotBasePrice));
   }, [lotId, lotBasePrice]);
 
+  useEffect(() => {
+    if (!lotId || !salePrice) return;
+    const timeoutId = setTimeout(() => {
+      send({ type: COMMANDS.UPDATE_BID, price: Number(salePrice), teamId: saleTeamId });
+    }, 400);
+    return () => clearTimeout(timeoutId);
+  }, [salePrice, saleTeamId, lotId, send]);
+
   const saleCommand = lot
     ? { type: COMMANDS.SELL_PLAYER, playerId: lot.playerId, teamId: saleTeamId, price: Number(salePrice) }
     : null;

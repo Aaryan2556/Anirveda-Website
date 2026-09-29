@@ -21,9 +21,11 @@ import { AuctionStatus, FictionalNotice, LocalModeNotice } from "../../component
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
 import MarketPanel from "../../components/IPLAuction/play/MarketPanel";
+import TeamsPanel from "../../components/IPLAuction/play/TeamsPanel";
 
 const TABS = [
   { id: "live", label: "Live" },
+  { id: "teams", label: "Teams" },
   { id: "market", label: "Market" },
   { id: "history", label: "History" },
 ];
@@ -106,6 +108,7 @@ function TeamDashboard() {
             <MarketPanel state={state} teamId={teamId} />
           </Panel>
         )}
+        {tab === "teams" && <TeamsPanel state={state} teamId={teamId} />}
         {tab === "history" && <HistoryPanel state={state} teamId={teamId} />}
       </>
     );

@@ -67,6 +67,8 @@ export const SCHEMA = Object.freeze([
       id("lotId", false),
       id("lotPlayerId", false),
       int("lotOpenedAtMs"),
+      int("lotCurrentBid"),
+      id("lotCurrentBidTeamId", false),
     ],
     indexes: [index("createdAtMs", ["createdAtMs"])],
   },

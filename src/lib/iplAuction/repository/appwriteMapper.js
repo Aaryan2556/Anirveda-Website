@@ -35,6 +35,8 @@ function auctionRow(state) {
     lotId: state.lot?.id ?? null,
     lotPlayerId: state.lot?.playerId ?? null,
     lotOpenedAtMs: state.lot?.openedAt ?? null,
+    lotCurrentBid: state.lot?.currentBid ?? null,
+    lotCurrentBidTeamId: state.lot?.currentBidTeamId ?? null,
   };
 }
 
@@ -165,7 +167,7 @@ export function rowsToState({ auction, teams = [], players = [], purchases = [],
     ),
     playerOrder: sortedPlayers.map((row) => row.$id),
     lot: auction.lotId
-      ? { id: auction.lotId, playerId: auction.lotPlayerId, openedAt: auction.lotOpenedAtMs ?? null }
+      ? { id: auction.lotId, playerId: auction.lotPlayerId, openedAt: auction.lotOpenedAtMs ?? null, currentBid: auction.lotCurrentBid ?? null, currentBidTeamId: auction.lotCurrentBidTeamId ?? null }
       : null,
     purchases: [...purchases].sort(bySeq).map((row) => ({
       id: `purchase-${row.seq}`,
