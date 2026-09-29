@@ -13,7 +13,7 @@ import {
 } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
 import { isFictional } from "../../../lib/iplAuction/playerFields";
-import { Button } from "../DevPanels";
+import { Button, inputClass, table } from "../ui/controls";
 import PlayerEditor from "./PlayerEditor";
 import { ConfirmButton, Select } from "./fields";
 
@@ -51,40 +51,40 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-white/60">
+        <span className="text-secondary">
           Showing {players.length} of {state.playerOrder.length}
         </span>
         <Select value={filter} onChange={setFilter} options={STATUS_FILTERS} aria-label="Filter by status" />
         <input
-          className="border border-white/30 bg-black px-2 py-1 text-sm"
+          className={inputClass}
           placeholder="Search name"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="text-white/50">
+      <div className={table.wrap}>
+        <table className={table.table}>
+          <thead className={table.thead}>
             <tr>
-              <th className="py-1 pr-3">#</th>
-              <th className="pr-3">Player</th>
-              <th className="pr-3">Role</th>
-              <th className="pr-3">Overseas</th>
-              <th className="pr-3">Base</th>
-              <th className="pr-3">Status</th>
-              <th className="pr-3">Sold to</th>
-              <th className="pr-3">Actions</th>
+              <th className={table.th}>#</th>
+              <th className={table.th}>Player</th>
+              <th className={table.th}>Role</th>
+              <th className={table.th}>Overseas</th>
+              <th className={table.th}>Base</th>
+              <th className={table.th}>Status</th>
+              <th className={table.th}>Sold to</th>
+              <th className={table.th}>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={table.tbody}>
             {players.map(({ player, position }) => (
               <Fragment key={player.id}>
-                <tr className={`border-t border-white/10 ${player.id === nextInSequence?.id ? "bg-primary/10" : ""}`}>
-                  <td className="whitespace-nowrap py-1 pr-3">
+                <tr className={`${player.id === nextInSequence?.id ? "bg-primary/10" : ""}`}>
+                  <td className={`${table.td} whitespace-nowrap`}>
                     {position}
                     <button
                       type="button"
-                      className="ml-2 px-1 text-white/60 hover:text-white disabled:opacity-30"
+                      className="ml-2 px-1 text-secondary hover:text-white disabled:opacity-30"
                       disabled={isCompleted || position === 1 || pending}
                       onClick={() => move(player.id, -1)}
                       aria-label={`Move ${player.name} earlier`}
@@ -93,7 +93,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                     </button>
                     <button
                       type="button"
-                      className="px-1 text-white/60 hover:text-white disabled:opacity-30"
+                      className="px-1 text-secondary hover:text-white disabled:opacity-30"
                       disabled={isCompleted || position === state.playerOrder.length || pending}
                       onClick={() => move(player.id, 1)}
                       aria-label={`Move ${player.name} later`}
@@ -101,18 +101,18 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                       ↓
                     </button>
                   </td>
-                  <td className="pr-3">
+                  <td className={table.td}>
                     {player.name}
                     {isFictional(player) && <span className="ml-1 text-yellow-300/70">(fictional)</span>}
                   </td>
-                  <td className="pr-3">{ROLE_LABELS[player.role]}</td>
-                  <td className="pr-3">{player.isOverseas ? "Yes" : "—"}</td>
-                  <td className="pr-3">{formatLakhs(player.basePrice)}</td>
-                  <td className="pr-3">{player.status}</td>
-                  <td className="pr-3">
+                  <td className={table.td}>{ROLE_LABELS[player.role]}</td>
+                  <td className={table.td}>{player.isOverseas ? "Yes" : "—"}</td>
+                  <td className={table.td}>{formatLakhs(player.basePrice)}</td>
+                  <td className={table.td}>{player.status}</td>
+                  <td className={table.td}>
                     {player.soldTo ? `${state.teams[player.soldTo]?.name} · ${formatLakhs(player.soldPrice)}` : "—"}
                   </td>
-                  <td className="space-x-1 whitespace-nowrap py-1 pr-3">
+                  <td className={`${table.td} space-x-1 whitespace-nowrap`}>
                     {CAN_PUT_UP.includes(player.status) && (
                       <Button disabled={!isLive || Boolean(lot) || pending} onClick={() => send({ type: COMMANDS.OPEN_LOT, playerId: player.id })}>
                         Put up now
@@ -146,7 +146,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                 </tr>
                 {editingId === player.id && (
                   <tr>
-                    <td colSpan={8} className="border-t border-white/10 bg-white/5 p-3">
+                    <td colSpan={8} className={`${table.td} border-t border-secondary/20 bg-secondary-15 p-3`}>
                       <PlayerEditor player={player} send={send} pending={pending} onDone={() => setEditingId(null)} />
                     </td>
                   </tr>

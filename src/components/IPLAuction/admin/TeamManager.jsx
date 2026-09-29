@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { AUCTION_STATUS, COMMANDS, getTeamsInOrder } from "../../../lib/iplAuction/engine";
 import { makeId } from "../../../lib/iplAuction/repository/mockSeed";
-import { Button } from "../DevPanels";
+import { Button, table } from "../ui/controls";
 import { ConfirmButton, Field, TextInput } from "./fields";
 
 const EMPTY = { name: "", shortName: "", logo: "" };
@@ -57,21 +57,21 @@ export default function TeamManager({ state, send, pending }) {
 
   return (
     <div className="space-y-4 text-sm">
-      {!isSetup && <p className="text-xs text-white/60">Teams are locked once the auction has started.</p>}
-      <table className="w-full text-left text-xs">
-        <thead className="text-white/50">
+      {!isSetup && <p className="text-xs text-secondary">Teams are locked once the auction has started.</p>}
+      <table className={table.table}>
+        <thead className={table.thead}>
           <tr>
-            <th className="py-1 pr-3">Team</th>
-            <th className="pr-3">Short</th>
-            <th className="pr-3">Logo</th>
-            <th className="pr-3">Actions</th>
+            <th className={table.th}>Team</th>
+            <th className={table.th}>Short</th>
+            <th className={table.th}>Logo</th>
+            <th className={table.th}>Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className={table.tbody}>
           {teams.map((team) =>
             editingId === team.id ? (
-              <tr key={team.id} className="border-t border-white/10">
-                <td colSpan={4} className="py-2">
+              <tr key={team.id}>
+                <td colSpan={4} className={table.td}>
                   <TeamForm
                     initial={{ name: team.name, shortName: team.shortName, logo: team.logo ?? "" }}
                     submitLabel="Save"
@@ -82,11 +82,11 @@ export default function TeamManager({ state, send, pending }) {
                 </td>
               </tr>
             ) : (
-              <tr key={team.id} className="border-t border-white/10">
-                <td className="py-1 pr-3">{team.name}</td>
-                <td className="pr-3">{team.shortName}</td>
-                <td className="max-w-[16rem] truncate pr-3 text-white/60">{team.logo ?? "—"}</td>
-                <td className="space-x-1 whitespace-nowrap py-1 pr-3">
+              <tr key={team.id}>
+                <td className={table.td}>{team.name}</td>
+                <td className={table.td}>{team.shortName}</td>
+                <td className={`${table.td} max-w-[16rem] truncate text-secondary`}>{team.logo ?? "—"}</td>
+                <td className={`${table.td} space-x-1 whitespace-nowrap`}>
                   <Button disabled={!isSetup} onClick={() => setEditingId(team.id)}>
                     Edit
                   </Button>
@@ -103,8 +103,8 @@ export default function TeamManager({ state, send, pending }) {
         </tbody>
       </table>
       {isSetup && (
-        <div className="border-t border-white/10 pt-3">
-          <div className="mb-2 text-xs uppercase text-white/50">Add team</div>
+        <div className="border-t border-secondary/20 pt-3">
+          <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Add team</div>
           <TeamForm submitLabel="Add team" onSubmit={addTeam} pending={pending} />
         </div>
       )}

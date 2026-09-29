@@ -6,8 +6,8 @@ import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
 import { getAuctionSummary, getRecentSales } from "../../../lib/iplAuction/engine";
 import { buildPurchasesCsv, buildSummaryJson } from "../../../lib/iplAuction/io/auctionExport";
 import { formatLakhs } from "../../../lib/iplAuction/money";
-import { isFictional } from "../../../lib/iplAuction/playerFields";
-import { Button } from "../DevPanels";
+import { Button, StatTile, table } from "../ui/controls";
+import { TeamSquadCard } from "../ui/auction";
 
 function download(filename, content, type) {
   const url = URL.createObjectURL(new Blob([content], { type }));
@@ -26,60 +26,56 @@ export default function AuctionSummary({ state, renderSaleAction }) {
 
   return (
     <div className="space-y-6 text-sm">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <span>
-          Total spent: <strong className="text-primary">{formatLakhs(summary.totalSpent)}</strong>
-        </span>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+        <StatTile label="Total spent" value={formatLakhs(summary.totalSpent)} accent />
         {Object.entries(summary.players.byStatus).map(([status, count]) => (
-          <span key={status} className="text-white/70">
-            {status}: {count}
-          </span>
+          <StatTile key={status} label={status.replace("_", " ")} value={count} />
         ))}
-        <span className="flex gap-2">
-          <Button onClick={() => download(`${slug}-purchases.csv`, buildPurchasesCsv(state), "text/csv")}>
-            Download purchases (CSV)
-          </Button>
-          <Button onClick={() => download(`${slug}-summary.json`, buildSummaryJson(state), "application/json")}>
-            Download summary (JSON)
-          </Button>
-        </span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" onClick={() => download(`${slug}-purchases.csv`, buildPurchasesCsv(state), "text/csv")}>
+          Download purchases (CSV)
+        </Button>
+        <Button variant="outline" onClick={() => download(`${slug}-summary.json`, buildSummaryJson(state), "application/json")}>
+          Download summary (JSON)
+        </Button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="text-white/50">
+      <div className={table.wrap}>
+        <table className={table.table}>
+          <thead className={table.thead}>
             <tr>
-              <th className="py-1 pr-3">Team</th>
-              <th className="pr-3">Spent</th>
-              <th className="pr-3">Purse left</th>
-              <th className="pr-3">Squad</th>
-              <th className="pr-3">Overseas</th>
+              <th className={table.th}>Team</th>
+              <th className={table.th}>Spent</th>
+              <th className={table.th}>Purse left</th>
+              <th className={table.th}>Squad</th>
+              <th className={table.th}>Overseas</th>
               {ROLE_LIST.map((role) => (
-                <th key={role} className="pr-3">
+                <th key={role} className={table.th}>
                   {ROLE_LABELS[role]}
                 </th>
               ))}
-              <th className="pr-3">Minimums</th>
+              <th className={table.th}>Minimums</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={table.tbody}>
             {summary.teams.map(({ team, stats, meetsSquadMinimum, rolesShort }) => (
-              <tr key={team.id} className="border-t border-white/10">
-                <td className="py-1 pr-3">{team.name}</td>
-                <td className="pr-3">{formatLakhs(stats.spent)}</td>
-                <td className="pr-3">{formatLakhs(stats.purse)}</td>
-                <td className="pr-3">
+              <tr key={team.id}>
+                <td className={table.td}>{team.name}</td>
+                <td className={table.td}>{formatLakhs(stats.spent)}</td>
+                <td className={table.td}>{formatLakhs(stats.purse)}</td>
+                <td className={table.td}>
                   {stats.count}/{config.squad.max}
                 </td>
-                <td className="pr-3">
+                <td className={table.td}>
                   {stats.overseas}/{config.maxOverseas ?? "∞"}
                 </td>
                 {ROLE_LIST.map((role) => (
-                  <td key={role} className="pr-3">
+                  <td key={role} className={table.td}>
                     {stats.roles[role]}
                   </td>
                 ))}
-                <td className="pr-3">
+                <td className={table.td}>
                   {meetsSquadMinimum && !rolesShort.length ? (
                     <span className="text-green-300">Met</span>
                   ) : (
@@ -96,56 +92,38 @@ export default function AuctionSummary({ state, renderSaleAction }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {summary.teams.map(({ team, squad }) => (
-          <div key={team.id} className="border border-white/10 p-3">
-            <div className="mb-2 font-bold">{team.name}</div>
-            {squad.length === 0 ? (
-              <p className="text-xs text-white/50">No players yet.</p>
-            ) : (
-              <ul className="space-y-0.5 text-xs">
-                {squad.map((player) => (
-                  <li key={player.id} className="flex justify-between gap-2">
-                    <span>
-                      {player.name} · {ROLE_LABELS[player.role]}
-                      {player.isOverseas ? " · OS" : ""}
-                      {isFictional(player) && <span className="text-yellow-300/70"> (fictional)</span>}
-                    </span>
-                    <span>{formatLakhs(player.price)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        {summary.teams.map(({ team }) => (
+          <TeamSquadCard key={team.id} state={state} team={team} />
         ))}
       </div>
 
       <div>
-        <div className="mb-2 text-xs uppercase text-white/50">Purchase history ({sales.length})</div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="text-white/50">
+        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Purchase history ({sales.length})</div>
+        <div className={table.wrap}>
+          <table className={table.table}>
+            <thead className={table.thead}>
               <tr>
-                <th className="py-1 pr-3">#</th>
-                <th className="pr-3">Player</th>
-                <th className="pr-3">Role</th>
-                <th className="pr-3">Base</th>
-                <th className="pr-3">Team</th>
-                <th className="pr-3">Price</th>
-                <th className="pr-3">Time</th>
-                {renderSaleAction && <th className="pr-3">Correct</th>}
+                <th className={table.th}>#</th>
+                <th className={table.th}>Player</th>
+                <th className={table.th}>Role</th>
+                <th className={table.th}>Base</th>
+                <th className={table.th}>Team</th>
+                <th className={table.th}>Price</th>
+                <th className={table.th}>Time</th>
+                {renderSaleAction && <th className={table.th}>Correct</th>}
               </tr>
             </thead>
-            <tbody>
+            <tbody className={table.tbody}>
               {sales.map((sale, index) => (
-                <tr key={sale.id} className="border-t border-white/10">
-                  <td className="py-1 pr-3">{index + 1}</td>
-                  <td className="pr-3">{sale.player?.name}</td>
-                  <td className="pr-3">{ROLE_LABELS[sale.player?.role]}</td>
-                  <td className="pr-3">{formatLakhs(sale.player?.basePrice)}</td>
-                  <td className="pr-3">{sale.team?.name}</td>
-                  <td className="pr-3">{formatLakhs(sale.price)}</td>
-                  <td className="pr-3 text-white/60">{sale.at ? new Date(sale.at).toLocaleTimeString() : "—"}</td>
-                  {renderSaleAction && <td className="space-x-1 whitespace-nowrap py-1 pr-3">{renderSaleAction(sale)}</td>}
+                <tr key={sale.id}>
+                  <td className={table.td}>{index + 1}</td>
+                  <td className={table.td}>{sale.player?.name}</td>
+                  <td className={table.td}>{ROLE_LABELS[sale.player?.role]}</td>
+                  <td className={table.td}>{formatLakhs(sale.player?.basePrice)}</td>
+                  <td className={table.td}>{sale.team?.name}</td>
+                  <td className={table.td}>{formatLakhs(sale.price)}</td>
+                  <td className={`${table.td} text-secondary`}>{sale.at ? new Date(sale.at).toLocaleTimeString() : "—"}</td>
+                  {renderSaleAction && <td className={`${table.td} space-x-1 whitespace-nowrap`}>{renderSaleAction(sale)}</td>}
                 </tr>
               ))}
             </tbody>

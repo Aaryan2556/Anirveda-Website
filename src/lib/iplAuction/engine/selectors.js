@@ -176,3 +176,15 @@ export function getLotHistory(state) {
     team: lot.teamId ? state.teams[lot.teamId] ?? null : null,
   }));
 }
+
+/**
+ * The most expensive purchases, highest price first; ties keep the order they
+ * were bought in. Each comes with its player and team.
+ */
+export function getTopSales(state, limit = 5) {
+  return state.purchases
+    .map((purchase, index) => ({ purchase, index }))
+    .sort((a, b) => b.purchase.price - a.purchase.price || a.index - b.index)
+    .slice(0, limit)
+    .map(({ purchase }) => ({ ...purchase, player: state.players[purchase.playerId], team: state.teams[purchase.teamId] }));
+}

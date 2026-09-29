@@ -7,7 +7,7 @@ import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
 import { COMMANDS } from "../../../lib/iplAuction/engine";
 import { DATA_SOURCES, STAT_FIELD_LABELS, STAT_GROUPS, compactStats } from "../../../lib/iplAuction/playerFields";
 import { makeId } from "../../../lib/iplAuction/repository/mockSeed";
-import { Button } from "../DevPanels";
+import { Button } from "../ui/controls";
 import { Checkbox, Field, NumberInput, Select, TextInput, inputClass, toNumberOrNull } from "./fields";
 
 const ROLE_OPTIONS = ROLE_LIST.map((role) => ({ value: role, label: ROLE_LABELS[role] }));
@@ -132,8 +132,8 @@ export default function PlayerEditor({ player, send, pending, onDone }) {
 
       <div className="grid gap-3 md:grid-cols-3">
         {Object.entries(STAT_GROUPS).map(([group, { label, fields }]) => (
-          <fieldset key={group} className="border border-white/10 p-2">
-            <legend className="px-1 text-xs text-white/60">{label} statistics</legend>
+          <fieldset key={group} className="border border-secondary/20 p-2">
+            <legend className="px-1 text-xs text-secondary">{label} statistics</legend>
             <div className="grid grid-cols-2 gap-2">
               {fields.map((field) => (
                 <Field key={field} label={STAT_FIELD_LABELS[field]}>

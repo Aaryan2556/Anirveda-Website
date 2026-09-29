@@ -70,3 +70,6 @@ export function compactStats(stats) {
   }
   return Object.keys(result).length ? result : null;
 }
+
+/** True when any player in the auction is fictional, so screens can say so. */
+export const hasFictionalPlayers = (state) => Object.values(state.players).some(isFictional);

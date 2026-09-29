@@ -14,8 +14,9 @@ import {
   reduce,
 } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
-import { Button, CurrentLot, Section } from "../DevPanels";
-import { ConfirmButton } from "./fields";
+import { Button, Panel, inputClass } from "../ui/controls";
+import { CurrentLot } from "../ui/auction";
+import { ConfirmButton, Field } from "./fields";
 
 export function AuctionControls({ state, send, pending, reset }) {
   const { status, lot } = state;
@@ -25,7 +26,7 @@ export function AuctionControls({ state, send, pending, reset }) {
   const nextInSequence = getNextPlayerInSequence(state);
 
   return (
-    <Section title="Auction controls">
+    <Panel title="Auction controls">
       <div className="flex flex-wrap gap-2">
         <Button
           variant="primary"
@@ -72,21 +73,27 @@ export function AuctionControls({ state, send, pending, reset }) {
           />
         )}
       </div>
-      <div className="mt-3 text-xs text-white/60">
-        Open team dashboards:{" "}
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-secondary/20 pt-3 text-xs text-secondary">
+        <span className="uppercase tracking-wider">Open screens:</span>
+        <a href="/ipl-auction/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
+          Big screen
+        </a>
+        <a href="/ipl-auction/summary" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
+          Summary
+        </a>
         {getTeamsInOrder(state).map((team) => (
           <a
             key={team.id}
             href={`/ipl-auction/play?team=${encodeURIComponent(team.id)}`}
             target="_blank"
             rel="noreferrer"
-            className="mr-3 text-primary underline"
+            className="text-primary underline-offset-2 hover:underline"
           >
             {team.name}
           </a>
         ))}
       </div>
-    </Section>
+    </Panel>
   );
 }
 
@@ -111,19 +118,17 @@ export function OnTheBlock({ state, send, actor, pending }) {
   const salePreview = saleCommand && saleTeamId && actor ? reduce(state, { ...saleCommand, actor }) : null;
 
   return (
-    <Section title="On the block">
-      <CurrentLot state={state} />
-      {lot && (
-        <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
-          <div className="text-xs text-white/60">When the hammer falls, pick the winning team and enter the final price.</div>
-          <div className="flex flex-wrap items-end gap-2">
-            <label className="text-xs">
-              Winning team
-              <select
-                className="ml-2 border border-white/30 bg-black px-2 py-1 text-sm"
-                value={saleTeamId}
-                onChange={(e) => setSaleTeamId(e.target.value)}
-              >
+    <Panel title="On the block">
+      <div className={lot ? "grid gap-6 xl:grid-cols-[1fr_20rem]" : ""}>
+        <CurrentLot state={state} />
+        {lot && (
+          <div className="space-y-3 rounded-lg border border-primary/40 bg-black p-4 xl:self-start">
+            <div>
+              <h3 className="font-Bebas text-2xl leading-none tracking-wide text-primary">Hammer</h3>
+              <p className="mt-1 text-xs text-secondary">When the hammer falls, pick the winning team and enter the final price.</p>
+            </div>
+            <Field label="Winning team">
+              <select className={inputClass} value={saleTeamId} onChange={(e) => setSaleTeamId(e.target.value)}>
                 <option value="">Select…</option>
                 {teams.map((team) => (
                   <option key={team.id} value={team.id}>
@@ -131,37 +136,49 @@ export function OnTheBlock({ state, send, actor, pending }) {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-xs">
-              Final price (lakhs)
+            </Field>
+            <Field label="Final price (lakhs)" hint={`${formatLakhs(Number(salePrice) || null)} · base ${formatLakhs(lotPlayer.basePrice)}`}>
               <input
-                className="ml-2 w-24 border border-white/30 bg-black px-2 py-1 text-sm"
+                className={inputClass}
                 type="number"
+                inputMode="numeric"
                 min={lotPlayer.basePrice}
                 value={salePrice}
                 onChange={(e) => setSalePrice(e.target.value)}
               />
-            </label>
+            </Field>
             <Button
               variant="primary"
+              size="lg"
+              className="w-full"
               disabled={!salePreview?.ok || pending}
               onClick={() =>
                 send(saleCommand, { success: `SOLD to ${state.teams[saleTeamId].name} for ${formatLakhs(Number(salePrice))}.` })
               }
             >
-              SOLD{saleTeamId ? ` to ${state.teams[saleTeamId].name}` : ""} for {formatLakhs(Number(salePrice) || null)}
+              SOLD{saleTeamId ? ` to ${state.teams[saleTeamId].shortName}` : ""} · {formatLakhs(Number(salePrice) || null)}
             </Button>
-            <span className="mx-2 h-6 w-px bg-white/20" />
-            <Button disabled={pending} onClick={() => send({ type: COMMANDS.MARK_UNSOLD })}>
-              UNSOLD
-            </Button>
-            <Button variant="danger" disabled={pending} onClick={() => send({ type: COMMANDS.WITHDRAW_PLAYER, playerId: lot.playerId })}>
-              Withdraw
-            </Button>
+            {salePreview && !salePreview.ok && (
+              <p className="text-sm text-red-300" role="alert">
+                Can&apos;t sell: {salePreview.error.message}
+              </p>
+            )}
+            <div className="flex gap-2 border-t border-secondary/20 pt-3">
+              <Button className="flex-1" disabled={pending} onClick={() => send({ type: COMMANDS.MARK_UNSOLD })}>
+                UNSOLD
+              </Button>
+              <Button
+                variant="danger"
+                className="flex-1"
+                disabled={pending}
+                onClick={() => send({ type: COMMANDS.WITHDRAW_PLAYER, playerId: lot.playerId })}
+              >
+                Withdraw
+              </Button>
+            </div>
           </div>
-          {salePreview && !salePreview.ok && <p className="text-sm text-red-300">Can&apos;t sell: {salePreview.error.message}</p>}
-        </div>
-      )}
-    </Section>
+        )}
+      </div>
+    </Panel>
   );
 }

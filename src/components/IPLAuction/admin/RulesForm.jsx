@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DEV_DEFAULT_CONFIG, ROLE_LABELS, ROLE_LIST, validateConfig } from "../../../lib/iplAuction/config";
 import { AUCTION_STATUS, COMMANDS } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
-import { Button } from "../DevPanels";
+import { Button, table } from "../ui/controls";
 import { Checkbox, Field, NumberInput, Select, toNumberOrNull } from "./fields";
 
 /** Named rule sets. Add the real event preset here once the organisers confirm it. */
@@ -66,7 +66,7 @@ export default function RulesForm({ state, send, pending }) {
 
   return (
     <div className="space-y-4 text-sm">
-      <p className="text-xs text-white/60">
+      <p className="text-xs text-secondary">
         {isSetup ? "Editable until the auction starts." : "Locked: the auction has started."} Money is in whole lakhs
         (₹1 Cr = 100). Leave a maximum blank for no limit.
       </p>
@@ -87,22 +87,22 @@ export default function RulesForm({ state, send, pending }) {
           </Field>
         </div>
 
-        <table className="text-left text-xs">
-          <thead className="text-white/50">
+        <table className={table.table}>
+          <thead className={table.thead}>
             <tr>
-              <th className="py-1 pr-4">Role</th>
-              <th className="pr-4">Minimum</th>
-              <th className="pr-4">Maximum</th>
+              <th className={table.th}>Role</th>
+              <th className={table.th}>Minimum</th>
+              <th className={table.th}>Maximum</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={table.tbody}>
             {ROLE_LIST.map((role) => (
               <tr key={role}>
-                <td className="py-1 pr-4">{ROLE_LABELS[role]}</td>
-                <td className="pr-4">
+                <td className={table.td}>{ROLE_LABELS[role]}</td>
+                <td className={table.td}>
                   <NumberInput min={0} value={draft.roles[role].min} onChange={setRole(role, "min")} aria-label={`${ROLE_LABELS[role]} minimum`} />
                 </td>
-                <td className="pr-4">
+                <td className={table.td}>
                   <NumberInput min={0} value={draft.roles[role].max} onChange={setRole(role, "max")} aria-label={`${ROLE_LABELS[role]} maximum`} />
                 </td>
               </tr>

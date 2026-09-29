@@ -6,7 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { parsePlayerImport, planPlayerImport } from "../../../lib/iplAuction/io/playerImport";
 import { DATA_SOURCES } from "../../../lib/iplAuction/playerFields";
 import { makeId } from "../../../lib/iplAuction/repository/mockSeed";
-import { Button } from "../DevPanels";
+import { Button, table } from "../ui/controls";
 import { Field, Select, TextInput, inputClass } from "./fields";
 
 const NO_DEFAULT = "";
@@ -71,7 +71,7 @@ export default function PlayerImport({ state, send, pending }) {
 
   return (
     <div className="grid gap-3 text-sm">
-      <p className="text-xs text-white/60">
+      <p className="text-xs text-secondary">
         Paste CSV (with a header row) or JSON, or load a file. Columns: <code>name, role, basePrice</code> (lakhs),{" "}
         <code>isOverseas</code>, and optionally <code>nationality, age, battingStyle, bowlingStyle, image, dataSource,
         recentPerformance</code> (separate entries with <code>|</code>) and stats such as <code>batting.runs</code>,{" "}
@@ -119,27 +119,27 @@ export default function PlayerImport({ state, send, pending }) {
               Import {valid.length} player{valid.length === 1 ? "" : "s"}
             </Button>
           </div>
-          <div className="max-h-72 overflow-auto border border-white/10">
-            <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-black text-white/50">
+          <div className="max-h-72 overflow-auto border border-secondary/20">
+            <table className={table.table}>
+              <thead className={`sticky top-0 bg-tertiary ${table.thead}`}>
                 <tr>
-                  <th className="px-2 py-1">Line</th>
-                  <th className="px-2">Name</th>
-                  <th className="px-2">Role</th>
-                  <th className="px-2">Base</th>
-                  <th className="px-2">Source</th>
-                  <th className="px-2">Result</th>
+                  <th className={table.th}>Line</th>
+                  <th className={table.th}>Name</th>
+                  <th className={table.th}>Role</th>
+                  <th className={table.th}>Base</th>
+                  <th className={table.th}>Source</th>
+                  <th className={table.th}>Result</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className={table.tbody}>
                 {plan.map((row) => (
-                  <tr key={row.line} className="border-t border-white/10">
-                    <td className="px-2 py-1">{row.line}</td>
-                    <td className="px-2">{row.name || "—"}</td>
-                    <td className="px-2">{row.command?.player.role ?? ""}</td>
-                    <td className="px-2">{row.command?.player.basePrice ?? ""}</td>
-                    <td className="px-2">{row.command?.player.dataSource ?? ""}</td>
-                    <td className="px-2">
+                  <tr key={row.line}>
+                    <td className={table.td}>{row.line}</td>
+                    <td className={table.td}>{row.name || "—"}</td>
+                    <td className={table.td}>{row.command?.player.role ?? ""}</td>
+                    <td className={table.td}>{row.command?.player.basePrice ?? ""}</td>
+                    <td className={table.td}>{row.command?.player.dataSource ?? ""}</td>
+                    <td className={table.td}>
                       {row.error ? <span className="text-red-300">{row.error}</span> : <span className="text-green-300">OK</span>}
                       {row.warnings.map((warning) => (
                         <span key={warning} className="ml-2 text-yellow-200">⚠ {warning}</span>
@@ -154,7 +154,7 @@ export default function PlayerImport({ state, send, pending }) {
       )}
 
       {progress && (
-        <p className={progress.failed ? "text-red-300" : "text-white/70"}>
+        <p className={progress.failed ? "text-red-300" : "text-secondary"}>
           Imported {progress.done} of {progress.total}.
           {progress.failed && ` Stopped at line ${progress.failed.line}: ${progress.failed.message} Fix it and check again; rows already imported stay.`}
         </p>

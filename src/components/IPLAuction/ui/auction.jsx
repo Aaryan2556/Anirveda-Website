@@ -1,0 +1,486 @@
+/**
+ * Auction building blocks shared by the admin console, team dashboard, big
+ * screen and summary. Presentation only: every number comes from the engine's
+ * selectors and rules (src/lib/iplAuction/engine).
+ */
+import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
+import {
+  AUCTION_STATUS,
+  getMaxBid,
+  getRecentSales,
+  getRoleNeeds,
+  getTeamPurchaseHistory,
+  getTeamStats,
+  getTeamsInOrder,
+  getUpcomingPlayers,
+} from "../../../lib/iplAuction/engine";
+import { useConnectionStatus } from "../../../lib/iplAuction/hooks/useConnectionStatus";
+import { formatLakhs } from "../../../lib/iplAuction/money";
+import { STAT_FIELD_LABELS, STAT_GROUPS, hasFictionalPlayers, isFictional } from "../../../lib/iplAuction/playerFields";
+import { Empty, Tag, table } from "./controls";
+
+/* ----- Status ----------------------------------------------------------- */
+
+const STATUS_STYLES = {
+  [AUCTION_STATUS.SETUP]: { tone: "default", text: "Setting up" },
+  [AUCTION_STATUS.LIVE]: { tone: "primary", text: "Live" },
+  [AUCTION_STATUS.PAUSED]: { tone: "warning", text: "Paused" },
+  [AUCTION_STATUS.COMPLETED]: { tone: "success", text: "Completed" },
+};
+
+export function StatusBadge({ status }) {
+  const style = STATUS_STYLES[status] ?? { tone: "default", text: status };
+  return (
+    <Tag tone={style.tone}>
+      {status === AUCTION_STATUS.LIVE && <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-primary motion-safe:animate-pulse" />}
+      {style.text}
+    </Tag>
+  );
+}
+
+const CONNECTION_LABELS = {
+  live: { text: "Live sync", dot: "bg-green-400" },
+  polling: { text: "Syncing", dot: "bg-secondary" },
+  connecting: { text: "Connecting…", dot: "bg-yellow-300" },
+  reconnecting: { text: "Reconnecting…", dot: "bg-yellow-300" },
+  offline: { text: "Offline · last known state", dot: "bg-red-400" },
+};
+
+/** Sync health of the data; hidden for the browser-only (local) adapter. */
+export function ConnectionIndicator() {
+  const { status } = useConnectionStatus();
+  const label = CONNECTION_LABELS[status];
+  if (!label) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs text-secondary" role="status">
+      <span className={`h-2 w-2 rounded-full ${label.dot}`} />
+      {label.text}
+    </span>
+  );
+}
+
+/** Auction status and sync state, for page headers. */
+export function AuctionStatus({ state }) {
+  return (
+    <>
+      <StatusBadge status={state.status} />
+      <ConnectionIndicator />
+    </>
+  );
+}
+
+/* ----- Notices ---------------------------------------------------------- */
+
+/** Shown whenever fictional players are in the auction. */
+export function FictionalNotice({ state }) {
+  if (!hasFictionalPlayers(state)) return null;
+  return (
+    <p className="mb-5 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-xs text-yellow-200">
+      Players marked <strong>FICTIONAL</strong> are invented for testing: their names and statistics are not real.
+    </p>
+  );
+}
+
+/** Local (browser-only) development mode. Never shown in production builds. */
+export function LocalModeNotice({ kind }) {
+  if (kind !== "local") return null;
+  return (
+    <p className="mb-5 rounded-lg border border-secondary/30 bg-secondary-15 px-4 py-2 text-xs text-secondary">
+      <strong className="text-white">Local development mode.</strong> The auction lives only in this browser and syncs
+      between its tabs. No database, no login.
+    </p>
+  );
+}
+
+/* ----- Players ---------------------------------------------------------- */
+
+const initials = (name = "") =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+const PHOTO_SIZES = {
+  sm: "h-10 w-10 text-lg",
+  md: "aspect-[4/5] w-full text-6xl",
+  lg: "aspect-[4/5] w-full text-8xl",
+};
+
+/** Player photo, or initials when there is none (fictional players have no photos). */
+export function PlayerPhoto({ player, size = "md" }) {
+  return (
+    <div
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-secondary/30 bg-gradient-to-b from-secondary-opacity to-black ${PHOTO_SIZES[size]}`}
+    >
+      {player.image ? (
+        <img src={player.image} alt={player.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <span className="font-Bebas leading-none text-primary/70" aria-hidden="true">
+          {initials(player.name)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+export function PlayerTags({ player }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Tag tone="primary">{ROLE_LABELS[player.role]}</Tag>
+      {player.isOverseas && <Tag>Overseas</Tag>}
+      {isFictional(player) && <Tag tone="warning">Fictional</Tag>}
+    </div>
+  );
+}
+
+function StatGrid({ title, stats, large }) {
+  if (!stats) return null;
+  return (
+    <div className="min-w-0">
+      <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-secondary">{title}</div>
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-secondary/20 bg-secondary/20 sm:grid-cols-4">
+        {Object.entries(stats).map(([key, value]) => (
+          <div key={key} className="bg-tertiary px-2 py-1.5">
+            <dt className="truncate text-[10px] uppercase tracking-wider text-secondary/80">{STAT_FIELD_LABELS[key] ?? key}</dt>
+            <dd className={`font-Bebas leading-tight tracking-wide text-white ${large ? "text-3xl" : "text-2xl"}`}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+/** Statistics by group; each title says "(fictional)" or names the source. */
+export function PlayerStats({ player, large = false }) {
+  const note = isFictional(player) ? " · fictional" : "";
+  const groups = Object.entries(STAT_GROUPS).filter(([group]) => player.stats?.[group]);
+  return (
+    <div className="space-y-3">
+      {groups.length === 0 && <Empty>No statistics entered.</Empty>}
+      {groups.map(([group, { label }]) => (
+        <StatGrid key={group} title={`${label}${note}`} stats={player.stats[group]} large={large} />
+      ))}
+      {player.recentPerformance?.length > 0 && (
+        <div>
+          <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-secondary">Recent form{note}</div>
+          <div className="flex flex-wrap gap-1.5">
+            {player.recentPerformance.map((entry, index) => (
+              <span key={index} className="rounded-3xl border border-secondary/30 px-2.5 py-0.5 text-xs text-white">
+                {entry}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {!isFictional(player) && player.dataSource && (
+        <div className="text-[10px] uppercase tracking-wider text-secondary/60">Source: {player.dataSource}</div>
+      )}
+    </div>
+  );
+}
+
+/** Name, tags, nationality, styles and base price. */
+export function PlayerIdentity({ player, large = false }) {
+  const details = [
+    player.nationality,
+    player.age != null ? `Age ${player.age}` : null,
+    player.battingStyle,
+    player.bowlingStyle,
+  ].filter(Boolean);
+  return (
+    <div className="space-y-2">
+      <PlayerTags player={player} />
+      <h3 className={`font-Bebas leading-none tracking-wide text-white ${large ? "text-6xl xl:text-7xl" : "text-5xl"}`}>
+        {player.name}
+      </h3>
+      {details.length > 0 && <p className="font-Abel text-secondary sm:text-lg">{details.join(" · ")}</p>}
+      <p className="text-sm text-secondary">
+        Base price <span className="font-Bebas text-2xl tracking-wide text-primary">{formatLakhs(player.basePrice)}</span>
+      </p>
+    </div>
+  );
+}
+
+/** Photo + identity + statistics: the "on the block" hero. */
+export function PlayerHero({ player, large = false }) {
+  return (
+    <div className={`grid gap-5 ${large ? "md:grid-cols-[minmax(0,20rem)_1fr]" : "sm:grid-cols-[minmax(0,11rem)_1fr]"}`}>
+      <div className={large ? "mx-auto w-full max-w-[20rem]" : "mx-auto w-full max-w-[11rem]"}>
+        <PlayerPhoto player={player} size={large ? "lg" : "md"} />
+      </div>
+      <div className="min-w-0 space-y-4">
+        <PlayerIdentity player={player} large={large} />
+        <PlayerStats player={player} large={large} />
+      </div>
+    </div>
+  );
+}
+
+/** The player on the block, or a waiting message. */
+export function CurrentLot({ state, large = false }) {
+  if (!state.lot) {
+    const message =
+      state.status === AUCTION_STATUS.COMPLETED
+        ? "The auction is complete."
+        : state.status === AUCTION_STATUS.SETUP
+          ? "The auction has not started yet."
+          : "Waiting for the next player.";
+    return <p className={`font-Abel text-secondary ${large ? "py-16 text-center text-3xl" : "py-6 text-lg"}`}>{message}</p>;
+  }
+  return (
+    <div>
+      <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-primary">Bidding in the room</p>
+      <PlayerHero player={state.players[state.lot.playerId]} large={large} />
+    </div>
+  );
+}
+
+/* ----- Sales, sequence, activity ---------------------------------------- */
+
+/** The most recent sale, called out when it was this team's. Announced to screen readers. */
+export function LatestSale({ state, teamId }) {
+  const [sale] = getRecentSales(state, 1);
+  if (!sale) return null;
+  const mine = teamId && sale.teamId === teamId;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={`rounded-lg border px-4 py-3 text-sm ${mine ? "border-primary bg-primary/15" : "border-secondary/30 bg-secondary-15"}`}
+    >
+      <span className="mr-2 font-Bebas text-xl tracking-wide text-primary">{mine ? "You bought" : "Last sale"}</span>
+      <strong className="text-white">{sale.player.name}</strong>
+      {!mine && <span className="text-secondary"> to {sale.team.name}</span>}
+      <span className="text-secondary"> for </span>
+      <strong className="text-primary">{formatLakhs(sale.price)}</strong>
+    </div>
+  );
+}
+
+/** Latest sales first. `renderAction` adds a per-row control (the admin's cancel button). */
+export function RecentSales({ state, limit = 10, highlightTeamId, renderAction }) {
+  const sales = getRecentSales(state, limit);
+  if (!sales.length) return <Empty>No players sold yet.</Empty>;
+  return (
+    <ol className="divide-y divide-secondary/15 text-sm">
+      {sales.map((sale) => (
+        <li
+          key={sale.id}
+          className={`flex flex-wrap items-center justify-between gap-2 py-2 ${sale.teamId === highlightTeamId ? "text-primary" : ""}`}
+        >
+          <span className="min-w-0">
+            <span className="text-white">{sale.player.name}</span>
+            <span className="text-secondary"> → {sale.team.name}</span>
+          </span>
+          <span className="flex items-center gap-2">
+            <strong className="text-primary">{formatLakhs(sale.price)}</strong>
+            {renderAction?.(sale)}
+          </span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/** Players still to come, in auction order. */
+export function UpcomingPlayers({ state, limit = 8 }) {
+  const upcoming = getUpcomingPlayers(state);
+  if (!upcoming.length) return <Empty>No players left in the sequence.</Empty>;
+  return (
+    <ol className="divide-y divide-secondary/15 text-sm">
+      {upcoming.slice(0, limit).map((player, index) => (
+        <li key={player.id} className="flex items-center justify-between gap-2 py-2">
+          <span className="min-w-0 truncate">
+            <span className="mr-2 font-Bebas text-lg text-secondary/60">{index + 1}</span>
+            <span className="text-white">{player.name}</span>
+            <span className="text-secondary">
+              {" "}
+              · {ROLE_LABELS[player.role]}
+              {player.isOverseas ? " · OS" : ""}
+            </span>
+          </span>
+          <span className="whitespace-nowrap text-secondary">{formatLakhs(player.basePrice)}</span>
+        </li>
+      ))}
+      {upcoming.length > limit && <li className="py-2 text-secondary/70">+ {upcoming.length - limit} more</li>}
+    </ol>
+  );
+}
+
+export function ActivityLog({ state, limit = 40 }) {
+  const entries = state.activity.slice(-limit).reverse();
+  if (!entries.length) return <Empty>No activity yet.</Empty>;
+  return (
+    <ol className="max-h-80 divide-y divide-secondary/10 overflow-y-auto pr-1 text-xs">
+      {entries.map((entry) => (
+        <li key={entry.seq} className="py-1.5">
+          <span className="mr-2 font-mono text-secondary/60">
+            #{entry.seq} {entry.at ? new Date(entry.at).toLocaleTimeString() : ""}
+          </span>
+          <span className="text-white/90">{entry.message}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/* ----- Teams ------------------------------------------------------------ */
+
+/** Bars for each role: have / max (or squad max when a role has no cap), with minimums flagged. */
+export function RoleMeters({ state, teamId }) {
+  const needs = getRoleNeeds(state, teamId);
+  const squadMax = state.config.squad.max;
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      {ROLE_LIST.map((role) => {
+        const { have, min, max, need, full } = needs.roles[role];
+        const cap = max ?? squadMax;
+        return (
+          <div key={role} className="min-w-0">
+            <div className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="truncate text-secondary">{ROLE_LABELS[role]}</span>
+              <span className={need > 0 ? "text-yellow-200" : full ? "text-secondary/60" : "text-white"}>
+                {have}/{max ?? "∞"}
+                {need > 0 && ` · need ${need}`}
+              </span>
+            </div>
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary/15" aria-hidden="true">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${cap ? Math.min(100, (have / cap) * 100) : 0}%` }} />
+            </div>
+            {min > 0 && <div className="mt-0.5 text-[10px] text-secondary/60">min {min}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Purse, squad and overseas for every team. */
+export function TeamsTable({ state, highlightTeamId }) {
+  const { config } = state;
+  return (
+    <div className={table.wrap}>
+      <table className={table.table}>
+        <thead className={table.thead}>
+          <tr>
+            <th className={table.th}>Team</th>
+            <th className={table.th}>Purse left</th>
+            <th className={table.th}>Spent</th>
+            <th className={table.th}>Max next</th>
+            <th className={table.th}>Squad</th>
+            <th className={table.th}>Overseas</th>
+            {ROLE_LIST.map((role) => (
+              <th key={role} className={table.th}>
+                {ROLE_LABELS[role]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className={table.tbody}>
+          {getTeamsInOrder(state).map((team) => {
+            const stats = getTeamStats(state, team.id);
+            return (
+              <tr key={team.id} className={team.id === highlightTeamId ? table.highlight : ""}>
+                <td className={`${table.td} whitespace-nowrap text-white`}>{team.name}</td>
+                <td className={`${table.td} whitespace-nowrap font-bold text-primary`}>{formatLakhs(stats.purse)}</td>
+                <td className={`${table.td} whitespace-nowrap text-secondary`}>{formatLakhs(stats.spent)}</td>
+                <td className={`${table.td} whitespace-nowrap text-secondary`}>{formatLakhs(getMaxBid(state, team.id))}</td>
+                <td className={`${table.td} whitespace-nowrap`}>
+                  {stats.count}/{config.squad.max}
+                  <span className="text-secondary/60"> (min {config.squad.min})</span>
+                </td>
+                <td className={`${table.td} whitespace-nowrap`}>
+                  {stats.overseas}/{config.maxOverseas ?? "∞"}
+                </td>
+                {ROLE_LIST.map((role) => (
+                  <td key={role} className={`${table.td} whitespace-nowrap`}>
+                    {stats.roles[role]}/{config.roleLimits[role].max ?? "∞"}
+                    {config.roleLimits[role].min > 0 && <span className="text-secondary/60"> (min {config.roleLimits[role].min})</span>}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** One tile per team: purse left, squad and overseas counts. For the big screen and headers. */
+export function PurseStrip({ state, highlightTeamId }) {
+  const { config } = state;
+  const teams = getTeamsInOrder(state);
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
+      {teams.map((team) => {
+        const stats = getTeamStats(state, team.id);
+        return (
+          <div
+            key={team.id}
+            className={`rounded-lg border px-3 py-2 ${team.id === highlightTeamId ? "border-primary bg-primary/10" : "border-secondary/30 bg-tertiary"}`}
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="truncate font-Bebas text-xl tracking-wide text-white" title={team.name}>
+                {team.shortName}
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-secondary">
+                {stats.count}/{config.squad.max} · OS {stats.overseas}/{config.maxOverseas ?? "∞"}
+              </span>
+            </div>
+            <div className="font-Bebas text-3xl leading-tight tracking-wide text-primary">{formatLakhs(stats.purse)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** One team: purse, spend, role mix and squad with prices. `mine` marks the viewer's team. */
+export function TeamSquadCard({ state, team, mine = false, footer }) {
+  const { config } = state;
+  const stats = getTeamStats(state, team.id);
+  const squad = getTeamPurchaseHistory(state, team.id);
+  return (
+    <section className={`rounded-lg border bg-tertiary p-4 ${mine ? "border-primary" : "border-secondary/30"}`}>
+      <div className="mb-1 flex items-start justify-between gap-2">
+        <h3 className="min-w-0 font-Bebas text-2xl leading-none tracking-wide text-white">
+          {team.name}
+          {mine && <Tag tone="primary" className="ml-2 align-middle">You</Tag>}
+        </h3>
+        <span className="whitespace-nowrap font-Bebas text-2xl leading-none tracking-wide text-primary">{formatLakhs(stats.purse)}</span>
+      </div>
+      <p className="mb-4 text-xs text-secondary">
+        {stats.count}/{config.squad.max} players · spent {formatLakhs(stats.spent)} · overseas {stats.overseas}/
+        {config.maxOverseas ?? "∞"}
+      </p>
+      <RoleMeters state={state} teamId={team.id} />
+      <div className="mt-4 border-t border-secondary/20 pt-3">
+        {squad.length === 0 ? (
+          <Empty>No players yet.</Empty>
+        ) : (
+          <ul className="space-y-1 text-xs">
+            {squad.map((purchase) => (
+              <li key={purchase.id} className="flex justify-between gap-2">
+                <span className="min-w-0">
+                  <span className="text-white">{purchase.player.name}</span>
+                  <span className="text-secondary">
+                    {" "}
+                    · {ROLE_LABELS[purchase.player.role]}
+                    {purchase.player.isOverseas ? " · OS" : ""}
+                  </span>
+                  {isFictional(purchase.player) && <span className="text-yellow-300/70"> (fictional)</span>}
+                </span>
+                <span className="whitespace-nowrap text-primary">{formatLakhs(purchase.price)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      {footer}
+    </section>
+  );
+}

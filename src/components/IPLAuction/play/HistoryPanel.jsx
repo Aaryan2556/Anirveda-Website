@@ -5,11 +5,12 @@
 import { ROLE_LABELS } from "../../../lib/iplAuction/config";
 import { getLotHistory } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
-import { ActivityLog, Section } from "../DevPanels";
+import { Panel, table } from "../ui/controls";
+import { ActivityLog } from "../ui/auction";
 
 const RESULT_STYLE = {
   SOLD: "text-green-300",
-  UNSOLD: "text-white/60",
+  UNSOLD: "text-secondary",
   WITHDRAWN: "text-red-300",
   OPEN: "text-primary",
 };
@@ -18,41 +19,41 @@ export default function HistoryPanel({ state, teamId }) {
   const lots = getLotHistory(state).reverse();
   return (
     <div className="space-y-4">
-      <Section title={`Lots (${lots.length})`}>
+      <Panel title={`Lots (${lots.length})`}>
         {lots.length === 0 ? (
-          <p className="text-sm text-white/60">No player has been up yet.</p>
+          <p className="text-sm text-secondary">No player has been up yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-white/50">
+          <div className={table.wrap}>
+            <table className={table.table}>
+              <thead className={table.thead}>
                 <tr>
-                  <th className="py-1 pr-3">#</th>
-                  <th className="pr-3">Player</th>
-                  <th className="pr-3">Role</th>
-                  <th className="pr-3">Base</th>
-                  <th className="pr-3">Result</th>
-                  <th className="pr-3">Team</th>
-                  <th className="pr-3">Price</th>
-                  <th className="pr-3">Time</th>
+                  <th className={table.th}>#</th>
+                  <th className={table.th}>Player</th>
+                  <th className={table.th}>Role</th>
+                  <th className={table.th}>Base</th>
+                  <th className={table.th}>Result</th>
+                  <th className={table.th}>Team</th>
+                  <th className={table.th}>Price</th>
+                  <th className={table.th}>Time</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className={table.tbody}>
                 {lots.map((lot, index) => (
                   <tr
                     key={`${lot.playerId}-${lot.openedAt}-${index}`}
-                    className={`border-t border-white/10 ${lot.teamId === teamId && !lot.cancelled ? "bg-primary/15" : ""}`}
+                    className={`${lot.teamId === teamId && !lot.cancelled ? "bg-primary/10" : ""}`}
                   >
-                    <td className="py-1 pr-3 text-white/50">{lots.length - index}</td>
-                    <td className="pr-3">{lot.player?.name ?? "(removed player)"}</td>
-                    <td className="pr-3">{ROLE_LABELS[lot.player?.role] ?? "—"}</td>
-                    <td className="whitespace-nowrap pr-3">{formatLakhs(lot.player?.basePrice)}</td>
-                    <td className={`pr-3 ${RESULT_STYLE[lot.result]}`}>
+                    <td className={`${table.td} text-secondary/70`}>{lots.length - index}</td>
+                    <td className={table.td}>{lot.player?.name ?? "(removed player)"}</td>
+                    <td className={table.td}>{ROLE_LABELS[lot.player?.role] ?? "—"}</td>
+                    <td className={`${table.td} whitespace-nowrap`}>{formatLakhs(lot.player?.basePrice)}</td>
+                    <td className={`${table.td} whitespace-nowrap ${RESULT_STYLE[lot.result]}`}>
                       {lot.result === "OPEN" ? "ON THE BLOCK" : lot.result}
                       {lot.cancelled && <span className="ml-1 text-yellow-200">(sale cancelled)</span>}
                     </td>
-                    <td className="pr-3">{lot.team?.name ?? "—"}</td>
-                    <td className="whitespace-nowrap pr-3">{lot.price == null ? "—" : formatLakhs(lot.price)}</td>
-                    <td className="whitespace-nowrap pr-3 text-white/60">
+                    <td className={table.td}>{lot.team?.name ?? "—"}</td>
+                    <td className={`${table.td} whitespace-nowrap`}>{lot.price == null ? "—" : formatLakhs(lot.price)}</td>
+                    <td className={`${table.td} whitespace-nowrap text-secondary`}>
                       {lot.openedAt ? new Date(lot.openedAt).toLocaleTimeString() : "—"}
                     </td>
                   </tr>
@@ -61,10 +62,10 @@ export default function HistoryPanel({ state, teamId }) {
             </table>
           </div>
         )}
-      </Section>
-      <Section title="Activity">
+      </Panel>
+      <Panel title="Activity">
         <ActivityLog state={state} limit={200} />
-      </Section>
+      </Panel>
     </div>
   );
 }

@@ -19,7 +19,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 | 5 | [Participant functionality](./phase-5-participant.md) | ✅ Done locally (2026-09-28); Appwrite re-check pending | 1 | 2, 3, 4 |
 | 6 | [Real-time synchronization](./phase-6-realtime.md) | ✅ Done (2026-09-29); transaction events + latency verified live; device rehearsal in Phase 8 | 3 | — |
 | 7 | [Authentication & permissions](./phase-7-auth-permissions.md) | ✅ Done (2026-09-29); `npm run ipl:check` passes on dev; production switch-over is the owner's | 3 (and 4, 5 for guards) | 6 |
-| 8 | [Final UI/UX](./phase-8-ui-ux.md) | ⬜ Not started | 4, 5, 6, 7 stable | — |
+| 8 | [Final UI/UX](./phase-8-ui-ux.md) | ✅ Done (2026-09-29); device rehearsal left to the owner | 4, 5, 6, 7 stable | — |
 
 Update this table when a phase starts or finishes.
 

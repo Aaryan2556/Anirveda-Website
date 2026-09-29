@@ -7,6 +7,7 @@ import {
   getMarket,
   getRoleNeeds,
   getTeamPurchaseHistory,
+  getTopSales,
 } from "../engine/index.js";
 import { apply, buy, live, open, sell, testConfig } from "./fixtures.js";
 
@@ -115,5 +116,29 @@ describe("getLotHistory", () => {
 
   it("is empty before any player goes up", () => {
     assert.deepEqual(getLotHistory(live()), []);
+  });
+});
+
+describe("getTopSales", () => {
+  it("orders by price, highest first, ties in purchase order, and honours the limit", () => {
+    let state = buy(live(), "t1", "bat1", 30);
+    state = buy(state, "t2", "bat2", 60);
+    state = buy(state, "t1", "wk1", 60);
+    state = buy(state, "t2", "bowl1", 25);
+    assert.deepEqual(getTopSales(state).map((s) => [s.player.id, s.team.id, s.price]), [
+      ["bat2", "t2", 60],
+      ["wk1", "t1", 60],
+      ["bat1", "t1", 30],
+      ["bowl1", "t2", 25],
+    ]);
+    assert.deepEqual(getTopSales(state, 1).map((s) => s.player.id), ["bat2"]);
+    assert.deepEqual(getTopSales(live()), []);
+  });
+
+  it("drops a sale that was cancelled", () => {
+    let state = buy(live(), "t1", "bat1", 30);
+    state = buy(state, "t2", "bat2", 60);
+    state = apply(state, { type: CANCEL_SALE, playerId: "bat2" });
+    assert.deepEqual(getTopSales(state).map((s) => s.player.id), ["bat1"]);
   });
 });

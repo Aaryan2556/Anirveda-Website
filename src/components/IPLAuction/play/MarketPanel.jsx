@@ -8,14 +8,15 @@ import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
 import { PLAYER_STATUS, getMarket, validateSale } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
 import { isFictional } from "../../../lib/iplAuction/playerFields";
-import { PlayerDetails } from "../DevPanels";
+import { inputClass, table } from "../ui/controls";
+import { PlayerHero } from "../ui/auction";
 
-const selectClass = "border border-white/30 bg-black px-2 py-1 text-sm";
+const selectClass = inputClass;
 const STILL_TO_COME = [PLAYER_STATUS.AVAILABLE, PLAYER_STATUS.UNSOLD, PLAYER_STATUS.ON_BLOCK];
 const OVERSEAS_OPTIONS = { any: null, overseas: true, domestic: false };
 
 function Eligibility({ state, teamId, player }) {
-  if (!STILL_TO_COME.includes(player.status)) return <span className="text-white/30">—</span>;
+  if (!STILL_TO_COME.includes(player.status)) return <span className="text-secondary/40">—</span>;
   const blocked = validateSale(state, teamId, player, player.basePrice);
   return blocked ? (
     <span className="text-red-300" title={blocked.message}>
@@ -64,25 +65,25 @@ export default function MarketPanel({ state, teamId }) {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-      <p className="text-xs text-white/50">
+      <p className="text-xs text-secondary/70">
         {rows.length} player{rows.length === 1 ? "" : "s"}. &quot;Can buy&quot; checks your purse, squad, role and overseas
         limits at the base price. Tap a name for details.
       </p>
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="text-white/50">
+      <div className={table.wrap}>
+        <table className={table.table}>
+          <thead className={table.thead}>
             <tr>
-              <th className="py-1 pr-3">#</th>
-              <th className="pr-3">Player</th>
-              <th className="pr-3">Role</th>
-              <th className="pr-3">OS</th>
-              <th className="pr-3">Base</th>
-              <th className="pr-3">Status</th>
-              <th className="pr-3">Sold</th>
-              <th className="pr-3">Can buy</th>
+              <th className={table.th}>#</th>
+              <th className={table.th}>Player</th>
+              <th className={table.th}>Role</th>
+              <th className={table.th}>OS</th>
+              <th className={table.th}>Base</th>
+              <th className={table.th}>Status</th>
+              <th className={table.th}>Sold</th>
+              <th className={table.th}>Can buy</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={table.tbody}>
             {rows.map(({ player, position, team }) => (
               <MarketRow
                 key={player.id}
@@ -102,27 +103,27 @@ function MarketRow({ state, teamId, player, position, team, open, onToggle }) {
   const mine = player.soldTo === teamId;
   return (
     <>
-      <tr className={`border-t border-white/10 ${mine ? "bg-primary/15" : ""}`}>
-        <td className="py-1 pr-3 text-white/50">{position}</td>
-        <td className="pr-3">
-          <button type="button" className="text-left underline decoration-white/20 hover:decoration-white" onClick={onToggle}>
+      <tr className={`${mine ? "bg-primary/10" : ""}`}>
+        <td className={`${table.td} text-secondary/70`}>{position}</td>
+        <td className={table.td}>
+          <button type="button" className="text-left underline decoration-secondary/40 hover:text-primary hover:decoration-primary" onClick={onToggle}>
             {player.name}
           </button>
           {isFictional(player) && <span className="ml-1 text-yellow-300/70">(fictional)</span>}
         </td>
-        <td className="pr-3">{ROLE_LABELS[player.role]}</td>
-        <td className="pr-3">{player.isOverseas ? "Yes" : "—"}</td>
-        <td className="whitespace-nowrap pr-3">{formatLakhs(player.basePrice)}</td>
-        <td className="pr-3">{player.status}</td>
-        <td className="whitespace-nowrap pr-3">{team ? `${team.shortName} · ${formatLakhs(player.soldPrice)}` : "—"}</td>
-        <td className="pr-3">
+        <td className={table.td}>{ROLE_LABELS[player.role]}</td>
+        <td className={table.td}>{player.isOverseas ? "Yes" : "—"}</td>
+        <td className={`${table.td} whitespace-nowrap`}>{formatLakhs(player.basePrice)}</td>
+        <td className={table.td}>{player.status}</td>
+        <td className={`${table.td} whitespace-nowrap`}>{team ? `${team.shortName} · ${formatLakhs(player.soldPrice)}` : "—"}</td>
+        <td className={table.td}>
           <Eligibility state={state} teamId={teamId} player={player} />
         </td>
       </tr>
       {open && (
         <tr>
-          <td colSpan={8} className="bg-white/5 p-3">
-            <PlayerDetails player={player} />
+          <td colSpan={8} className={`${table.td} bg-secondary-15 p-3`}>
+            <PlayerHero player={player} />
           </td>
         </tr>
       )}

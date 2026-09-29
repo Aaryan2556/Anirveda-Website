@@ -1,5 +1,5 @@
 /**
- * /ipl-auction/admin — functional admin console. Final design is Phase 8.
+ * /ipl-auction/admin — the admin console.
  * All business rules live in src/lib/iplAuction; this page only wires them up.
  *
  * Flow: set up rules, teams and players; start; players come up in sequence,
@@ -14,15 +14,15 @@ import { useAdminActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { useAuctionCommand } from "../../lib/iplAuction/hooks/useAuctionCommand";
 import { AUCTION_STATUS, COMMANDS } from "../../lib/iplAuction/engine";
 import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
+import { Button, Empty, Page, PageHeader, Panel, Spinner, Tabs, inputClass } from "../../components/IPLAuction/ui/controls";
 import {
   ActivityLog,
-  AuctionHeader,
-  Button,
-  DevBanner,
+  AuctionStatus,
+  FictionalNotice,
+  LocalModeNotice,
   RecentSales,
-  Section,
   TeamsTable,
-} from "../../components/IPLAuction/DevPanels";
+} from "../../components/IPLAuction/ui/auction";
 import AuctionSummary from "../../components/IPLAuction/admin/AuctionSummary";
 import PlayerEditor from "../../components/IPLAuction/admin/PlayerEditor";
 import PlayerImport from "../../components/IPLAuction/admin/PlayerImport";
@@ -43,25 +43,35 @@ const TABS = [
 /** Appwrite mode requires a signed-in user with the admin label; local mode needs no login. */
 export default function AdminPage() {
   const { mode, reason } = getAuctionMode();
-  if (mode === AUCTION_MODES.DISABLED) return <Shell>IPL Auction is not available: {reason}</Shell>;
+  if (mode === AUCTION_MODES.DISABLED) {
+    return (
+      <Shell>
+        <p className="text-secondary">IPL Auction is not available: {reason}</p>
+      </Shell>
+    );
+  }
   return <AdminGate />;
 }
 
 function AdminGate() {
   const identity = useAdminActor();
-  if (identity.status === "loading") return <Shell>Checking sign-in…</Shell>;
+  if (identity.status === "loading") {
+    return (
+      <Shell>
+        <Spinner label="Checking sign-in…" />
+      </Shell>
+    );
+  }
   if (!identity.isAdmin) return <SignIn auth={identity.auth} />;
   return <AdminConsole identity={identity} />;
 }
 
 function Shell({ children }) {
   return (
-    <div className="min-h-screen bg-tertiary px-4 py-6 font-Lato text-white">
-      <div className="mx-auto max-w-md space-y-4">
-        <h1 className="font-Bebas text-4xl tracking-wide">IPL Auction · Admin</h1>
-        {children}
-      </div>
-    </div>
+    <Page>
+      <PageHeader title="Admin console" />
+      <div className="mx-auto max-w-md">{children}</div>
+    </Page>
   );
 }
 
@@ -78,38 +88,49 @@ function SignIn({ auth }) {
   return (
     <Shell>
       {auth.user ? (
-        <div className="space-y-2 border border-red-500/60 p-3 text-sm">
-          <p>
-            Signed in as <strong>{auth.user.email}</strong>, but this account is not an IPL admin.
+        <Panel title="Not an admin">
+          <p className="mb-4 text-sm text-secondary">
+            Signed in as <strong className="text-white">{auth.user.email}</strong>, but this account is not an IPL
+            Auction admin.
           </p>
           <Button onClick={auth.signOut}>Sign out</Button>
-        </div>
+        </Panel>
       ) : (
-        <form onSubmit={submit} className="grid gap-2 border border-white/15 p-4 text-sm">
-          <input
-            required
-            type="email"
-            placeholder="Admin email"
-            autoComplete="username"
-            className="border border-white/30 bg-black px-2 py-1"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            required
-            type="password"
-            placeholder="Password"
-            autoComplete="current-password"
-            className="border border-white/30 bg-black px-2 py-1"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <Button variant="primary" type="submit" disabled={busy}>
-            {busy ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
+        <Panel title="Admin login">
+          <form onSubmit={submit} className="grid gap-4">
+            <label className="grid gap-1 text-xs">
+              <span className="font-medium uppercase tracking-wider text-secondary">Email</span>
+              <input
+                required
+                type="email"
+                autoComplete="username"
+                className={`${inputClass} py-2.5`}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
+            <label className="grid gap-1 text-xs">
+              <span className="font-medium uppercase tracking-wider text-secondary">Password</span>
+              <input
+                required
+                type="password"
+                autoComplete="current-password"
+                className={`${inputClass} py-2.5`}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
+            <Button variant="primary" size="lg" type="submit" disabled={busy}>
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </Panel>
       )}
-      {auth.error && <p className="text-sm text-red-300">{auth.error}</p>}
+      {auth.error && (
+        <p className="mt-3 text-sm text-red-300" role="alert">
+          {auth.error}
+        </p>
+      )}
     </Shell>
   );
 }
@@ -123,6 +144,7 @@ function AdminConsole({ identity }) {
   const selectTab = (id) => setParams((current) => ({ ...Object.fromEntries(current), tab: id }));
   const isCompleted = state.status === AUCTION_STATUS.COMPLETED;
   const { user, signOut } = identity.auth;
+  const lotPlayer = state.lot ? state.players[state.lot.playerId] : null;
 
   /** Correcting an earlier sale refunds the team and clears the undo history, so it asks first. */
   const cancelSaleAction = (playerId) => (
@@ -135,94 +157,88 @@ function AdminConsole({ identity }) {
   );
 
   return (
-    <div className="min-h-screen bg-tertiary px-4 py-6 font-Lato text-white">
+    <Page>
       <Toaster position="top-right" />
-      <div className="mx-auto max-w-7xl space-y-4">
-        <h1 className="font-Bebas text-4xl tracking-wide">IPL Auction · Admin (dev)</h1>
-        <DevBanner kind={kind} />
+      <PageHeader title="Admin console">
+        <AuctionStatus state={state} />
         {user && (
-          <div className="flex items-center gap-3 text-xs text-white/60">
-            Signed in as {user.email}
-            <Button onClick={signOut}>Sign out</Button>
-          </div>
+          <span className="flex items-center gap-2 text-xs text-secondary">
+            {user.email}
+            <Button size="sm" onClick={signOut}>
+              Sign out
+            </Button>
+          </span>
         )}
-        <AuctionHeader state={state} />
+      </PageHeader>
+      <LocalModeNotice kind={kind} />
+      <FictionalNotice state={state} />
+      <p className="mb-4 font-Abel text-lg text-secondary">{state.name}</p>
 
-        <nav className="flex flex-wrap gap-1 border-b border-white/15" aria-label="Admin sections">
-          {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              aria-current={tab === id ? "page" : undefined}
-              onClick={() => selectTab(id)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-                tab === id ? "border-primary text-white" : "border-transparent text-white/60 hover:text-white"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-          {pending && <span className="ml-auto self-center text-xs text-white/50">Saving…</span>}
-        </nav>
+      <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Admin sections" trailing={pending ? "Saving…" : null} />
 
+      {lotPlayer && tab !== "run" && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm">
+          <span>
+            <span className="text-secondary">On the block: </span>
+            <strong className="text-white">{lotPlayer.name}</strong>
+          </span>
+          <Button size="sm" variant="outline" onClick={() => selectTab("run")}>
+            Go to hammer
+          </Button>
+        </div>
+      )}
+
+      <div className="space-y-4">
         {tab === "run" && (
           <>
-            <AuctionControls state={state} send={send} pending={pending} reset={reset} />
             <OnTheBlock state={state} send={send} actor={identity.actor} pending={pending} />
+            <AuctionControls state={state} send={send} pending={pending} reset={reset} />
             <div className="grid gap-4 lg:grid-cols-2">
-              <Section title="Recent sales">
+              <Panel title="Recent sales">
                 <RecentSales state={state} renderAction={(sale) => cancelSaleAction(sale.playerId)} />
-              </Section>
-              <Section title="Activity">
+              </Panel>
+              <Panel title="Activity">
                 <ActivityLog state={state} />
-              </Section>
+              </Panel>
             </div>
-            <Section title="Teams">
+            <Panel title="Teams">
               <TeamsTable state={state} />
-            </Section>
+            </Panel>
           </>
         )}
 
         {tab === "players" && (
           <>
-            <Section title="Player sequence">
+            <Panel title="Player sequence">
               <PlayerSequence state={state} send={send} pending={pending} renderSaleAction={cancelSaleAction} />
-            </Section>
-            <Section title="Add player">
-              {isCompleted ? (
-                <p className="text-sm text-white/60">The auction has ended.</p>
-              ) : (
-                <PlayerEditor player={null} send={send} pending={pending} />
-              )}
-            </Section>
-            <Section title="Bulk import">
-              {isCompleted ? (
-                <p className="text-sm text-white/60">The auction has ended.</p>
-              ) : (
-                <PlayerImport state={state} send={send} pending={pending} />
-              )}
-            </Section>
+            </Panel>
+            <Panel title="Add player">
+              {isCompleted ? <Empty>The auction has ended.</Empty> : <PlayerEditor player={null} send={send} pending={pending} />}
+            </Panel>
+            <Panel title="Bulk import">
+              {isCompleted ? <Empty>The auction has ended.</Empty> : <PlayerImport state={state} send={send} pending={pending} />}
+            </Panel>
           </>
         )}
 
         {tab === "teams" && (
-          <Section title="Teams">
+          <Panel title="Teams">
             <TeamManager state={state} send={send} pending={pending} />
-          </Section>
+          </Panel>
         )}
 
         {tab === "rules" && (
-          <Section title="Auction rules">
+          <Panel title="Auction rules">
             <RulesForm state={state} send={send} pending={pending} />
-          </Section>
+          </Panel>
         )}
 
         {tab === "summary" && (
-          <Section title="Auction summary">
+          <Panel title="Auction summary">
             <AuctionSummary state={state} renderSaleAction={(sale) => cancelSaleAction(sale.playerId)} />
-          </Section>
+          </Panel>
         )}
       </div>
-    </div>
+    </Page>
   );
 }

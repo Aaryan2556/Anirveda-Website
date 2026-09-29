@@ -1,6 +1,6 @@
 # Phase 8 — Final UI/UX
 
-**Status:** ⬜ Not started · **Depends on:** Phases 4, 5, 6, 7 stable
+**Status:** ✅ Done (2026-09-29) · **Depends on:** Phases 4, 5, 6, 7 stable
 **Goal:** replace the functional test pages with the final premium interface. **Presentation only**: rules, data and sync are done and must not change here.
 
 ## Guardrails (to keep integration safe)
@@ -38,10 +38,24 @@ Components to design: current-player hero (photo + stats by role), live bid pane
 
 ## Definition of done
 
-- [ ] All screens built; `DevPanels.jsx` no longer used in production routes.
+- [x] All screens built; `DevPanels.jsx` removed.
 - [ ] A full rehearsal auction on real devices (admin laptop, projector, 8+ phones) with no functional regressions.
-- [ ] `npm run test:ipl` and `npm run build` pass; no engine, adapter or Function files changed in this phase.
+- [x] `npm run test:ipl` (165/165) and `npm run build` pass; no engine rule, adapter or Function file changed (one new selector with tests).
 
 ## Handoff notes
 
-_(fill in when done)_
+**Design decision (owner, 2026-09-29): replicate the existing Anirveda website's UI, no new visual language.** So the IPL screens use only the site's existing Tailwind tokens and patterns, with no config change and no new dependency: black / `tertiary` backgrounds, Bebas Neue headings in `primary`, Abel/Lato text in `secondary`, rounded-3xl pill buttons (as on the home page), `bg-tertiary` cards with `border-amber-600/30` (as on the events page), MockRBI-style tables, the gold ❖ divider, lucide icons, the site `Navbar` on the lobby.
+
+**Done**
+- `components/IPLAuction/ui/controls.jsx` (Page, PageHeader with the Anirveda logo, Panel, Button/ButtonLink, Tabs, StatTile, Tag, Divider, Spinner, `table` and `inputClass` tokens) and `ui/auction.jsx` (status + connection, fictional/local notices, player photo with initials fallback and lazy images, player hero with stat grids, current lot, latest/recent sales, up next, activity, role meters, teams table, purse strip, team squad card). `DevPanels.jsx` removed; admin and team components moved onto these.
+- Screens: **Lobby** `/ipl-auction`; **Admin** (hammer panel beside the player, "on the block" banner on other tabs, links to all screens, styled sign-in); **Team dashboard** (phone-first; purse / max next / squad pinned at the top); **Big screen** `/ipl-auction/screen` (projector: player hero, SOLD overlay for 6 s, up next, last and recent sales, purse strip); **Summary** `/ipl-auction/summary` (totals, most expensive buys, squads with minimums).
+- SOLD overlay only for purchases newer than any seen (purchase `seq`), so opening the page, UNDO or a cancelled sale never re-announces an old sale; an undone sale leaves the screen.
+- Accessibility: `aria-live` on sales (polite) and the big-screen SOLD (assertive, screen-reader text); focus-visible rings; Framer Motion only on the SOLD overlay, with `reducedMotion="user"`; `motion-safe` pulse on the LIVE badge.
+- Dev-only UI: the local-mode notice and "Reset local data" exist only with the local adapter, which production builds never use (Phase 7). Fictional data stays labelled everywhere.
+
+**Verified (headless Chrome, local mode, 2026-09-29):** 15/15 scripted checks: lobby; admin start → next player → price below base disables SOLD with the engine's reason → valid SOLD; the big screen in another tab shows the SOLD overlay and hides it after 6 s; UNSOLD → Undo reopens the lot without re-announcing; the team sees its purchase; no horizontal scroll at 390 px on lobby, team (live + market), summary and admin; **no console errors** (only React Router's existing future-flag warnings). Screenshots reviewed for every screen at desktop and phone width.
+
+**Left for the owner**
+- Rehearsal on real devices (admin laptop, projector, 8+ phones) against the Appwrite dev database; this also covers the Phase 6 multi-device and Wi-Fi-drop checks.
+- Keyboard shortcuts for the hammer were left out on purpose: a stray key press during a live auction could open or close a lot. Add them only if the organisers want them.
+- Real player photos only with confirmed usage rights (`image` URL per player); fictional players show initials.

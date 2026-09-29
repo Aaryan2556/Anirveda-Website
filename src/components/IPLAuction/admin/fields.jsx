@@ -1,17 +1,17 @@
 /**
- * Plain form controls for the functional admin console (final design is Phase 8).
+ * Form controls for the admin console, in the shared IPL Auction style (ui/controls.jsx).
  */
 import { useState } from "react";
-import { Button } from "../DevPanels";
+import { Button, inputClass } from "../ui/controls";
 
-export const inputClass = "border border-white/30 bg-black px-2 py-1 text-sm disabled:opacity-50";
+export { inputClass };
 
 export function Field({ label, hint, error, children, className = "" }) {
   return (
     <label className={`grid gap-1 text-xs ${className}`}>
-      <span className="text-white/70">{label}</span>
+      <span className="font-medium uppercase tracking-wider text-secondary">{label}</span>
       {children}
-      {hint && !error && <span className="text-white/40">{hint}</span>}
+      {hint && !error && <span className="text-secondary/70">{hint}</span>}
       {error && <span className="text-red-300">{error}</span>}
     </label>
   );
@@ -49,8 +49,8 @@ export function Select({ value, onChange, options, ...props }) {
 
 export function Checkbox({ checked, onChange, label, ...props }) {
   return (
-    <label className="flex items-center gap-2 text-sm">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} {...props} />
+    <label className="flex items-center gap-2 text-sm text-white">
+      <input type="checkbox" className="h-4 w-4 accent-primary" checked={checked} onChange={(e) => onChange(e.target.checked)} {...props} />
       {label}
     </label>
   );
