@@ -22,7 +22,7 @@ export const economaniaEvents = [
     id: 2,
     img: iplImg,
     title: "IPL Auction 2026",
-    registrationLink: "",
+    registrationLink: "/ipl-auction",
     date: "31 January",
     timing: "9 AM - 6 PM",
     venue: "D-008",
