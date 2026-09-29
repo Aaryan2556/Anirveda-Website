@@ -4,7 +4,7 @@
 >
 > **Scope change (2026-09-26):** team members are **view-only** (bidding is offline). The server must reject **every** command from a TEAM actor; teams only need read access to their auction.
 
-**Status:** ⬜ Not started · **Depends on:** Phase 3 (Function), Phases 4 and 5 (pages use `useAuctionActor`) · **Parallel with:** Phase 6
+**Status:** ✅ Done (2026-09-29) · **Depends on:** Phase 3 (Function), Phases 4 and 5 (pages use `useAuctionActor`) · **Parallel with:** Phase 6
 **Goal:** real identities. Admins control the auction; team members can bid **only for their own team**. This is enforced **on the server**, not just hidden in the UI.
 
 ## Decisions needed before starting
@@ -59,4 +59,23 @@ The engine already rejects a team bidding for another team and non-admin control
 
 ## Handoff notes
 
-_(fill in when done)_
+**Scope actually needed (2026-09-29).** The design above predates two owner decisions: no Appwrite Function (Phase 3) and view-only teams (offline bidding). So there is no `resolveActor`, no rate limit and no `placedByUserId`: teams send no commands, and Appwrite table permissions (`read("any")`, writes only for label `ipladmin`, row security off) are the server-side guard. The engine also rejects every TEAM command. What remained, and what was done:
+
+**Done**
+- **Production gate** (`repository/mode.js`, tested in `__tests__/mode.test.js`): `resolveAuctionMode()` → `appwrite | local | disabled`. A **production build never uses the local adapter**, so the no-login local "admin" console and "Reset local data" are unreachable on the live site; without Appwrite settings the pages say the auction is unavailable. An unknown adapter name, or appwrite without a database ID, is `disabled` instead of silently local. Pages check `getAuctionMode()` before any hook.
+- **Expired admin sessions:** `useAdminAuth().refresh()`; `useAuctionCommand(actor, { onUnauthorized })` calls it when Appwrite refuses a write, so an admin whose session expired lands back on the sign-in form instead of seeing repeated errors.
+- **`npm run ipl:check`** (`scripts/ipl-auction/check-permissions.mjs`): the production-readiness permission check. Passes on the dev database (2026-09-29): all 5 tables have the expected permissions with row security off; an anonymous client can read every table and is refused (401) on create, real update and delete; an anonymous transaction writes nothing; the API key is in no `VITE_` variable. No leftovers (probe rows use auction ID `perm-probe` and are removed).
+- Findings worth knowing: Appwrite validates the body (400) and looks up the row (404) **before** checking permissions, and answers **200 to a no-change update without checking permissions** (nothing is written). Guests can *open* a transaction (201) but cannot stage into or commit it (404). The checker accounts for all of this.
+
+**Team identity.** `/ipl-auction/play` keeps the team picker / `?team=`. Every IPL table is publicly readable and teams can't write, so a team login would only choose which team is highlighted; it was left out on purpose (no Appwrite Teams created, no project changes). If the organisers want the auction hidden from non-participants, change `read("any")` to `read("users")` in `TABLE_PERMISSIONS`, add a team sign-in, and re-run `ipl:setup` + `ipl:check`.
+
+**Admin accounts.** Create: Appwrite console → Auth → Users → Create user → Labels → `ipladmin`. Remove access: delete the label (or the user), then Sessions → delete all. Review the list of labelled users before the event.
+
+## Production switch-over (owner)
+
+1. Create the production IPL database (separate from the site database) and run `npm run ipl:setup` against it (a separate `.env.ipl.local`-style file with the production IDs).
+2. `npm run ipl:check` against it: must print "All checks passed."
+3. Vercel env: `VITE_IPL_AUCTION_ADAPTER=appwrite`, `VITE_IPL_AUCTION_DATABASE_ID=<prod IPL db>`, optionally `VITE_IPL_AUCTION_ID`. Never the API key.
+4. Create and review admin accounts (label `ipladmin`).
+
+Checklist status: `ALLOW_CLIENT_ACTOR` — n/a (no Function). No client write permissions — ✅ verified on dev. No secret in `VITE_` — ✅ checked by `ipl:check`. Local adapter / reset not reachable in production — ✅ `mode.js`. Admin accounts reviewed — owner, before the event.

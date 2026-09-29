@@ -19,6 +19,7 @@ The schema itself lives in `src/lib/iplAuction/repository/appwriteSchema.js`.
 | `npm run ipl:setup` | Creates the database, tables, columns and indexes that are missing. Safe to re-run; never alters or deletes. Reports differences. |
 | `npm run ipl:seed` | Writes a fresh auction from the FICTIONAL mock data. Refuses if IPL rows exist. |
 | `npm run ipl:seed -- --reset` | Deletes **every row in the IPL tables**, then seeds. Dev database only. |
+| `npm run ipl:check` | Permission check (Phase 7): table permissions and row security; an anonymous client can read but cannot create, change or delete rows, directly or through a transaction; the API key is in no `VITE_` variable. Writes only throwaway rows under the fake auction ID `perm-probe` and removes them. Exit code 1 on any failure. |
 
 ## Creating an admin account
 
@@ -41,5 +42,6 @@ VITE_IPL_AUCTION_DATABASE_ID=ipl-auction-dev
 VITE_IPL_AUCTION_ID=
 ```
 
-Then `npm run dev`, open `/ipl-auction/admin` and sign in with an admin account. Without `VITE_IPL_AUCTION_ADAPTER=appwrite` the app keeps
-using the local (browser-only) adapter. Remove `VITE_IPL_AUCTION_ADAPTER` before building for production.
+Then `npm run dev`, open `/ipl-auction/admin` and sign in with an admin account. Without `VITE_IPL_AUCTION_ADAPTER=appwrite` the dev server
+uses the local (browser-only) adapter. A **production build never uses the local adapter**: without `VITE_IPL_AUCTION_ADAPTER=appwrite`
+and `VITE_IPL_AUCTION_DATABASE_ID` the IPL pages say the auction is unavailable (`repository/mode.js`).

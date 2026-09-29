@@ -13,6 +13,7 @@ import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useAdminActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { useAuctionCommand } from "../../lib/iplAuction/hooks/useAuctionCommand";
 import { AUCTION_STATUS, COMMANDS } from "../../lib/iplAuction/engine";
+import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
 import {
   ActivityLog,
   AuctionHeader,
@@ -41,6 +42,12 @@ const TABS = [
 
 /** Appwrite mode requires a signed-in user with the admin label; local mode needs no login. */
 export default function AdminPage() {
+  const { mode, reason } = getAuctionMode();
+  if (mode === AUCTION_MODES.DISABLED) return <Shell>IPL Auction is not available: {reason}</Shell>;
+  return <AdminGate />;
+}
+
+function AdminGate() {
   const identity = useAdminActor();
   if (identity.status === "loading") return <Shell>Checking sign-in…</Shell>;
   if (!identity.isAdmin) return <SignIn auth={identity.auth} />;
@@ -109,7 +116,8 @@ function SignIn({ auth }) {
 
 function AdminConsole({ identity }) {
   const { state, reset, kind } = useAuction();
-  const { send, pending } = useAuctionCommand(identity.actor);
+  // A refused write may mean the session expired: re-check it (back to sign-in if so).
+  const { send, pending } = useAuctionCommand(identity.actor, { onUnauthorized: identity.auth.refresh });
   const [params, setParams] = useSearchParams();
   const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "run";
   const selectTab = (id) => setParams((current) => ({ ...Object.fromEntries(current), tab: id }));

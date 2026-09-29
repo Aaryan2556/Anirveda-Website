@@ -6,19 +6,23 @@ import { getAuctionRepository } from "../repository/index.js";
 /**
  * Sends commands as `actor` and reports the outcome in one consistent way.
  *
- *   const { send, pending, lastError } = useAuctionCommand(actor);
+ *   const { send, pending, lastError } = useAuctionCommand(actor, { onUnauthorized });
  *   const result = await send(command, { success: "Saved.", quiet: false });
  *
  * - Adds the actor (callers never pass one).
  * - `pending` is true while any command from this hook is in flight.
  * - Rejections show an error toast (unless `quiet`) and are kept in `lastError`.
+ * - An UNAUTHORIZED result calls `onUnauthorized` (the admin page re-checks the
+ *   session, so an expired login returns to the sign-in form).
  * - Resolves to the engine result shape; never throws.
  */
-export function useAuctionCommand(actor, repository = getAuctionRepository()) {
+export function useAuctionCommand(actor, { onUnauthorized, repository = getAuctionRepository() } = {}) {
   const [inFlight, setInFlight] = useState(0);
   const [lastError, setLastError] = useState(null);
   const actorRef = useRef(actor);
   actorRef.current = actor;
+  const onUnauthorizedRef = useRef(onUnauthorized);
+  onUnauthorizedRef.current = onUnauthorized;
 
   const send = useCallback(
     async (command, { success, quiet = false } = {}) => {
@@ -38,6 +42,7 @@ export function useAuctionCommand(actor, repository = getAuctionRepository()) {
         } else {
           setLastError(result.error);
           if (!quiet) toast.error(result.error.message);
+          if (result.error.code === ERROR.UNAUTHORIZED) onUnauthorizedRef.current?.();
         }
         return result;
       } finally {

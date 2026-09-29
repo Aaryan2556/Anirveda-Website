@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getAdminAuth } from "../repository/index.js";
 
 /**
- * Admin session for the admin page: { status, user, isAdmin, error, signIn, signOut }.
+ * Admin session for the admin page: { status, user, isAdmin, error, signIn, signOut, refresh }.
  * status: "loading" | "ready" | "error". Local mode is always an admin.
+ * `refresh()` re-reads the session (e.g. after Appwrite refused a write because it expired).
  */
 export function useAdminAuth(auth = getAdminAuth()) {
   const [session, setSession] = useState({ status: "loading", user: null, isAdmin: false, error: null });
@@ -26,6 +27,7 @@ export function useAdminAuth(auth = getAdminAuth()) {
   return {
     ...session,
     kind: auth.kind,
+    refresh: () => load(auth.getSession),
     signIn: (email, password) => load(() => auth.signIn(email, password)),
     signOut: () => load(async () => {
       await auth.signOut();

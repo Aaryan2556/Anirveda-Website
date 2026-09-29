@@ -12,6 +12,7 @@ import { useSearchParams } from "react-router-dom";
 import { getTeamsInOrder } from "../../lib/iplAuction/engine";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
+import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
 import { AuctionHeader, Button, DevBanner, Section } from "../../components/IPLAuction/DevPanels";
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
@@ -40,6 +41,14 @@ function TeamPicker({ state, onPick }) {
 }
 
 export default function PlayPage() {
+  const { mode, reason } = getAuctionMode();
+  if (mode === AUCTION_MODES.DISABLED) {
+    return <div className="min-h-screen bg-tertiary p-6 font-Lato text-white">IPL Auction is not available: {reason}</div>;
+  }
+  return <TeamDashboard />;
+}
+
+function TeamDashboard() {
   const { state, kind } = useAuction();
   const { teamId, setTeamId } = useTeamActor();
   const [params, setParams] = useSearchParams();
