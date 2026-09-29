@@ -1,12 +1,12 @@
 /**
- * Organiser summary: per-team spend, squad and role mix, the full purchase
- * history, and CSV/JSON downloads. All numbers come from engine selectors.
+ * Organiser summary (admin only): totals, the most expensive buys, per-team
+ * spend, squad and role mix, the full purchase history, and CSV/JSON downloads. All numbers come from engine selectors.
  */
 import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
-import { getAuctionSummary, getRecentSales } from "../../../lib/iplAuction/engine";
+import { getAuctionSummary, getRecentSales, getTopSales } from "../../../lib/iplAuction/engine";
 import { buildPurchasesCsv, buildSummaryJson } from "../../../lib/iplAuction/io/auctionExport";
 import { formatLakhs } from "../../../lib/iplAuction/money";
-import { Button, StatTile, table } from "../ui/controls";
+import { Button, Empty, StatTile, table } from "../ui/controls";
 import { TeamSquadCard } from "../ui/auction";
 
 function download(filename, content, type) {
@@ -22,6 +22,7 @@ export default function AuctionSummary({ state, renderSaleAction }) {
   const summary = getAuctionSummary(state);
   const { config } = state;
   const sales = getRecentSales(state).reverse();
+  const topSales = getTopSales(state, 5);
   const slug = `${state.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "auction"}-v${state.version}`;
 
   return (
@@ -39,6 +40,29 @@ export default function AuctionSummary({ state, renderSaleAction }) {
         <Button variant="outline" onClick={() => download(`${slug}-summary.json`, buildSummaryJson(state), "application/json")}>
           Download summary (JSON)
         </Button>
+      </div>
+
+      <div>
+        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Most expensive buys</div>
+        {topSales.length === 0 ? (
+          <Empty>No players sold yet.</Empty>
+        ) : (
+          <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {topSales.map((sale, index) => (
+              <li
+                key={sale.id}
+                className={`rounded-lg border px-3 py-2 ${index === 0 ? "border-primary bg-primary/10" : "border-secondary/20 bg-secondary-15"}`}
+              >
+                <div className="text-[10px] uppercase tracking-wider text-secondary">
+                  #{index + 1} · {ROLE_LABELS[sale.player.role]}
+                </div>
+                <div className="truncate text-white">{sale.player.name}</div>
+                <div className="truncate text-xs text-secondary">{sale.team.name}</div>
+                <div className="font-Bebas text-2xl leading-tight tracking-wide text-primary">{formatLakhs(sale.price)}</div>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
 
       <div className={table.wrap}>

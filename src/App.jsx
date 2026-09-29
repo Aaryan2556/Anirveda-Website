@@ -47,7 +47,6 @@ const IPLAuctionAdmin = lazy(() => import("./Pages/IPLAuction/AdminPage"));
 const IPLAuctionPlay = lazy(() => import("./Pages/IPLAuction/PlayPage"));
 const IPLAuctionLobby = lazy(() => import("./Pages/IPLAuction/LobbyPage"));
 const IPLAuctionScreen = lazy(() => import("./Pages/IPLAuction/ScreenPage"));
-const IPLAuctionSummary = lazy(() => import("./Pages/IPLAuction/SummaryPage"));
 
 
 
@@ -182,9 +181,8 @@ const AppContent = ({ symbols, heading }) => {
       <Route path="/mock-rbi/leaderboard" element={<LeaderBoard />} />
             {/* IPL Auction */}
             <Route path="/ipl-auction" element={<Suspense fallback={null}><IPLAuctionLobby /></Suspense>} />
-            <Route path="/ipl-auction/screen" element={<Suspense fallback={null}><IPLAuctionScreen /></Suspense>} />
-            <Route path="/ipl-auction/summary" element={<Suspense fallback={null}><IPLAuctionSummary /></Suspense>} />
             <Route path="/ipl-auction/admin" element={<Suspense fallback={null}><IPLAuctionAdmin /></Suspense>} />
+            <Route path="/ipl-auction/admin/screen" element={<Suspense fallback={null}><IPLAuctionScreen /></Suspense>} />
             <Route path="/ipl-auction/play" element={<Suspense fallback={null}><IPLAuctionPlay /></Suspense>} />
           
           

@@ -55,6 +55,12 @@ Components to design: current-player hero (photo + stats by role), live bid pane
 
 **Verified (headless Chrome, local mode, 2026-09-29):** 15/15 scripted checks: lobby; admin start → next player → price below base disables SOLD with the engine's reason → valid SOLD; the big screen in another tab shows the SOLD overlay and hides it after 6 s; UNSOLD → Undo reopens the lot without re-announcing; the team sees its purchase; no horizontal scroll at 390 px on lobby, team (live + market), summary and admin; **no console errors** (only React Router's existing future-flag warnings). Screenshots reviewed for every screen at desktop and phone width.
 
+**Owner changes (2026-09-29, after the first Phase 8 pass)** — these replace the screen list above where they differ:
+- **Team dashboard = one team.** The team comes only from its link (`/ipl-auction/play?team=<id>`); no picker, no "switch team", no Teams tab (other teams' purses), no Up next. Tabs: Live, Market, History. Without a valid link it says to use the link from the organisers. The admin's Auction controls list each team's link to send out.
+- **Admin-only screens.** Big screen is `/ipl-auction/admin/screen` behind the same sign-in as the console (`admin/RequireAdmin.jsx`), opened from the console header. The public summary page is gone; its "most expensive buys" is in the admin Summary tab. The lobby only describes the event and links to no screen.
+- **Price calculator** in the hammer panel: −/+ buttons step 20 lakhs below ₹5 Cr and ₹1 Cr from ₹5 Cr (`lib/iplAuction/priceSteps.js`, tested); typing a price still works. Input aid only, not an engine rule.
+- Note: hiding screens is a UI restriction. Auction rows stay `read("any")` at the database, so anyone with API know-how can still read them; making reads private would need team logins (Phase 7 note).
+
 **Left for the owner**
 - Rehearsal on real devices (admin laptop, projector, 8+ phones) against the Appwrite dev database; this also covers the Phase 6 multi-device and Wi-Fi-drop checks.
 - Keyboard shortcuts for the hammer were left out on purpose: a stray key press during a live auction could open or close a lot. Add them only if the organisers want them.

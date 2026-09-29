@@ -1,6 +1,7 @@
 /**
  * Team dashboard, live view: the latest sale, the player on the block and
- * whether this team can buy them, and the team's own purse, needs and squad.
+ * whether this team can buy them, and the team's own purse, needs and squad
+ * (no other team's purse, no upcoming players).
  * View-only; every "can we buy?" answer comes from the engine's rules.
  */
 import { ROLE_LABELS } from "../../../lib/iplAuction/config";
@@ -14,7 +15,7 @@ import {
 import { formatLakhs } from "../../../lib/iplAuction/money";
 import { isFictional } from "../../../lib/iplAuction/playerFields";
 import { Empty, Panel, StatTile } from "../ui/controls";
-import { CurrentLot, LatestSale, RoleMeters, UpcomingPlayers } from "../ui/auction";
+import { CurrentLot, LatestSale, RoleMeters } from "../ui/auction";
 
 /** Whether this team can buy the player on the block, and how high it can go. */
 export function BuyingPower({ state, teamId }) {
@@ -103,14 +104,9 @@ export default function LivePanel({ state, teamId }) {
         <CurrentLot state={state} />
         {state.lot && <BuyingPower state={state} teamId={teamId} />}
       </Panel>
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <Panel title="My team">
-          <MyTeam state={state} teamId={teamId} />
-        </Panel>
-        <Panel title="Up next">
-          <UpcomingPlayers state={state} />
-        </Panel>
-      </div>
+      <Panel title="My team">
+        <MyTeam state={state} teamId={teamId} />
+      </Panel>
     </div>
   );
 }

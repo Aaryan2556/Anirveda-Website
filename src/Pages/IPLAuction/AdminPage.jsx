@@ -5,16 +5,14 @@
  * Flow: set up rules, teams and players; start; players come up in sequence,
  * teams bid in the room, and the admin records each result here — SOLD to a
  * team at the hammer price, or UNSOLD. Summary and exports at the end.
+ * The big screen (/ipl-auction/admin/screen) and the summary are admin-only too.
  */
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
-import { useAdminActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { useAuctionCommand } from "../../lib/iplAuction/hooks/useAuctionCommand";
 import { AUCTION_STATUS, COMMANDS } from "../../lib/iplAuction/engine";
-import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
-import { Button, Empty, Page, PageHeader, Panel, Spinner, Tabs, inputClass } from "../../components/IPLAuction/ui/controls";
+import { Button, Empty, Page, PageHeader, Panel, Tabs } from "../../components/IPLAuction/ui/controls";
 import {
   ActivityLog,
   AuctionStatus,
@@ -29,6 +27,7 @@ import PlayerImport from "../../components/IPLAuction/admin/PlayerImport";
 import PlayerSequence from "../../components/IPLAuction/admin/PlayerSequence";
 import RulesForm from "../../components/IPLAuction/admin/RulesForm";
 import { AuctionControls, OnTheBlock } from "../../components/IPLAuction/admin/RunAuction";
+import RequireAdmin from "../../components/IPLAuction/admin/RequireAdmin";
 import TeamManager from "../../components/IPLAuction/admin/TeamManager";
 import { ConfirmButton } from "../../components/IPLAuction/admin/fields";
 
@@ -40,99 +39,9 @@ const TABS = [
   { id: "summary", label: "Summary & export" },
 ];
 
-/** Appwrite mode requires a signed-in user with the admin label; local mode needs no login. */
+/** Admins only: Appwrite mode requires a signed-in user with the admin label; local mode needs no login. */
 export default function AdminPage() {
-  const { mode, reason } = getAuctionMode();
-  if (mode === AUCTION_MODES.DISABLED) {
-    return (
-      <Shell>
-        <p className="text-secondary">IPL Auction is not available: {reason}</p>
-      </Shell>
-    );
-  }
-  return <AdminGate />;
-}
-
-function AdminGate() {
-  const identity = useAdminActor();
-  if (identity.status === "loading") {
-    return (
-      <Shell>
-        <Spinner label="Checking sign-in…" />
-      </Shell>
-    );
-  }
-  if (!identity.isAdmin) return <SignIn auth={identity.auth} />;
-  return <AdminConsole identity={identity} />;
-}
-
-function Shell({ children }) {
-  return (
-    <Page>
-      <PageHeader title="Admin console" />
-      <div className="mx-auto max-w-md">{children}</div>
-    </Page>
-  );
-}
-
-function SignIn({ auth }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const submit = async (event) => {
-    event.preventDefault();
-    setBusy(true);
-    await auth.signIn(email, password);
-    setBusy(false);
-  };
-  return (
-    <Shell>
-      {auth.user ? (
-        <Panel title="Not an admin">
-          <p className="mb-4 text-sm text-secondary">
-            Signed in as <strong className="text-white">{auth.user.email}</strong>, but this account is not an IPL
-            Auction admin.
-          </p>
-          <Button onClick={auth.signOut}>Sign out</Button>
-        </Panel>
-      ) : (
-        <Panel title="Admin login">
-          <form onSubmit={submit} className="grid gap-4">
-            <label className="grid gap-1 text-xs">
-              <span className="font-medium uppercase tracking-wider text-secondary">Email</span>
-              <input
-                required
-                type="email"
-                autoComplete="username"
-                className={`${inputClass} py-2.5`}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-xs">
-              <span className="font-medium uppercase tracking-wider text-secondary">Password</span>
-              <input
-                required
-                type="password"
-                autoComplete="current-password"
-                className={`${inputClass} py-2.5`}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-            <Button variant="primary" size="lg" type="submit" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"}
-            </Button>
-          </form>
-        </Panel>
-      )}
-      {auth.error && (
-        <p className="mt-3 text-sm text-red-300" role="alert">
-          {auth.error}
-        </p>
-      )}
-    </Shell>
-  );
+  return <RequireAdmin title="Admin console">{(identity) => <AdminConsole identity={identity} />}</RequireAdmin>;
 }
 
 function AdminConsole({ identity }) {
@@ -161,6 +70,14 @@ function AdminConsole({ identity }) {
       <Toaster position="top-right" />
       <PageHeader title="Admin console">
         <AuctionStatus state={state} />
+        <a
+          href="/ipl-auction/admin/screen"
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-3xl border border-primary px-3 py-1 text-xs text-primary transition hover:bg-primary hover:text-white"
+        >
+          Open big screen
+        </a>
         {user && (
           <span className="flex items-center gap-2 text-xs text-secondary">
             {user.email}

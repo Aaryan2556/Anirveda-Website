@@ -1,5 +1,5 @@
 /**
- * /ipl-auction/screen — read-only projector view for the room: the player on
+ * /ipl-auction/admin/screen — admin-only projector view for the room: the player on
  * the block, a SOLD announcement when the admin records a sale, what is coming
  * up and every team's purse. Sends no commands.
  */
@@ -8,7 +8,7 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { getRecentSales } from "../../lib/iplAuction/engine";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { formatLakhs } from "../../lib/iplAuction/money";
-import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
+import RequireAdmin from "../../components/IPLAuction/admin/RequireAdmin";
 import { Page, PageHeader, Panel } from "../../components/IPLAuction/ui/controls";
 import {
   AuctionStatus,
@@ -72,17 +72,9 @@ function SoldBanner({ sale }) {
   );
 }
 
+/** Admins only: opened from the admin console on the projector laptop. */
 export default function ScreenPage() {
-  const { mode, reason } = getAuctionMode();
-  if (mode === AUCTION_MODES.DISABLED) {
-    return (
-      <Page>
-        <PageHeader title="Big screen" />
-        <p className="text-secondary">IPL Auction is not available: {reason}</p>
-      </Page>
-    );
-  }
-  return <BigScreen />;
+  return <RequireAdmin title="Big screen">{() => <BigScreen />}</RequireAdmin>;
 }
 
 function BigScreen() {

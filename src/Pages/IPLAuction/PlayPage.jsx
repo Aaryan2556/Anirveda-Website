@@ -5,42 +5,27 @@
  * page updates as soon as the admin assigns a player (purse, squad, sales).
  * It never imports admin components and never sends commands.
  *
- * The team comes from the URL (useTeamActor). All auction data is public and
- * teams cannot write, so no team login is needed (Phase 7).
+ * One team per link: the team comes from the URL (useTeamActor) and the page
+ * offers no way to switch team or see other teams' purses. The admin sends each
+ * team its own link. Teams cannot write, so no team login is needed (Phase 7).
  */
 import { useSearchParams } from "react-router-dom";
-import { getMaxBid, getTeamStats, getTeamsInOrder } from "../../lib/iplAuction/engine";
+import { getMaxBid, getTeamStats } from "../../lib/iplAuction/engine";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { formatLakhs } from "../../lib/iplAuction/money";
 import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
-import { Button, Page, PageHeader, Panel, Tabs } from "../../components/IPLAuction/ui/controls";
+import { Page, PageHeader, Panel, Spinner, Tabs } from "../../components/IPLAuction/ui/controls";
 import { AuctionStatus, FictionalNotice, LocalModeNotice } from "../../components/IPLAuction/ui/auction";
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
 import MarketPanel from "../../components/IPLAuction/play/MarketPanel";
-import TeamsPanel from "../../components/IPLAuction/play/TeamsPanel";
 
 const TABS = [
   { id: "live", label: "Live" },
   { id: "market", label: "Market" },
-  { id: "teams", label: "Teams" },
   { id: "history", label: "History" },
 ];
-
-function TeamPicker({ state, onPick }) {
-  return (
-    <Panel title="Choose your team">
-      <div className="flex flex-wrap gap-2">
-        {getTeamsInOrder(state).map((team) => (
-          <Button key={team.id} variant="outline" size="lg" onClick={() => onPick(team.id)}>
-            {team.name}
-          </Button>
-        ))}
-      </div>
-    </Panel>
-  );
-}
 
 /** The team's own numbers, pinned to the top of the screen. */
 function PurseBar({ state, teamId }) {
@@ -81,7 +66,7 @@ export default function PlayPage() {
 
 function TeamDashboard() {
   const { state, kind } = useAuction();
-  const { teamId, setTeamId } = useTeamActor();
+  const { teamId } = useTeamActor();
   const [params, setParams] = useSearchParams();
   const team = teamId ? state.teams[teamId] : null;
   const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "live";
@@ -96,15 +81,15 @@ function TeamDashboard() {
       <LocalModeNotice kind={kind} />
       <FictionalNotice state={state} />
 
-      {!team ? (
-        <>
-          {teamId && (
-            <p className="mb-3 text-sm text-red-300" role="alert">
-              Unknown team &quot;{teamId}&quot;.
-            </p>
-          )}
-          <TeamPicker state={state} onPick={setTeamId} />
-        </>
+      {!team && teamId && state.teamOrder.length === 0 ? (
+        // Nothing loaded yet (the database read is still in flight).
+        <Spinner label="Loading your team…" />
+      ) : !team ? (
+        <Panel title={teamId ? "Team not found" : "Team link needed"}>
+          <p className="text-sm text-secondary" role={teamId ? "alert" : undefined}>
+            Open the team link the organisers sent you. Each link shows one team&apos;s dashboard.
+          </p>
+        </Panel>
       ) : (
         <>
           <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Dashboard sections" />
@@ -115,22 +100,7 @@ function TeamDashboard() {
               <MarketPanel state={state} teamId={teamId} />
             </Panel>
           )}
-          {tab === "teams" && <TeamsPanel state={state} teamId={teamId} />}
           {tab === "history" && <HistoryPanel state={state} teamId={teamId} />}
-
-          <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-secondary/20 pt-4 text-xs text-secondary">
-            <span className="uppercase tracking-wider">Switch team:</span>
-            {getTeamsInOrder(state).map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={`underline-offset-2 hover:text-primary hover:underline ${t.id === teamId ? "text-primary" : ""}`}
-                onClick={() => setTeamId(t.id)}
-              >
-                {t.name}
-              </button>
-            ))}
-          </div>
         </>
       )}
     </Page>

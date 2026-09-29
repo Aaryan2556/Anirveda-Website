@@ -14,6 +14,7 @@ import {
   reduce,
 } from "../../../lib/iplAuction/engine";
 import { formatLakhs } from "../../../lib/iplAuction/money";
+import { nextPrice, previousPrice, stepAt } from "../../../lib/iplAuction/priceSteps";
 import { Button, Panel, inputClass } from "../ui/controls";
 import { CurrentLot } from "../ui/auction";
 import { ConfirmButton, Field } from "./fields";
@@ -74,13 +75,10 @@ export function AuctionControls({ state, send, pending, reset }) {
         )}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-secondary/20 pt-3 text-xs text-secondary">
-        <span className="uppercase tracking-wider">Open screens:</span>
-        <a href="/ipl-auction/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
-          Big screen
+        <a href="/ipl-auction/admin/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
+          Open big screen
         </a>
-        <a href="/ipl-auction/summary" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
-          Summary
-        </a>
+        <span className="uppercase tracking-wider">Team links (send each team only its own):</span>
         {getTeamsInOrder(state).map((team) => (
           <a
             key={team.id}
@@ -114,6 +112,10 @@ export function OnTheBlock({ state, send, actor, pending }) {
   const saleCommand = lot
     ? { type: COMMANDS.SELL_PLAYER, playerId: lot.playerId, teamId: saleTeamId, price: Number(salePrice) }
     : null;
+  // The −/+ calculator works from the typed price, or from the base price if that isn't valid yet.
+  const typedPrice = Number(salePrice);
+  const currentPrice =
+    lotPlayer && Number.isSafeInteger(typedPrice) && typedPrice >= lotPlayer.basePrice ? typedPrice : lotPlayer?.basePrice ?? 0;
   // Dry-run through the engine so the admin sees why a sale would be refused before clicking.
   const salePreview = saleCommand && saleTeamId && actor ? reduce(state, { ...saleCommand, actor }) : null;
 
@@ -137,16 +139,39 @@ export function OnTheBlock({ state, send, actor, pending }) {
                 ))}
               </select>
             </Field>
-            <Field label="Final price (lakhs)" hint={`${formatLakhs(Number(salePrice) || null)} · base ${formatLakhs(lotPlayer.basePrice)}`}>
-              <input
-                className={inputClass}
-                type="number"
-                inputMode="numeric"
-                min={lotPlayer.basePrice}
-                value={salePrice}
-                onChange={(e) => setSalePrice(e.target.value)}
-              />
-            </Field>
+            <div className="grid gap-1 text-xs">
+              <label htmlFor="ipl-sale-price" className="font-medium uppercase tracking-wider text-secondary">
+                Final price (lakhs)
+              </label>
+              <div className="flex items-stretch gap-2">
+                <Button
+                  aria-label={`Lower price to ${formatLakhs(previousPrice(currentPrice, lotPlayer.basePrice))}`}
+                  disabled={currentPrice <= lotPlayer.basePrice}
+                  onClick={() => setSalePrice(String(previousPrice(currentPrice, lotPlayer.basePrice)))}
+                >
+                  −
+                </Button>
+                <input
+                  id="ipl-sale-price"
+                  className={`${inputClass} min-w-0 flex-1 text-center`}
+                  type="number"
+                  inputMode="numeric"
+                  min={lotPlayer.basePrice}
+                  value={salePrice}
+                  onChange={(e) => setSalePrice(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  aria-label={`Raise price to ${formatLakhs(nextPrice(currentPrice))}`}
+                  onClick={() => setSalePrice(String(nextPrice(currentPrice)))}
+                >
+                  +{formatLakhs(stepAt(currentPrice))}
+                </Button>
+              </div>
+              <span className="text-secondary/70">
+                {formatLakhs(Number(salePrice) || null)} · base {formatLakhs(lotPlayer.basePrice)} · +20 L up to ₹5 Cr, then +₹1 Cr
+              </span>
+            </div>
             <Button
               variant="primary"
               size="lg"
