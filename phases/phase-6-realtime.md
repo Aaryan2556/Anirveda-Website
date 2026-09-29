@@ -1,6 +1,6 @@
 # Phase 6 — Real-Time Synchronization
 
-**Status:** ✅ Code done (2026-09-28); live multi-device run pending · **Depends on:** Phase 3 · **Parallel with:** Phase 7
+**Status:** ✅ Done (2026-09-29): transaction events and latency verified live; physical multi-device rehearsal left to the owner (Phase 8 rehearsal) · **Depends on:** Phase 3 · **Parallel with:** Phase 7
 **Goal:** every connected device sees the current player, sale, purses, squads, activity and auction status within about a second, and **never shows an older state after a newer one**.
 
 ## Approvals needed
@@ -31,7 +31,7 @@
 - [x] Automated: admin + 8 team screens on one (fake) database stay identical over 50 lots, with events delayed, duplicated, shuffled, and one screen's socket down for 10 lots (`__tests__/realtime.test.js`).
 - [ ] Live: admin + team screens on different devices stay in sync during a full simulated auction.
 - [ ] Killing Wi-Fi on one device for 30 s and restoring it recovers the correct state with no reload.
-- [ ] Worst-case delay recorded below (target under 1 s).
+- [x] Worst-case delay recorded below (target under 1 s): ≈0.8–1.0 s steady, 1.6 s on a cold first read (2026-09-29).
 
 ## Handoff notes
 
@@ -49,7 +49,9 @@
 
 **Verified live (read-only, 2026-09-28):** an anonymous socket to the dev project accepts all 10 channels (`user: null`), so team screens need no login to listen (tables are `read("any")`).
 
-**Not verified yet (needs a write on the dev database):** whether a **TablesDB transaction commit** emits row events, and on which of the two channel names. If it emits none, screens still converge through the 10 s poll, but the 1 s target fails; the fix then is to drop `realtimePollMs` to ~1–2 s or subscribe to a channel that does fire. Check it with the live run below.
+**Verified live (2026-09-29, dev database, no-op writes):**
+- A **TablesDB transaction commit emits row events**, about 1 ms after the commit returns, exactly like a plain update. Each event carries both channel names the adapter subscribes to (`databases.<db>.tables.<t>.rows` and `databases.<db>.collections.<t>.documents`), plus `tablesdb.<db>.tables.<t>.rows`. Probe: an anonymous socket, then one team row rewritten with its own name, once as a plain update and once through a transaction.
+- **Refetch cost** (the real adapter, anonymous, from India to the Frankfurt endpoint): 700–860 ms steady, 1.1–1.5 s for the first two (cold connection). Event → updated screen ≈ 100 ms debounce + one refetch ≈ **0.8–1.0 s**. The read is 3 round trips (auction row → 4 parallel lists → version check). If the venue network makes this too slow, the optional fast path below is the next step.
 
 **Live run to do**
 1. `npm run dev` with `VITE_IPL_AUCTION_ADAPTER=appwrite`; admin on one device, team pages on others.

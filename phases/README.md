@@ -17,7 +17,7 @@ Read this file first, then [00-integration-contract.md](./00-integration-contrac
 | 3 | [Authoritative writes (admin client + transactions)](./phase-3-server-authoritative-engine.md) | ✅ Code done (2026-09-26); browser run needs an admin account | 2 | 4, 5 |
 | 4 | [Admin functionality](./phase-4-admin.md) | ✅ Done locally (2026-09-28); Appwrite re-check pending | 1 | 2, 3, 5 |
 | 5 | [Participant functionality](./phase-5-participant.md) | ✅ Done locally (2026-09-28); Appwrite re-check pending | 1 | 2, 3, 4 |
-| 6 | [Real-time synchronization](./phase-6-realtime.md) | ✅ Code done (2026-09-28); live multi-device run pending | 3 | — |
+| 6 | [Real-time synchronization](./phase-6-realtime.md) | ✅ Done (2026-09-29); transaction events + latency verified live; device rehearsal in Phase 8 | 3 | — |
 | 7 | [Authentication & permissions](./phase-7-auth-permissions.md) | ⬜ Not started | 3 (and 4, 5 for guards) | 6 |
 | 8 | [Final UI/UX](./phase-8-ui-ux.md) | ⬜ Not started | 4, 5, 6, 7 stable | — |
 
