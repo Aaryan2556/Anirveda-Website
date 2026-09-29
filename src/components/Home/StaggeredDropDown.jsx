@@ -1,51 +1,19 @@
-import { FiChevronDown } from "react-icons/fi";
-import { motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
-import UpcomingEventsTimeline from "../Events/UpcomingEventCards"
-
-import React from "react";
+"use client";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Calendar, ChevronDown, Sparkles, Layers } from "lucide-react";
+import UpcomingEventCards from "../Events/UpcomingEventCards";
 
 const StaggeredDropDown = () => {
   const [open, setOpen] = useState(true);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const buttonRef = useRef(null);
-  const dropdownRef = useRef(null);
   const wrapperRef = useRef(null);
 
   const handleToggle = (e) => {
-    // Prevent the default browser behavior
     e.preventDefault();
-    
-    // If dropdown is currently open and user is scrolled down past the dropdown
-    if (open && buttonRef.current) {
-      const buttonRect = buttonRef.current.getBoundingClientRect();
-      const isButtonOffscreen = buttonRect.top < 0 || buttonRect.bottom > window.innerHeight;
-      
-      // Only scroll if the button is not fully visible in viewport
-      if (isButtonOffscreen) {
-        setIsScrolling(true);
-        // Scroll to a position where button is visible but don't go all the way to top
-        const scrollTarget = Math.max(0, window.scrollY + buttonRect.top - 100);
-        
-        window.scrollTo({
-          top: scrollTarget,
-          behavior: "smooth",
-        });
-
-        // Wait for the scroll to complete before toggling
-        setTimeout(() => {
-          setIsScrolling(false);
-          setOpen(false);
-        }, 400);
-        return;
-      }
-    }
-
-    // Toggle the dropdown state
     setOpen((prev) => !prev);
   };
 
-  // 🆕 Close dropdown on outside click
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -53,7 +21,8 @@ const StaggeredDropDown = () => {
         wrapperRef.current &&
         !wrapperRef.current.contains(event.target)
       ) {
-        setOpen(false);
+        // Optional: comment out if users prefer keeping it expanded while scrolling
+        // setOpen(false);
       }
     };
 
@@ -62,62 +31,80 @@ const StaggeredDropDown = () => {
   }, [open]);
 
   return (
-    <div className="mt-20 mb-20 bg-black px-4 relative" ref={wrapperRef}>
-      {/* Sticky Button */}
-      <div className="top-0 z-50 bg-black py-2 will-change-transform">
+    <section className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16 z-20" ref={wrapperRef}>
+      {/* 1. Header Bar: Sleek Glass Pill */}
+      <div className="w-full">
         <button
-          ref={buttonRef}
-          onClick={(e) => handleToggle(e)}
-          className="flex justify-center text-2xl items-center gap-2 px-4 py-5 rounded-2xl transition-all duration-300 hover:bg-amber-500/10 hover:text-amber-300 w-full"
-          style={{ color: "rgb(201, 135, 43)" }}
-          type="button" /* Explicitly set button type to prevent form submission behavior */
+          onClick={handleToggle}
+          type="button"
+          aria-expanded={open}
+          className="w-full flex items-center justify-between p-5 sm:p-6 rounded-3xl bg-slate-900/70 border border-amber-500/30 backdrop-blur-xl hover:border-amber-400/60 transition-all duration-500 shadow-2xl hover:shadow-[0_0_35px_rgba(245,158,11,0.2)] cursor-pointer group"
         >
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-5xl">Events</span>
-            <motion.span 
-              animate={open ? { rotate: 180 } : { rotate: 0 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 300, 
-                damping: 20 
-              }}
-            >
-              <FiChevronDown />
-            </motion.span>
+          {/* Left Title Block */}
+          <div className="flex items-center gap-3 sm:gap-4 text-left">
+            {/* Animated Glowing Indicator */}
+            <div className="relative flex h-3.5 w-3.5 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+            </div>
+
+            {/* Calendar Icon */}
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight group-hover:text-amber-200 transition-colors">
+                  Flagship Initiatives & Events
+                </h2>
+                {/* Edition Tag */}
+                <span className="hidden md:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-xs">
+                  ANIRVEDA 2026
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-400 font-sans mt-0.5">
+                Explore hackathons, auctions, and techno-economic simulations
+              </p>
+            </div>
+          </div>
+
+          {/* Right Chevron Icon */}
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-xs text-amber-400/80 uppercase tracking-widest hidden sm:inline-block">
+              {open ? "Collapse" : "Expand"}
+            </span>
+            <div className="p-2.5 rounded-full bg-slate-800/80 border border-slate-700 text-amber-400 group-hover:border-amber-500/40 transition-colors">
+              <ChevronDown
+                className="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-500"
+                style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
+              />
+            </div>
           </div>
         </button>
       </div>
 
-      {/* Full-height dropdown with hardware-accelerated smooth collapse */}
-      <motion.div
-        ref={dropdownRef}
-        initial={false}
-        animate={{
-          height: open ? "auto" : 0,
-          opacity: open ? 1 : 0,
-        }}
-        style={{
-          willChange: "height, opacity",
-          backfaceVisibility: "hidden",
-          WebkitFontSmoothing: "subpixel-antialiased"
-        }}
-        transition={{ 
-          height: {
-            duration: 0.4, 
-            ease: [0.16, 1, 0.3, 1] // Custom bezier curve for smoother motion
-          },
-          opacity: {
-            duration: 0.3,
-            ease: "easeOut"
-          }
-        }}
-        className="overflow-hidden mt-4"
-      >
-        <div className="pb-4 transform-gpu">
-          <UpcomingEventsTimeline />
-        </div>
-      </motion.div>
-    </div>
+      {/* 2. Fluid Expansion Transition with AnimatePresence */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="event-showcase-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{
+              height: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
+              opacity: { duration: 0.3, ease: "easeInOut" },
+            }}
+            className="overflow-hidden mt-4"
+          >
+            <div className="pt-2 pb-4">
+              <UpcomingEventCards />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
   );
 };
 

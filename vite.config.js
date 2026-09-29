@@ -21,7 +21,7 @@ export default defineConfig({
         manualChunks: {
           // Separate vendor chunks for better caching
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'animation-vendor': ['framer-motion', 'gsap', '@react-spring/web'],
+          'animation-vendor': ['framer-motion', '@react-spring/web'],
           'appwrite': ['appwrite'],
         },
       },

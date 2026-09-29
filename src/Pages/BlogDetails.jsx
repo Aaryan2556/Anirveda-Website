@@ -2,6 +2,9 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import blogData from "../data/blogs";
 import Navbar from "../components/Navbar";
+import ContactUs from "../components/ContactUs";
+import AnnouncementBar from "../components/AnnouncementBar";
+import { Clock, Calendar, User, ArrowLeft, BookOpen, PenTool } from "lucide-react";
 
 const BlogDetails = () => {
   const { id } = useParams();
@@ -9,112 +12,161 @@ const BlogDetails = () => {
 
   if (!blog) {
     return (
-      <div className="text-center mt-20 text-xl font-semibold text-white">
-        Blog not found
+      <div className="min-h-screen bg-background text-foreground flex flex-col justify-between font-sans">
+        <AnnouncementBar />
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 font-mono text-muted-foreground">
+          <h2 className="text-2xl text-primary mb-4 font-Bebas">DOSSIER NOT FOUND</h2>
+          <p className="text-sm mb-6">The requested publication ID could not be retrieved from the telemetry index.</p>
+          <Link
+            to="/blogs"
+            className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Return to Publications</span>
+          </Link>
+        </div>
+        <ContactUs />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-Lato">
-
-      {/* Navbar */}
+    <div className="min-h-screen bg-background text-foreground font-sans relative select-none">
+      {/* Site Header Navigation */}
+      <AnnouncementBar />
       <Navbar />
 
-      {/* TOP ANNOUNCEMENT */}
-      <div className="bg-primary text-black text-center py-2 font-semibold text-sm">
-        Take the MOCK-RBI Challenge on 10th October
-      </div>
-
-      {/* BLOG CONTAINER */}
-      <main className="max-w-5xl mx-auto px-6 py-12">
-
-        {/* Breadcrumb */}
-        <div className="text-sm text-gray-400 mb-6">
-          <Link to="/blogs" className="hover:text-primary">Blogs</Link> / Tech & Economics
+      {/* Main Container */}
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+        {/* Breadcrumb Navigation */}
+        <div className="flex items-center gap-2 font-mono text-xs text-muted-foreground mb-8">
+          <Link to="/blogs" className="text-primary hover:text-accent flex items-center gap-1 transition-colors">
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>RESEARCH TERMINAL</span>
+          </Link>
+          <span>/</span>
+          <span className="uppercase text-secondary">{blog.categoryLabel || "DOSSIER"}</span>
         </div>
 
-        {/* TITLE */}
-        <h1 className="text-4xl md:text-6xl font-Bebas text-primary mb-6">
+        {/* Title */}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-Bebas text-primary mb-6 leading-none drop-shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]">
           {blog.title}
         </h1>
 
-        {/* META */}
-        <div className="flex items-center gap-6 border-y border-gray-800 py-6 mb-10">
-          <div>
-            <p className="font-semibold">{blog.author}</p>
-            <p className="text-gray-400 text-sm">{blog.date}</p>
+        {/* Metadata Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 border-y border-border py-4 mb-8 font-mono text-xs text-muted-foreground">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4 text-primary" />
+              <span className="text-foreground font-bold">{blog.author}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-secondary" />
+              <span>{blog.date}</span>
+            </div>
+            {blog.readTime && (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-accent" />
+                <span className="text-accent font-bold">{blog.readTime}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="px-3 py-1 rounded-full bg-card border border-border text-primary text-[10px] font-bold tracking-widest">
+            {blog.authorNode || "NODE_RESEARCH"}
           </div>
         </div>
 
-        {/* HERO IMAGE */}
-        <div className="rounded-xl overflow-hidden shadow-lg mb-12">
+        {/* Hero Image */}
+        <div className="rounded-2xl overflow-hidden border border-border shadow-2xl mb-10 bg-card p-2">
           <img
             src={blog.image}
             alt={blog.title}
-            className="w-full h-[420px] object-cover"
+            className="w-full h-[320px] sm:h-[420px] object-cover rounded-xl"
           />
         </div>
 
-        {/* ARTICLE */}
-        <article className="bg-[#111111] border border-gray-800 rounded-xl p-8 md:p-12">
-
-          {/* Intro */}
-          <p className="text-xl text-gray-300 italic mb-10 leading-relaxed">
+        {/* Article Body */}
+        <article className="bg-card border border-border rounded-2xl p-6 sm:p-10 md:p-12 mb-12 shadow-xl">
+          {/* Excerpt Intro */}
+          <p className="text-lg sm:text-xl text-secondary italic mb-8 leading-relaxed font-sans border-l-2 border-primary pl-4">
             {blog.excerpt}
           </p>
 
-          {/* Content */}
+          {/* HTML Content */}
           <div
-            className="space-y-6 text-gray-300 leading-8 text-lg"
+            className="space-y-6 text-foreground/90 leading-relaxed font-sans text-base sm:text-lg"
             dangerouslySetInnerHTML={{ __html: blog.content }}
           />
         </article>
 
-        {/* AUTHOR SECTION */}
-        <div className="bg-[#111111] border border-gray-800 rounded-xl p-8 mt-12">
-          <h3 className="font-semibold text-xl mb-2 text-white">
-            About the Author
-          </h3>
-
-          <p className="text-gray-400">
-            Our research team explores technology, entrepreneurship, and economics.
-            We publish insights on emerging trends shaping the future of business.
-          </p>
-        </div>
-
-        {/* RELATED BLOGS */}
-        <div className="mt-16">
-          <h2 className="text-3xl font-bold mt-10 mb-6 bg-gradient-to-r from-orange-400 via-red-500 to-yellow-400 bg-clip-text text-transparent">
-
-            Related Articles
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {blogData.slice(0, 3).map((item) => (
-              <Link
-                key={item.id}
-                to={`/blogs/${item.id}`}
-                className="bg-[#111111] border border-gray-800 rounded-xl hover:border-primary transition overflow-hidden"
-              >
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="h-48 w-full object-cover"
-                />
-
-                <div className="p-5">
-                  <h3 className="font-semibold text-lg">{item.title}</h3>
-                  <p className="text-gray-400 text-sm mt-2">
-                    {item.excerpt.slice(0, 80)}...
-                  </p>
-                </div>
-              </Link>
-            ))}
+        {/* Author Metadata Box */}
+        <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 mb-12 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary text-primary-foreground">
+            <PenTool className="w-6 h-6 text-accent" />
+          </div>
+          <div>
+            <h3 className="font-Bebas text-2xl text-foreground tracking-wide mb-1">
+              ABOUT THE RESEARCH NODE // {blog.author}
+            </h3>
+            <p className="font-sans text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              The Anirveda Research & Content team produces deep macroeconomic telemetry, quantitative fintech analyses, and technological policy benchmarks shaping the future of global markets.
+            </p>
           </div>
         </div>
 
+        {/* Related Articles */}
+        <div className="pt-8 border-t border-border">
+          <div className="flex items-center gap-2 font-mono text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6">
+            <BookOpen className="w-4 h-4 text-primary" />
+            <span>RELATED RESEARCH DOSSIERS</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {blogData
+              .filter((item) => item.id !== blog.id)
+              .slice(0, 3)
+              .map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/blogs/${item.id}`}
+                  className="group bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/60 hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
+                >
+                  <div className="h-40 w-full overflow-hidden bg-muted/40 p-1">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover rounded-xl transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <span className="font-mono text-[10px] text-accent font-bold block mb-1">
+                        {item.categoryLabel || "RESEARCH"}
+                      </span>
+                      <h4 className="font-Bebas text-2xl text-foreground group-hover:text-primary transition-colors leading-tight mb-2">
+                        {item.title}
+                      </h4>
+                      <p className="font-sans text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {item.excerpt}
+                      </p>
+                    </div>
+
+                    <div className="pt-3 mt-3 border-t border-border/80 font-mono text-[10px] text-primary font-bold flex items-center justify-between">
+                      <span>READ DOSSIER</span>
+                      <span>→</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        </div>
       </main>
+
+      {/* Footer */}
+      <ContactUs />
     </div>
   );
 };
