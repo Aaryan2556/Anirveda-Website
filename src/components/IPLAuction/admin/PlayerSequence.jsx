@@ -51,7 +51,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="text-secondary">
+        <span className="text-slate-400">
           Showing {players.length} of {state.playerOrder.length}
         </span>
         <Select value={filter} onChange={setFilter} options={STATUS_FILTERS} aria-label="Filter by status" />
@@ -84,7 +84,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                     {position}
                     <button
                       type="button"
-                      className="ml-2 px-1 text-secondary hover:text-white disabled:opacity-30"
+                      className="ml-2 px-1 text-slate-400 hover:text-slate-100 disabled:opacity-30"
                       disabled={isCompleted || position === 1 || pending}
                       onClick={() => move(player.id, -1)}
                       aria-label={`Move ${player.name} earlier`}
@@ -93,7 +93,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                     </button>
                     <button
                       type="button"
-                      className="px-1 text-secondary hover:text-white disabled:opacity-30"
+                      className="px-1 text-slate-400 hover:text-slate-100 disabled:opacity-30"
                       disabled={isCompleted || position === state.playerOrder.length || pending}
                       onClick={() => move(player.id, 1)}
                       aria-label={`Move ${player.name} later`}
@@ -103,7 +103,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                   </td>
                   <td className={table.td}>
                     {player.name}
-                    {isFictional(player) && <span className="ml-1 text-yellow-300/70">(fictional)</span>}
+                    {isFictional(player) && <span className="ml-1 text-amber-300/80">(fictional)</span>}
                   </td>
                   <td className={table.td}>{ROLE_LABELS[player.role]}</td>
                   <td className={table.td}>{player.isOverseas ? "Yes" : "—"}</td>
@@ -146,7 +146,7 @@ export default function PlayerSequence({ state, send, pending, renderSaleAction 
                 </tr>
                 {editingId === player.id && (
                   <tr>
-                    <td colSpan={8} className={`${table.td} border-t border-secondary/20 bg-secondary-15 p-3`}>
+                    <td colSpan={8} className={`${table.td} border-t border-slate-800 bg-obsidian-900 p-3`}>
                       <PlayerEditor player={player} send={send} pending={pending} onDone={() => setEditingId(null)} />
                     </td>
                   </tr>

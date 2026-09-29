@@ -61,7 +61,13 @@ Components to design: current-player hero (photo + stats by role), live bid pane
 - **Price calculator** in the hammer panel: −/+ buttons step 20 lakhs below ₹5 Cr and ₹1 Cr from ₹5 Cr (`lib/iplAuction/priceSteps.js`, tested); typing a price still works. Input aid only, not an engine rule.
 - Note: hiding screens is a UI restriction. Auction rows stay `read("any")` at the database, so anyone with API know-how can still read them; making reads private would need team logins (Phase 7 note).
 
+**Merged `main` redesign + team logins (2026-09-29)**
+- `main` (new site design: obsidian/gold palette, Inter / Space Grotesk / JetBrains Mono, new Nav) merged into the IPL branch. The IPL UI set (`ui/controls.jsx`, `ui/auction.jsx`) now uses the redesign's concrete colours (`obsidian-*`, `gold`, slate text), rounded-xl/2xl glass panels, monospace labels and buttons. (The redesign's `bg-card` / `border-border` / `text-muted-foreground` tokens are not defined in `tailwind.config.cjs`, so the IPL pages don't use them.)
+- **Team login.** A team account is an Appwrite user with the label `teamLabel(teamId)` (`auth/teamAuth.js`, tested; shown per team in the admin Teams tab). `/ipl-auction/play` asks for sign-in and shows only that team; `?team=` is ignored for teams (admins may use it to preview; local mode keeps it). Lobby has a Team login button; "IPL Auction" added to the site navbar MORE menu (desktop `Nav.jsx` and phone `HamburgerNav.jsx`).
+- Verified in headless Chrome with the real `.env.local` (Appwrite dev DB): navbar entry, lobby, team login form, `?team=` does not open a team without login, big screen asks for admin login; and in local mode the +/− ladder 200 → … → 480 → 500 → 600 → 700, SOLD overlay, no Up next / Teams tab / other teams on the team view, no sideways scroll at 390 px. The only console entry is Appwrite's expected 401 for "not signed in".
+
 **Left for the owner**
+- Create one Appwrite user per team with its login label (admin Teams tab lists them).
 - Rehearsal on real devices (admin laptop, projector, 8+ phones) against the Appwrite dev database; this also covers the Phase 6 multi-device and Wi-Fi-drop checks.
 - Keyboard shortcuts for the hammer were left out on purpose: a stray key press during a live auction could open or close a lot. Add them only if the organisers want them.
 - Real player photos only with confirmed usage rights (`image` URL per player); fictional players show initials.

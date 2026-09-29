@@ -1,13 +1,14 @@
 /**
- * /ipl-auction/play?team=<teamId> — team dashboard (phone-first).
+ * /ipl-auction/play — team dashboard (phone-first).
  *
  * View-only: bidding happens in the room and the admin records each sale. This
  * page updates as soon as the admin assigns a player (purse, squad, sales).
  * It never imports admin components and never sends commands.
  *
- * One team per link: the team comes from the URL (useTeamActor) and the page
- * offers no way to switch team or see other teams' purses. The admin sends each
- * team its own link. Teams cannot write, so no team login is needed (Phase 7).
+ * One team only: a team signs in with its own account and sees only its own
+ * team (useTeamActor reads the team from the account's label; there is no way
+ * to switch team and no other team's purse is shown). In local development
+ * mode there are no logins and the team comes from `?team=`.
  */
 import { useSearchParams } from "react-router-dom";
 import { getMaxBid, getTeamStats } from "../../lib/iplAuction/engine";
@@ -15,7 +16,7 @@ import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { formatLakhs } from "../../lib/iplAuction/money";
 import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
-import { Page, PageHeader, Panel, Spinner, Tabs } from "../../components/IPLAuction/ui/controls";
+import { Button, Page, PageHeader, Panel, SignInPanel, Spinner, Tabs } from "../../components/IPLAuction/ui/controls";
 import { AuctionStatus, FictionalNotice, LocalModeNotice } from "../../components/IPLAuction/ui/auction";
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
@@ -36,14 +37,12 @@ function PurseBar({ state, teamId }) {
     { label: "Squad", value: `${stats.count}/${state.config.squad.max}` },
   ];
   return (
-    <div className="sticky top-0 z-10 -mx-4 mb-4 border-b border-secondary/20 bg-black/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="sticky top-0 z-10 -mx-4 mb-5 border-b border-gold/20 bg-obsidian-900/90 px-4 py-2.5 backdrop-blur-2xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <dl className="mx-auto grid max-w-7xl grid-cols-3 gap-2">
         {items.map(({ label, value, accent }) => (
           <div key={label}>
-            <dt className="text-[10px] font-medium uppercase tracking-wider text-secondary">{label}</dt>
-            <dd className={`font-Bebas text-2xl leading-tight tracking-wide sm:text-3xl ${accent ? "text-primary" : "text-white"}`}>
-              {value}
-            </dd>
+            <dt className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+            <dd className={`font-mono text-lg font-bold leading-tight sm:text-2xl ${accent ? "text-gold" : "text-slate-100"}`}>{value}</dd>
           </div>
         ))}
       </dl>
@@ -57,7 +56,7 @@ export default function PlayPage() {
     return (
       <Page>
         <PageHeader title="Team dashboard" />
-        <p className="text-secondary">IPL Auction is not available: {reason}</p>
+        <p className="text-slate-400">IPL Auction is not available: {reason}</p>
       </Page>
     );
   }
@@ -66,43 +65,66 @@ export default function PlayPage() {
 
 function TeamDashboard() {
   const { state, kind } = useAuction();
-  const { teamId } = useTeamActor();
+  const identity = useTeamActor(state);
+  const { teamId, auth } = identity;
   const [params, setParams] = useSearchParams();
   const team = teamId ? state.teams[teamId] : null;
   const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "live";
   const selectTab = (id) => setParams((current) => ({ ...Object.fromEntries(current), tab: id }));
+  const loadingData = state.teamOrder.length === 0; // the database read is still in flight
+  const needsLogin = kind !== "local" && !auth.user;
+
+  let body;
+  if (identity.status === "loading" || (loadingData && !needsLogin)) {
+    body = <Spinner label="Loading your team…" />;
+  } else if (needsLogin) {
+    body = (
+      <div className="mx-auto max-w-md">
+        <SignInPanel title="Team login" auth={auth} note="Sign in with the team account the organisers gave you." />
+      </div>
+    );
+  } else if (!team) {
+    body = (
+      <div className="mx-auto max-w-md">
+        <Panel title="No team">
+          <p className="mb-4 text-sm text-slate-400" role="alert">
+            {kind === "local"
+              ? "Local development mode: open this page with ?team=<team id>."
+              : identity.reason ?? "This account is not linked to a team in this auction."}
+          </p>
+          {auth.user && <Button onClick={auth.signOut}>Sign out</Button>}
+        </Panel>
+      </div>
+    );
+  } else {
+    body = (
+      <>
+        <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Dashboard sections" />
+        {tab === "live" && <LivePanel state={state} teamId={teamId} />}
+        {tab === "market" && (
+          <Panel title="Player market">
+            <MarketPanel state={state} teamId={teamId} />
+          </Panel>
+        )}
+        {tab === "history" && <HistoryPanel state={state} teamId={teamId} />}
+      </>
+    );
+  }
 
   return (
     <Page>
       <PageHeader title={team ? team.name : "Team dashboard"}>
         <AuctionStatus state={state} />
+        {auth.user && (
+          <Button size="sm" onClick={auth.signOut}>
+            Sign out
+          </Button>
+        )}
       </PageHeader>
       {team && <PurseBar state={state} teamId={teamId} />}
       <LocalModeNotice kind={kind} />
-      <FictionalNotice state={state} />
-
-      {!team && teamId && state.teamOrder.length === 0 ? (
-        // Nothing loaded yet (the database read is still in flight).
-        <Spinner label="Loading your team…" />
-      ) : !team ? (
-        <Panel title={teamId ? "Team not found" : "Team link needed"}>
-          <p className="text-sm text-secondary" role={teamId ? "alert" : undefined}>
-            Open the team link the organisers sent you. Each link shows one team&apos;s dashboard.
-          </p>
-        </Panel>
-      ) : (
-        <>
-          <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Dashboard sections" />
-
-          {tab === "live" && <LivePanel state={state} teamId={teamId} />}
-          {tab === "market" && (
-            <Panel title="Player market">
-              <MarketPanel state={state} teamId={teamId} />
-            </Panel>
-          )}
-          {tab === "history" && <HistoryPanel state={state} teamId={teamId} />}
-        </>
-      )}
+      {team && <FictionalNotice state={state} />}
+      {body}
     </Page>
   );
 }

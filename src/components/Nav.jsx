@@ -23,6 +23,7 @@ export default function Nav() {
     { title: "Economania", url: "/economania" },
     { title: "GalaxEcon", url: "/galaxecon" },
     { title: "Cityscapes", url: "/cityscapes" },
+    { title: "IPL Auction", url: "/ipl-auction" },
   ];
 
   const isActive = (url) => {

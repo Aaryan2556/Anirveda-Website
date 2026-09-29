@@ -119,6 +119,9 @@ export default function HamburgerNav() {
               <Link to={"/mock-rbi"} onClick={handleHamburgerClick}>
                 <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">MockRBI</h1>
               </Link>
+              <Link to={"/ipl-auction"} onClick={handleHamburgerClick}>
+                <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">IPL Auction</h1>
+              </Link>
             </div>
           )}
 

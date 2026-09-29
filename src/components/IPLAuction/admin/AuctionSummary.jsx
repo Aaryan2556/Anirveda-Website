@@ -43,7 +43,7 @@ export default function AuctionSummary({ state, renderSaleAction }) {
       </div>
 
       <div>
-        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Most expensive buys</div>
+        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Most expensive buys</div>
         {topSales.length === 0 ? (
           <Empty>No players sold yet.</Empty>
         ) : (
@@ -51,14 +51,14 @@ export default function AuctionSummary({ state, renderSaleAction }) {
             {topSales.map((sale, index) => (
               <li
                 key={sale.id}
-                className={`rounded-lg border px-3 py-2 ${index === 0 ? "border-primary bg-primary/10" : "border-secondary/20 bg-secondary-15"}`}
+                className={`rounded-xl border px-3 py-2 ${index === 0 ? "border-primary bg-primary/10" : "border-slate-800 bg-obsidian-900"}`}
               >
-                <div className="text-[10px] uppercase tracking-wider text-secondary">
+                <div className="text-[10px] uppercase tracking-wider text-slate-400">
                   #{index + 1} · {ROLE_LABELS[sale.player.role]}
                 </div>
-                <div className="truncate text-white">{sale.player.name}</div>
-                <div className="truncate text-xs text-secondary">{sale.team.name}</div>
-                <div className="font-Bebas text-2xl leading-tight tracking-wide text-primary">{formatLakhs(sale.price)}</div>
+                <div className="truncate text-slate-100">{sale.player.name}</div>
+                <div className="truncate text-xs text-slate-400">{sale.team.name}</div>
+                <div className="font-mono text-xl font-bold leading-tight text-gold">{formatLakhs(sale.price)}</div>
               </li>
             ))}
           </ol>
@@ -101,9 +101,9 @@ export default function AuctionSummary({ state, renderSaleAction }) {
                 ))}
                 <td className={table.td}>
                   {meetsSquadMinimum && !rolesShort.length ? (
-                    <span className="text-green-300">Met</span>
+                    <span className="text-neon-emerald">Met</span>
                   ) : (
-                    <span className="text-yellow-200">
+                    <span className="text-amber-300">
                       {!meetsSquadMinimum && `Squad below ${config.squad.min}. `}
                       {rolesShort.length > 0 && `Short: ${rolesShort.map((role) => ROLE_LABELS[role]).join(", ")}`}
                     </span>
@@ -122,7 +122,7 @@ export default function AuctionSummary({ state, renderSaleAction }) {
       </div>
 
       <div>
-        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Purchase history ({sales.length})</div>
+        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Purchase history ({sales.length})</div>
         <div className={table.wrap}>
           <table className={table.table}>
             <thead className={table.thead}>
@@ -146,7 +146,7 @@ export default function AuctionSummary({ state, renderSaleAction }) {
                   <td className={table.td}>{formatLakhs(sale.player?.basePrice)}</td>
                   <td className={table.td}>{sale.team?.name}</td>
                   <td className={table.td}>{formatLakhs(sale.price)}</td>
-                  <td className={`${table.td} text-secondary`}>{sale.at ? new Date(sale.at).toLocaleTimeString() : "—"}</td>
+                  <td className={`${table.td} text-slate-400`}>{sale.at ? new Date(sale.at).toLocaleTimeString() : "—"}</td>
                   {renderSaleAction && <td className={`${table.td} space-x-1 whitespace-nowrap`}>{renderSaleAction(sale)}</td>}
                 </tr>
               ))}

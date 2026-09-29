@@ -9,9 +9,9 @@ export { inputClass };
 export function Field({ label, hint, error, children, className = "" }) {
   return (
     <label className={`grid gap-1 text-xs ${className}`}>
-      <span className="font-medium uppercase tracking-wider text-secondary">{label}</span>
+      <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
       {children}
-      {hint && !error && <span className="text-secondary/70">{hint}</span>}
+      {hint && !error && <span className="text-slate-500">{hint}</span>}
       {error && <span className="text-red-300">{error}</span>}
     </label>
   );
@@ -49,7 +49,7 @@ export function Select({ value, onChange, options, ...props }) {
 
 export function Checkbox({ checked, onChange, label, ...props }) {
   return (
-    <label className="flex items-center gap-2 text-sm text-white">
+    <label className="flex items-center gap-2 text-sm text-slate-100">
       <input type="checkbox" className="h-4 w-4 accent-primary" checked={checked} onChange={(e) => onChange(e.target.checked)} {...props} />
       {label}
     </label>

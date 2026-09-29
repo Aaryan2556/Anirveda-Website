@@ -9,8 +9,8 @@ import { Panel, table } from "../ui/controls";
 import { ActivityLog } from "../ui/auction";
 
 const RESULT_STYLE = {
-  SOLD: "text-green-300",
-  UNSOLD: "text-secondary",
+  SOLD: "text-neon-emerald",
+  UNSOLD: "text-slate-400",
   WITHDRAWN: "text-red-300",
   OPEN: "text-primary",
 };
@@ -21,7 +21,7 @@ export default function HistoryPanel({ state, teamId }) {
     <div className="space-y-4">
       <Panel title={`Lots (${lots.length})`}>
         {lots.length === 0 ? (
-          <p className="text-sm text-secondary">No player has been up yet.</p>
+          <p className="text-sm text-slate-400">No player has been up yet.</p>
         ) : (
           <div className={table.wrap}>
             <table className={table.table}>
@@ -43,17 +43,17 @@ export default function HistoryPanel({ state, teamId }) {
                     key={`${lot.playerId}-${lot.openedAt}-${index}`}
                     className={`${lot.teamId === teamId && !lot.cancelled ? "bg-primary/10" : ""}`}
                   >
-                    <td className={`${table.td} text-secondary/70`}>{lots.length - index}</td>
+                    <td className={`${table.td} text-slate-500`}>{lots.length - index}</td>
                     <td className={table.td}>{lot.player?.name ?? "(removed player)"}</td>
                     <td className={table.td}>{ROLE_LABELS[lot.player?.role] ?? "—"}</td>
                     <td className={`${table.td} whitespace-nowrap`}>{formatLakhs(lot.player?.basePrice)}</td>
                     <td className={`${table.td} whitespace-nowrap ${RESULT_STYLE[lot.result]}`}>
                       {lot.result === "OPEN" ? "ON THE BLOCK" : lot.result}
-                      {lot.cancelled && <span className="ml-1 text-yellow-200">(sale cancelled)</span>}
+                      {lot.cancelled && <span className="ml-1 text-amber-300">(sale cancelled)</span>}
                     </td>
                     <td className={table.td}>{lot.team?.name ?? "—"}</td>
                     <td className={`${table.td} whitespace-nowrap`}>{lot.price == null ? "—" : formatLakhs(lot.price)}</td>
-                    <td className={`${table.td} whitespace-nowrap text-secondary`}>
+                    <td className={`${table.td} whitespace-nowrap text-slate-400`}>
                       {lot.openedAt ? new Date(lot.openedAt).toLocaleTimeString() : "—"}
                     </td>
                   </tr>

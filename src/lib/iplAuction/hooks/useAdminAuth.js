@@ -2,7 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { getAdminAuth } from "../repository/index.js";
 
 /**
- * Admin session for the admin page: { status, user, isAdmin, error, signIn, signOut, refresh }.
+ * Appwrite sign-in session: { status, user, isAdmin, error, signIn, signOut, refresh }.
+ * Used by the admin pages and, for team accounts, by the team dashboard
+ * (useTeamActor reads the team label from `user.labels`).
  * status: "loading" | "ready" | "error". Local mode is always an admin.
  * `refresh()` re-reads the session (e.g. after Appwrite refused a write because it expired).
  */

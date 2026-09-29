@@ -74,11 +74,11 @@ export function AuctionControls({ state, send, pending, reset }) {
           />
         )}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-secondary/20 pt-3 text-xs text-secondary">
+      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-800 pt-3 text-xs text-slate-400">
         <a href="/ipl-auction/admin/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
           Open big screen
         </a>
-        <span className="uppercase tracking-wider">Team links (send each team only its own):</span>
+        <span className="uppercase tracking-wider">View as team (admin preview):</span>
         {getTeamsInOrder(state).map((team) => (
           <a
             key={team.id}
@@ -124,13 +124,13 @@ export function OnTheBlock({ state, send, actor, pending }) {
       <div className={lot ? "grid gap-6 xl:grid-cols-[1fr_20rem]" : ""}>
         <CurrentLot state={state} />
         {lot && (
-          <div className="space-y-3 rounded-lg border border-primary/40 bg-black p-4 xl:self-start">
+          <div className="min-w-0 space-y-3 rounded-2xl border border-gold/40 bg-obsidian-900 p-4 shadow-goldGlow xl:self-start">
             <div>
-              <h3 className="font-Bebas text-2xl leading-none tracking-wide text-primary">Hammer</h3>
-              <p className="mt-1 text-xs text-secondary">When the hammer falls, pick the winning team and enter the final price.</p>
+              <h3 className="font-Bebas text-xl font-bold uppercase leading-none tracking-tight text-primary">Hammer</h3>
+              <p className="mt-1 text-xs text-slate-400">When the hammer falls, pick the winning team and enter the final price.</p>
             </div>
             <Field label="Winning team">
-              <select className={inputClass} value={saleTeamId} onChange={(e) => setSaleTeamId(e.target.value)}>
+              <select className={`${inputClass} w-full min-w-0`} value={saleTeamId} onChange={(e) => setSaleTeamId(e.target.value)}>
                 <option value="">Select…</option>
                 {teams.map((team) => (
                   <option key={team.id} value={team.id}>
@@ -139,11 +139,11 @@ export function OnTheBlock({ state, send, actor, pending }) {
                 ))}
               </select>
             </Field>
-            <div className="grid gap-1 text-xs">
-              <label htmlFor="ipl-sale-price" className="font-medium uppercase tracking-wider text-secondary">
+            <div className="grid min-w-0 gap-1 text-xs">
+              <label htmlFor="ipl-sale-price" className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 Final price (lakhs)
               </label>
-              <div className="flex items-stretch gap-2">
+              <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-2">
                 <Button
                   aria-label={`Lower price to ${formatLakhs(previousPrice(currentPrice, lotPlayer.basePrice))}`}
                   disabled={currentPrice <= lotPlayer.basePrice}
@@ -153,7 +153,7 @@ export function OnTheBlock({ state, send, actor, pending }) {
                 </Button>
                 <input
                   id="ipl-sale-price"
-                  className={`${inputClass} min-w-0 flex-1 text-center`}
+                  className={`${inputClass} w-full min-w-0 text-center`}
                   type="number"
                   inputMode="numeric"
                   min={lotPlayer.basePrice}
@@ -168,7 +168,7 @@ export function OnTheBlock({ state, send, actor, pending }) {
                   +{formatLakhs(stepAt(currentPrice))}
                 </Button>
               </div>
-              <span className="text-secondary/70">
+              <span className="text-slate-500">
                 {formatLakhs(Number(salePrice) || null)} · base {formatLakhs(lotPlayer.basePrice)} · +20 L up to ₹5 Cr, then +₹1 Cr
               </span>
             </div>
@@ -188,7 +188,7 @@ export function OnTheBlock({ state, send, actor, pending }) {
                 Can&apos;t sell: {salePreview.error.message}
               </p>
             )}
-            <div className="flex gap-2 border-t border-secondary/20 pt-3">
+            <div className="flex gap-2 border-t border-slate-800 pt-3">
               <Button className="flex-1" disabled={pending} onClick={() => send({ type: COMMANDS.MARK_UNSOLD })}>
                 UNSOLD
               </Button>

@@ -23,15 +23,15 @@ export function BuyingPower({ state, teamId }) {
   const blocked = validateSale(state, teamId, player, player.basePrice);
   return (
     <div
-      className={`mt-5 rounded-lg border px-4 py-3 text-sm ${blocked ? "border-red-500/40 bg-red-500/10 text-red-200" : "border-primary/40 bg-primary/10"}`}
+      className={`mt-5 rounded-xl border px-4 py-3 text-sm ${blocked ? "border-red-500/40 bg-red-500/10 text-red-200" : "border-primary/40 bg-primary/10"}`}
     >
       {blocked ? (
         <>You can&apos;t buy this player: {blocked.message}</>
       ) : (
         <>
-          <span className="text-secondary">You can pay up to </span>
-          <strong className="font-Bebas text-2xl tracking-wide text-primary">{formatLakhs(getMaxBid(state, teamId))}</strong>
-          <span className="text-secondary"> for this player.</span>
+          <span className="text-slate-400">You can pay up to </span>
+          <strong className="font-mono text-xl font-bold text-gold">{formatLakhs(getMaxBid(state, teamId))}</strong>
+          <span className="text-slate-400"> for this player.</span>
         </>
       )}
     </div>
@@ -56,8 +56,8 @@ export function MyTeam({ state, teamId }) {
       </div>
 
       <div>
-        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">Still needed</div>
-        <p className="mb-3 text-xs text-secondary">
+        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Still needed</div>
+        <p className="mb-3 text-xs text-slate-400">
           {needs.squadShort > 0
             ? `${needs.squadShort} more player${needs.squadShort === 1 ? "" : "s"} to reach the squad minimum of ${config.squad.min}. `
             : "Squad minimum reached. "}
@@ -67,24 +67,24 @@ export function MyTeam({ state, teamId }) {
       </div>
 
       <div>
-        <div className="mb-2 text-[10px] font-medium uppercase tracking-wider text-secondary">
+        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
           Squad ({history.length}) in order bought
         </div>
         {history.length === 0 ? (
           <Empty>No players bought yet.</Empty>
         ) : (
-          <ol className="divide-y divide-secondary/15">
+          <ol className="divide-y divide-slate-800">
             {history.map((purchase, index) => (
               <li key={purchase.id} className="flex justify-between gap-2 py-2">
                 <span className="min-w-0">
-                  <span className="mr-2 font-Bebas text-lg text-secondary/60">{index + 1}</span>
-                  <span className="text-white">{purchase.player.name}</span>
-                  <span className="text-secondary">
+                  <span className="mr-2 font-mono text-xs text-slate-500">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="text-slate-100">{purchase.player.name}</span>
+                  <span className="text-slate-400">
                     {" "}
                     · {ROLE_LABELS[purchase.player.role]}
                     {purchase.player.isOverseas ? " · OS" : ""}
                   </span>
-                  {isFictional(purchase.player) && <span className="text-yellow-300/70"> (fictional)</span>}
+                  {isFictional(purchase.player) && <span className="text-amber-300/80"> (fictional)</span>}
                 </span>
                 <span className="whitespace-nowrap font-bold text-primary">{formatLakhs(purchase.price)}</span>
               </li>

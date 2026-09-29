@@ -74,12 +74,12 @@ function AdminConsole({ identity }) {
           href="/ipl-auction/admin/screen"
           target="_blank"
           rel="noreferrer"
-          className="rounded-3xl border border-primary px-3 py-1 text-xs text-primary transition hover:bg-primary hover:text-white"
+          className="rounded-3xl border border-primary px-3 py-1 text-xs text-primary transition hover:bg-primary hover:text-slate-100"
         >
           Open big screen
         </a>
         {user && (
-          <span className="flex items-center gap-2 text-xs text-secondary">
+          <span className="flex items-center gap-2 text-xs text-slate-400">
             {user.email}
             <Button size="sm" onClick={signOut}>
               Sign out
@@ -89,15 +89,15 @@ function AdminConsole({ identity }) {
       </PageHeader>
       <LocalModeNotice kind={kind} />
       <FictionalNotice state={state} />
-      <p className="mb-4 font-Abel text-lg text-secondary">{state.name}</p>
+      <p className="mb-4 font-sans text-lg text-slate-400">{state.name}</p>
 
       <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Admin sections" trailing={pending ? "Saving…" : null} />
 
       {lotPlayer && tab !== "run" && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-sm">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 text-sm">
           <span>
-            <span className="text-secondary">On the block: </span>
-            <strong className="text-white">{lotPlayer.name}</strong>
+            <span className="text-slate-400">On the block: </span>
+            <strong className="text-slate-100">{lotPlayer.name}</strong>
           </span>
           <Button size="sm" variant="outline" onClick={() => selectTab("run")}>
             Go to hammer

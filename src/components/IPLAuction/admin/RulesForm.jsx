@@ -66,7 +66,7 @@ export default function RulesForm({ state, send, pending }) {
 
   return (
     <div className="space-y-4 text-sm">
-      <p className="text-xs text-secondary">
+      <p className="text-xs text-slate-400">
         {isSetup ? "Editable until the auction starts." : "Locked: the auction has started."} Money is in whole lakhs
         (₹1 Cr = 100). Leave a maximum blank for no limit.
       </p>

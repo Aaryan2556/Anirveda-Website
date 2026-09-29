@@ -16,14 +16,14 @@ const STILL_TO_COME = [PLAYER_STATUS.AVAILABLE, PLAYER_STATUS.UNSOLD, PLAYER_STA
 const OVERSEAS_OPTIONS = { any: null, overseas: true, domestic: false };
 
 function Eligibility({ state, teamId, player }) {
-  if (!STILL_TO_COME.includes(player.status)) return <span className="text-secondary/40">—</span>;
+  if (!STILL_TO_COME.includes(player.status)) return <span className="text-slate-500">—</span>;
   const blocked = validateSale(state, teamId, player, player.basePrice);
   return blocked ? (
     <span className="text-red-300" title={blocked.message}>
       No
     </span>
   ) : (
-    <span className="text-green-300">Yes</span>
+    <span className="text-neon-emerald">Yes</span>
   );
 }
 
@@ -65,7 +65,7 @@ export default function MarketPanel({ state, teamId }) {
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-      <p className="text-xs text-secondary/70">
+      <p className="text-xs text-slate-500">
         {rows.length} player{rows.length === 1 ? "" : "s"}. &quot;Can buy&quot; checks your purse, squad, role and overseas
         limits at the base price. Tap a name for details.
       </p>
@@ -104,12 +104,12 @@ function MarketRow({ state, teamId, player, position, team, open, onToggle }) {
   return (
     <>
       <tr className={`${mine ? "bg-primary/10" : ""}`}>
-        <td className={`${table.td} text-secondary/70`}>{position}</td>
+        <td className={`${table.td} text-slate-500`}>{position}</td>
         <td className={table.td}>
-          <button type="button" className="text-left underline decoration-secondary/40 hover:text-primary hover:decoration-primary" onClick={onToggle}>
+          <button type="button" className="text-left underline decoration-slate-600 hover:text-primary hover:decoration-primary" onClick={onToggle}>
             {player.name}
           </button>
-          {isFictional(player) && <span className="ml-1 text-yellow-300/70">(fictional)</span>}
+          {isFictional(player) && <span className="ml-1 text-amber-300/80">(fictional)</span>}
         </td>
         <td className={table.td}>{ROLE_LABELS[player.role]}</td>
         <td className={table.td}>{player.isOverseas ? "Yes" : "—"}</td>
@@ -122,7 +122,7 @@ function MarketRow({ state, teamId, player, position, team, open, onToggle }) {
       </tr>
       {open && (
         <tr>
-          <td colSpan={8} className={`${table.td} bg-secondary-15 p-3`}>
+          <td colSpan={8} className={`${table.td} bg-obsidian-900 p-3`}>
             <PlayerHero player={player} />
           </td>
         </tr>

@@ -71,13 +71,13 @@ export default function PlayerImport({ state, send, pending }) {
 
   return (
     <div className="grid gap-3 text-sm">
-      <p className="text-xs text-secondary">
+      <p className="text-xs text-slate-400">
         Paste CSV (with a header row) or JSON, or load a file. Columns: <code>name, role, basePrice</code> (lakhs),{" "}
         <code>isOverseas</code>, and optionally <code>nationality, age, battingStyle, bowlingStyle, image, dataSource,
         recentPerformance</code> (separate entries with <code>|</code>) and stats such as <code>batting.runs</code>,{" "}
         <code>bowling.wickets</code>, <code>keeping.catches</code>. Roles: batter, bowler, all-rounder, wicketkeeper (or wk).
       </p>
-      <p className="text-xs text-yellow-200/80">
+      <p className="text-xs text-amber-300/80">
         Every player needs a data source. Only import real statistics from a source you have checked, and mark
         invented data FICTIONAL.
       </p>
@@ -119,9 +119,9 @@ export default function PlayerImport({ state, send, pending }) {
               Import {valid.length} player{valid.length === 1 ? "" : "s"}
             </Button>
           </div>
-          <div className="max-h-72 overflow-auto border border-secondary/20">
+          <div className="max-h-72 overflow-auto border border-slate-800">
             <table className={table.table}>
-              <thead className={`sticky top-0 bg-tertiary ${table.thead}`}>
+              <thead className={`sticky top-0 bg-obsidian-800 ${table.thead}`}>
                 <tr>
                   <th className={table.th}>Line</th>
                   <th className={table.th}>Name</th>
@@ -140,9 +140,9 @@ export default function PlayerImport({ state, send, pending }) {
                     <td className={table.td}>{row.command?.player.basePrice ?? ""}</td>
                     <td className={table.td}>{row.command?.player.dataSource ?? ""}</td>
                     <td className={table.td}>
-                      {row.error ? <span className="text-red-300">{row.error}</span> : <span className="text-green-300">OK</span>}
+                      {row.error ? <span className="text-red-300">{row.error}</span> : <span className="text-neon-emerald">OK</span>}
                       {row.warnings.map((warning) => (
-                        <span key={warning} className="ml-2 text-yellow-200">⚠ {warning}</span>
+                        <span key={warning} className="ml-2 text-amber-300">⚠ {warning}</span>
                       ))}
                     </td>
                   </tr>
@@ -154,7 +154,7 @@ export default function PlayerImport({ state, send, pending }) {
       )}
 
       {progress && (
-        <p className={progress.failed ? "text-red-300" : "text-secondary"}>
+        <p className={progress.failed ? "text-red-300" : "text-slate-400"}>
           Imported {progress.done} of {progress.total}.
           {progress.failed && ` Stopped at line ${progress.failed.line}: ${progress.failed.message} Fix it and check again; rows already imported stay.`}
         </p>

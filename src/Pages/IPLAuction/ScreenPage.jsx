@@ -58,12 +58,12 @@ function SoldBanner({ sale }) {
           transition={{ duration: 0.35 }}
           className="fixed inset-0 z-20 flex items-center justify-center bg-black/85 px-6"
         >
-          <div className="w-full max-w-4xl rounded-lg border-2 border-primary bg-tertiary px-8 py-10 text-center">
-            <p className="font-Bebas text-[7rem] leading-none tracking-wider text-primary sm:text-[10rem]">Sold</p>
-            <p className="mt-2 font-Bebas text-5xl tracking-wide text-white sm:text-6xl">{sale.player.name}</p>
-            <p className="mt-4 font-Abel text-2xl text-secondary sm:text-3xl">
-              to <span className="text-white">{sale.team.name}</span> for{" "}
-              <span className="font-Bebas text-5xl tracking-wide text-primary">{formatLakhs(sale.price)}</span>
+          <div className="w-full max-w-4xl rounded-xl border-2 border-primary bg-obsidian-800 px-8 py-10 text-center">
+            <p className="font-Bebas text-[6rem] font-bold uppercase leading-none tracking-[-0.04em] text-primary drop-shadow-[0_0_35px_rgba(212,175,55,0.45)] sm:text-[9rem]">Sold</p>
+            <p className="mt-2 font-Bebas text-4xl font-bold uppercase tracking-tight text-slate-100 sm:text-5xl">{sale.player.name}</p>
+            <p className="mt-4 font-sans text-2xl text-slate-400 sm:text-3xl">
+              to <span className="text-slate-100">{sale.team.name}</span> for{" "}
+              <span className="font-mono text-4xl font-bold text-gold sm:text-5xl">{formatLakhs(sale.price)}</span>
             </p>
           </div>
         </motion.div>
@@ -98,14 +98,14 @@ function BigScreen() {
             <Panel title="Last sale">
               {latest ? (
                 <div aria-live="polite">
-                  <p className="font-Bebas text-4xl leading-none tracking-wide text-white">{latest.player.name}</p>
-                  <p className="mt-1 text-secondary">
+                  <p className="font-Bebas text-3xl font-bold uppercase leading-none tracking-tight text-slate-100">{latest.player.name}</p>
+                  <p className="mt-1 text-slate-400">
                     {latest.team.name} ·{" "}
-                    <span className="font-Bebas text-3xl tracking-wide text-primary">{formatLakhs(latest.price)}</span>
+                    <span className="font-mono text-2xl font-bold text-gold">{formatLakhs(latest.price)}</span>
                   </p>
                 </div>
               ) : (
-                <p className="text-sm text-secondary/70">No players sold yet.</p>
+                <p className="text-sm text-slate-500">No players sold yet.</p>
               )}
             </Panel>
             <Panel title="Up next">

@@ -40,7 +40,7 @@ export function StatusBadge({ status }) {
 
 const CONNECTION_LABELS = {
   live: { text: "Live sync", dot: "bg-green-400" },
-  polling: { text: "Syncing", dot: "bg-secondary" },
+  polling: { text: "Syncing", dot: "bg-slate-400" },
   connecting: { text: "Connecting…", dot: "bg-yellow-300" },
   reconnecting: { text: "Reconnecting…", dot: "bg-yellow-300" },
   offline: { text: "Offline · last known state", dot: "bg-red-400" },
@@ -52,7 +52,7 @@ export function ConnectionIndicator() {
   const label = CONNECTION_LABELS[status];
   if (!label) return null;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-secondary" role="status">
+    <span className="inline-flex items-center gap-1.5 text-xs text-slate-400" role="status">
       <span className={`h-2 w-2 rounded-full ${label.dot}`} />
       {label.text}
     </span>
@@ -75,7 +75,7 @@ export function AuctionStatus({ state }) {
 export function FictionalNotice({ state }) {
   if (!hasFictionalPlayers(state)) return null;
   return (
-    <p className="mb-5 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-2 text-xs text-yellow-200">
+    <p className="mb-5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs text-amber-300">
       Players marked <strong>FICTIONAL</strong> are invented for testing: their names and statistics are not real.
     </p>
   );
@@ -85,8 +85,8 @@ export function FictionalNotice({ state }) {
 export function LocalModeNotice({ kind }) {
   if (kind !== "local") return null;
   return (
-    <p className="mb-5 rounded-lg border border-secondary/30 bg-secondary-15 px-4 py-2 text-xs text-secondary">
-      <strong className="text-white">Local development mode.</strong> The auction lives only in this browser and syncs
+    <p className="mb-5 rounded-xl border border-slate-800 bg-obsidian-900 px-4 py-2 text-xs text-slate-400">
+      <strong className="text-slate-100">Local development mode.</strong> The auction lives only in this browser and syncs
       between its tabs. No database, no login.
     </p>
   );
@@ -113,12 +113,12 @@ const PHOTO_SIZES = {
 export function PlayerPhoto({ player, size = "md" }) {
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-secondary/30 bg-gradient-to-b from-secondary-opacity to-black ${PHOTO_SIZES[size]}`}
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-gradient-to-b from-obsidian-700 to-obsidian-900 ${PHOTO_SIZES[size]}`}
     >
       {player.image ? (
         <img src={player.image} alt={player.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
       ) : (
-        <span className="font-Bebas leading-none text-primary/70" aria-hidden="true">
+        <span className="font-Bebas font-bold leading-none text-gold/60" aria-hidden="true">
           {initials(player.name)}
         </span>
       )}
@@ -140,12 +140,12 @@ function StatGrid({ title, stats, large }) {
   if (!stats) return null;
   return (
     <div className="min-w-0">
-      <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-secondary">{title}</div>
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-secondary/20 bg-secondary/20 sm:grid-cols-4">
+      <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</div>
+      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-slate-800 bg-slate-800 sm:grid-cols-4">
         {Object.entries(stats).map(([key, value]) => (
-          <div key={key} className="bg-tertiary px-2 py-1.5">
-            <dt className="truncate text-[10px] uppercase tracking-wider text-secondary/80">{STAT_FIELD_LABELS[key] ?? key}</dt>
-            <dd className={`font-Bebas leading-tight tracking-wide text-white ${large ? "text-3xl" : "text-2xl"}`}>{value}</dd>
+          <div key={key} className="bg-obsidian-800 px-2 py-1.5">
+            <dt className="truncate text-[10px] uppercase tracking-wider text-slate-500">{STAT_FIELD_LABELS[key] ?? key}</dt>
+            <dd className={`font-mono font-bold leading-tight text-slate-100 ${large ? "text-2xl" : "text-lg"}`}>{value}</dd>
           </div>
         ))}
       </dl>
@@ -165,10 +165,10 @@ export function PlayerStats({ player, large = false }) {
       ))}
       {player.recentPerformance?.length > 0 && (
         <div>
-          <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-secondary">Recent form{note}</div>
+          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Recent form{note}</div>
           <div className="flex flex-wrap gap-1.5">
             {player.recentPerformance.map((entry, index) => (
-              <span key={index} className="rounded-3xl border border-secondary/30 px-2.5 py-0.5 text-xs text-white">
+              <span key={index} className="rounded-3xl border border-slate-800 px-2.5 py-0.5 text-xs text-slate-100">
                 {entry}
               </span>
             ))}
@@ -176,7 +176,7 @@ export function PlayerStats({ player, large = false }) {
         </div>
       )}
       {!isFictional(player) && player.dataSource && (
-        <div className="text-[10px] uppercase tracking-wider text-secondary/60">Source: {player.dataSource}</div>
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">Source: {player.dataSource}</div>
       )}
     </div>
   );
@@ -193,12 +193,12 @@ export function PlayerIdentity({ player, large = false }) {
   return (
     <div className="space-y-2">
       <PlayerTags player={player} />
-      <h3 className={`font-Bebas leading-none tracking-wide text-white ${large ? "text-6xl xl:text-7xl" : "text-5xl"}`}>
+      <h3 className={`font-Bebas font-bold uppercase leading-none tracking-tight text-slate-100 ${large ? "text-5xl xl:text-6xl" : "text-3xl sm:text-4xl"}`}>
         {player.name}
       </h3>
-      {details.length > 0 && <p className="font-Abel text-secondary sm:text-lg">{details.join(" · ")}</p>}
-      <p className="text-sm text-secondary">
-        Base price <span className="font-Bebas text-2xl tracking-wide text-primary">{formatLakhs(player.basePrice)}</span>
+      {details.length > 0 && <p className="font-sans text-slate-400 sm:text-lg">{details.join(" · ")}</p>}
+      <p className="text-sm text-slate-400">
+        Base price <span className="font-mono text-lg font-bold text-gold">{formatLakhs(player.basePrice)}</span>
       </p>
     </div>
   );
@@ -228,11 +228,11 @@ export function CurrentLot({ state, large = false }) {
         : state.status === AUCTION_STATUS.SETUP
           ? "The auction has not started yet."
           : "Waiting for the next player.";
-    return <p className={`font-Abel text-secondary ${large ? "py-16 text-center text-3xl" : "py-6 text-lg"}`}>{message}</p>;
+    return <p className={`font-sans text-slate-400 ${large ? "py-16 text-center text-3xl" : "py-6 text-lg"}`}>{message}</p>;
   }
   return (
     <div>
-      <p className="mb-3 text-xs font-medium uppercase tracking-[0.25em] text-primary">Bidding in the room</p>
+      <p className="mb-3 flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-gold"><span className="h-2 w-2 rounded-full bg-gold motion-safe:animate-pulse" />Bidding in the room</p>
       <PlayerHero player={state.players[state.lot.playerId]} large={large} />
     </div>
   );
@@ -249,12 +249,12 @@ export function LatestSale({ state, teamId }) {
     <div
       role="status"
       aria-live="polite"
-      className={`rounded-lg border px-4 py-3 text-sm ${mine ? "border-primary bg-primary/15" : "border-secondary/30 bg-secondary-15"}`}
+      className={`rounded-xl border px-4 py-3 text-sm ${mine ? "border-primary bg-primary/15" : "border-slate-800 bg-obsidian-900"}`}
     >
-      <span className="mr-2 font-Bebas text-xl tracking-wide text-primary">{mine ? "You bought" : "Last sale"}</span>
-      <strong className="text-white">{sale.player.name}</strong>
-      {!mine && <span className="text-secondary"> to {sale.team.name}</span>}
-      <span className="text-secondary"> for </span>
+      <span className="mr-2 font-mono text-xs font-bold uppercase tracking-wider text-gold">{mine ? "You bought" : "Last sale"}</span>
+      <strong className="text-slate-100">{sale.player.name}</strong>
+      {!mine && <span className="text-slate-400"> to {sale.team.name}</span>}
+      <span className="text-slate-400"> for </span>
       <strong className="text-primary">{formatLakhs(sale.price)}</strong>
     </div>
   );
@@ -265,15 +265,15 @@ export function RecentSales({ state, limit = 10, highlightTeamId, renderAction }
   const sales = getRecentSales(state, limit);
   if (!sales.length) return <Empty>No players sold yet.</Empty>;
   return (
-    <ol className="divide-y divide-secondary/15 text-sm">
+    <ol className="divide-y divide-slate-800 text-sm">
       {sales.map((sale) => (
         <li
           key={sale.id}
           className={`flex flex-wrap items-center justify-between gap-2 py-2 ${sale.teamId === highlightTeamId ? "text-primary" : ""}`}
         >
           <span className="min-w-0">
-            <span className="text-white">{sale.player.name}</span>
-            <span className="text-secondary"> → {sale.team.name}</span>
+            <span className="text-slate-100">{sale.player.name}</span>
+            <span className="text-slate-400"> → {sale.team.name}</span>
           </span>
           <span className="flex items-center gap-2">
             <strong className="text-primary">{formatLakhs(sale.price)}</strong>
@@ -290,22 +290,22 @@ export function UpcomingPlayers({ state, limit = 8 }) {
   const upcoming = getUpcomingPlayers(state);
   if (!upcoming.length) return <Empty>No players left in the sequence.</Empty>;
   return (
-    <ol className="divide-y divide-secondary/15 text-sm">
+    <ol className="divide-y divide-slate-800 text-sm">
       {upcoming.slice(0, limit).map((player, index) => (
         <li key={player.id} className="flex items-center justify-between gap-2 py-2">
           <span className="min-w-0 truncate">
-            <span className="mr-2 font-Bebas text-lg text-secondary/60">{index + 1}</span>
-            <span className="text-white">{player.name}</span>
-            <span className="text-secondary">
+            <span className="mr-2 font-mono text-xs text-slate-500">{String(index + 1).padStart(2, "0")}</span>
+            <span className="text-slate-100">{player.name}</span>
+            <span className="text-slate-400">
               {" "}
               · {ROLE_LABELS[player.role]}
               {player.isOverseas ? " · OS" : ""}
             </span>
           </span>
-          <span className="whitespace-nowrap text-secondary">{formatLakhs(player.basePrice)}</span>
+          <span className="whitespace-nowrap text-slate-400">{formatLakhs(player.basePrice)}</span>
         </li>
       ))}
-      {upcoming.length > limit && <li className="py-2 text-secondary/70">+ {upcoming.length - limit} more</li>}
+      {upcoming.length > limit && <li className="py-2 text-slate-500">+ {upcoming.length - limit} more</li>}
     </ol>
   );
 }
@@ -314,13 +314,13 @@ export function ActivityLog({ state, limit = 40 }) {
   const entries = state.activity.slice(-limit).reverse();
   if (!entries.length) return <Empty>No activity yet.</Empty>;
   return (
-    <ol className="max-h-80 divide-y divide-secondary/10 overflow-y-auto pr-1 text-xs">
+    <ol className="max-h-80 divide-y divide-slate-800 overflow-y-auto pr-1 text-xs">
       {entries.map((entry) => (
         <li key={entry.seq} className="py-1.5">
-          <span className="mr-2 font-mono text-secondary/60">
+          <span className="mr-2 font-mono text-slate-500">
             #{entry.seq} {entry.at ? new Date(entry.at).toLocaleTimeString() : ""}
           </span>
-          <span className="text-white/90">{entry.message}</span>
+          <span className="text-slate-200">{entry.message}</span>
         </li>
       ))}
     </ol>
@@ -341,16 +341,16 @@ export function RoleMeters({ state, teamId }) {
         return (
           <div key={role} className="min-w-0">
             <div className="flex items-baseline justify-between gap-2 text-xs">
-              <span className="truncate text-secondary">{ROLE_LABELS[role]}</span>
-              <span className={need > 0 ? "text-yellow-200" : full ? "text-secondary/60" : "text-white"}>
+              <span className="truncate text-slate-400">{ROLE_LABELS[role]}</span>
+              <span className={need > 0 ? "text-amber-300" : full ? "text-slate-500" : "text-slate-100"}>
                 {have}/{max ?? "∞"}
                 {need > 0 && ` · need ${need}`}
               </span>
             </div>
-            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-secondary/15" aria-hidden="true">
+            <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-800" aria-hidden="true">
               <div className="h-full rounded-full bg-primary" style={{ width: `${cap ? Math.min(100, (have / cap) * 100) : 0}%` }} />
             </div>
-            {min > 0 && <div className="mt-0.5 text-[10px] text-secondary/60">min {min}</div>}
+            {min > 0 && <div className="mt-0.5 text-[10px] text-slate-500">min {min}</div>}
           </div>
         );
       })}
@@ -384,13 +384,13 @@ export function TeamsTable({ state, highlightTeamId }) {
             const stats = getTeamStats(state, team.id);
             return (
               <tr key={team.id} className={team.id === highlightTeamId ? table.highlight : ""}>
-                <td className={`${table.td} whitespace-nowrap text-white`}>{team.name}</td>
+                <td className={`${table.td} whitespace-nowrap text-slate-100`}>{team.name}</td>
                 <td className={`${table.td} whitespace-nowrap font-bold text-primary`}>{formatLakhs(stats.purse)}</td>
-                <td className={`${table.td} whitespace-nowrap text-secondary`}>{formatLakhs(stats.spent)}</td>
-                <td className={`${table.td} whitespace-nowrap text-secondary`}>{formatLakhs(getMaxBid(state, team.id))}</td>
+                <td className={`${table.td} whitespace-nowrap text-slate-400`}>{formatLakhs(stats.spent)}</td>
+                <td className={`${table.td} whitespace-nowrap text-slate-400`}>{formatLakhs(getMaxBid(state, team.id))}</td>
                 <td className={`${table.td} whitespace-nowrap`}>
                   {stats.count}/{config.squad.max}
-                  <span className="text-secondary/60"> (min {config.squad.min})</span>
+                  <span className="text-slate-500"> (min {config.squad.min})</span>
                 </td>
                 <td className={`${table.td} whitespace-nowrap`}>
                   {stats.overseas}/{config.maxOverseas ?? "∞"}
@@ -398,7 +398,7 @@ export function TeamsTable({ state, highlightTeamId }) {
                 {ROLE_LIST.map((role) => (
                   <td key={role} className={`${table.td} whitespace-nowrap`}>
                     {stats.roles[role]}/{config.roleLimits[role].max ?? "∞"}
-                    {config.roleLimits[role].min > 0 && <span className="text-secondary/60"> (min {config.roleLimits[role].min})</span>}
+                    {config.roleLimits[role].min > 0 && <span className="text-slate-500"> (min {config.roleLimits[role].min})</span>}
                   </td>
                 ))}
               </tr>
@@ -421,17 +421,17 @@ export function PurseStrip({ state, highlightTeamId }) {
         return (
           <div
             key={team.id}
-            className={`rounded-lg border px-3 py-2 ${team.id === highlightTeamId ? "border-primary bg-primary/10" : "border-secondary/30 bg-tertiary"}`}
+            className={`rounded-xl border px-3 py-2 ${team.id === highlightTeamId ? "border-primary bg-primary/10" : "border-slate-800 bg-obsidian-800"}`}
           >
             <div className="flex items-baseline justify-between gap-2">
-              <span className="truncate font-Bebas text-xl tracking-wide text-white" title={team.name}>
+              <span className="truncate font-mono text-sm font-bold uppercase text-slate-100" title={team.name}>
                 {team.shortName}
               </span>
-              <span className="text-[10px] uppercase tracking-wider text-secondary">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400">
                 {stats.count}/{config.squad.max} · OS {stats.overseas}/{config.maxOverseas ?? "∞"}
               </span>
             </div>
-            <div className="font-Bebas text-3xl leading-tight tracking-wide text-primary">{formatLakhs(stats.purse)}</div>
+            <div className="font-mono text-2xl font-bold leading-tight text-gold">{formatLakhs(stats.purse)}</div>
           </div>
         );
       })}
@@ -445,20 +445,20 @@ export function TeamSquadCard({ state, team, mine = false, footer }) {
   const stats = getTeamStats(state, team.id);
   const squad = getTeamPurchaseHistory(state, team.id);
   return (
-    <section className={`rounded-lg border bg-tertiary p-4 ${mine ? "border-primary" : "border-secondary/30"}`}>
+    <section className={`rounded-xl border bg-obsidian-800 p-4 ${mine ? "border-primary" : "border-slate-800"}`}>
       <div className="mb-1 flex items-start justify-between gap-2">
-        <h3 className="min-w-0 font-Bebas text-2xl leading-none tracking-wide text-white">
+        <h3 className="min-w-0 font-Bebas text-xl font-bold uppercase leading-none tracking-tight text-slate-100">
           {team.name}
           {mine && <Tag tone="primary" className="ml-2 align-middle">You</Tag>}
         </h3>
-        <span className="whitespace-nowrap font-Bebas text-2xl leading-none tracking-wide text-primary">{formatLakhs(stats.purse)}</span>
+        <span className="whitespace-nowrap font-mono text-lg font-bold leading-none text-gold">{formatLakhs(stats.purse)}</span>
       </div>
-      <p className="mb-4 text-xs text-secondary">
+      <p className="mb-4 text-xs text-slate-400">
         {stats.count}/{config.squad.max} players · spent {formatLakhs(stats.spent)} · overseas {stats.overseas}/
         {config.maxOverseas ?? "∞"}
       </p>
       <RoleMeters state={state} teamId={team.id} />
-      <div className="mt-4 border-t border-secondary/20 pt-3">
+      <div className="mt-4 border-t border-slate-800 pt-3">
         {squad.length === 0 ? (
           <Empty>No players yet.</Empty>
         ) : (
@@ -466,13 +466,13 @@ export function TeamSquadCard({ state, team, mine = false, footer }) {
             {squad.map((purchase) => (
               <li key={purchase.id} className="flex justify-between gap-2">
                 <span className="min-w-0">
-                  <span className="text-white">{purchase.player.name}</span>
-                  <span className="text-secondary">
+                  <span className="text-slate-100">{purchase.player.name}</span>
+                  <span className="text-slate-400">
                     {" "}
                     · {ROLE_LABELS[purchase.player.role]}
                     {purchase.player.isOverseas ? " · OS" : ""}
                   </span>
-                  {isFictional(purchase.player) && <span className="text-yellow-300/70"> (fictional)</span>}
+                  {isFictional(purchase.player) && <span className="text-amber-300/80"> (fictional)</span>}
                 </span>
                 <span className="whitespace-nowrap text-primary">{formatLakhs(purchase.price)}</span>
               </li>

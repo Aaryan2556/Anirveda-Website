@@ -132,8 +132,8 @@ export default function PlayerEditor({ player, send, pending, onDone }) {
 
       <div className="grid gap-3 md:grid-cols-3">
         {Object.entries(STAT_GROUPS).map(([group, { label, fields }]) => (
-          <fieldset key={group} className="border border-secondary/20 p-2">
-            <legend className="px-1 text-xs text-secondary">{label} statistics</legend>
+          <fieldset key={group} className="rounded-xl border border-slate-800 p-3">
+            <legend className="px-1 text-xs text-slate-400">{label} statistics</legend>
             <div className="grid grid-cols-2 gap-2">
               {fields.map((field) => (
                 <Field key={field} label={STAT_FIELD_LABELS[field]}>

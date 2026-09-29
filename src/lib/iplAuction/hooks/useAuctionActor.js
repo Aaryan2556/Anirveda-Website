@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
+import { resolveTeamFromLabels } from "../auth/teamAuth.js";
 import { ACTOR_ROLES } from "../engine/index.js";
 import { useAdminAuth } from "./useAdminAuth.js";
 
@@ -28,14 +29,31 @@ export function useAdminActor() {
 }
 
 /**
- * Team dashboard: the team comes from `?team=` (no team login yet, see Phase 7).
- * Teams are view-only, so this actor identifies the viewer; the engine rejects
- * every command it might send.
+ * Team dashboard: which single team this viewer is.
+ *
+ * - Appwrite mode: the team comes from the signed-in account's team label
+ *   (auth/teamAuth.js), so a team only ever sees its own dashboard. `?team=` is
+ *   ignored for teams; an IPL admin may use it to look at any team.
+ * - Local development mode (no logins): the team comes from `?team=`.
+ *
+ * Returns { actor, isAdmin, teamId, status, reason, auth }. `reason` explains a
+ * signed-in account with no team. Teams are view-only; the engine rejects every
+ * command a TEAM actor might send.
  */
-export function useTeamActor() {
-  const [params, setParams] = useSearchParams();
-  const teamId = params.get("team");
-  const setTeamId = useCallback((id) => setParams({ team: id }), [setParams]);
+export function useTeamActor(state) {
+  const auth = useAdminAuth();
+  const [params] = useSearchParams();
+  const requested = params.get("team");
+  const teamIds = state.teamOrder;
+
+  let teamId = null;
+  let reason = null;
+  if (auth.kind === "local" || auth.isAdmin) {
+    teamId = requested;
+  } else if (auth.user) {
+    ({ teamId, reason } = resolveTeamFromLabels(auth.user.labels, teamIds));
+  }
+
   const actor = useMemo(() => (teamId ? { role: ACTOR_ROLES.TEAM, teamId } : null), [teamId]);
-  return { actor, isAdmin: false, teamId, status: "ready", setTeamId };
+  return { actor, isAdmin: auth.isAdmin, teamId, status: auth.status, reason, auth };
 }
