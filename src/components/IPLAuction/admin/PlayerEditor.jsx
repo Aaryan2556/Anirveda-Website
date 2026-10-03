@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
 import { COMMANDS } from "../../../lib/iplAuction/engine";
-import { DATA_SOURCES, STAT_FIELD_LABELS, STAT_GROUPS, compactStats } from "../../../lib/iplAuction/playerFields";
+import { DATA_SOURCES } from "../../../lib/iplAuction/playerFields";
 import { makeId } from "../../../lib/iplAuction/repository/mockSeed";
 import { Button } from "../ui/controls";
 import { Checkbox, Field, NumberInput, Select, TextInput, inputClass, toNumberOrNull } from "./fields";
@@ -32,13 +32,6 @@ function toDraft(player) {
     image: player?.image ?? "",
     sourceChoice: !player ? DATA_SOURCES.MANUAL_ENTRY : knownSource ? player.dataSource : OTHER_SOURCE,
     sourceText: knownSource ? "" : player?.dataSource ?? "",
-    recentPerformance: (player?.recentPerformance ?? []).join("\n"),
-    stats: Object.fromEntries(
-      Object.entries(STAT_GROUPS).map(([group, { fields }]) => [
-        group,
-        Object.fromEntries(fields.map((field) => [field, player?.stats?.[group]?.[field] ?? ""])),
-      ])
-    ),
   };
 }
 
@@ -54,8 +47,6 @@ function fromDraft(draft) {
     bowlingStyle: draft.bowlingStyle || null,
     image: draft.image || null,
     dataSource: draft.sourceChoice === OTHER_SOURCE ? draft.sourceText : draft.sourceChoice,
-    recentPerformance: draft.recentPerformance.split("\n").map((line) => line.trim()).filter(Boolean),
-    stats: compactStats(draft.stats),
   };
 }
 
@@ -63,11 +54,7 @@ function fromDraft(draft) {
 export default function PlayerEditor({ player, send, pending, onDone }) {
   const [draft, setDraft] = useState(() => toDraft(player));
   const set = (key) => (value) => setDraft((current) => ({ ...current, [key]: value }));
-  const setStat = (group, field) => (value) =>
-    setDraft((current) => ({
-      ...current,
-      stats: { ...current.stats, [group]: { ...current.stats[group], [field]: value } },
-    }));
+
 
   const submit = async (event) => {
     event.preventDefault();
@@ -130,29 +117,7 @@ export default function PlayerEditor({ player, send, pending, onDone }) {
         )}
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        {Object.entries(STAT_GROUPS).map(([group, { label, fields }]) => (
-          <fieldset key={group} className="rounded-xl border border-slate-800 p-3">
-            <legend className="px-1 text-xs text-slate-400">{label} statistics</legend>
-            <div className="grid grid-cols-2 gap-2">
-              {fields.map((field) => (
-                <Field key={field} label={STAT_FIELD_LABELS[field]}>
-                  <TextInput className={`${inputClass} w-full`} value={draft.stats[group][field]} onChange={setStat(group, field)} />
-                </Field>
-              ))}
-            </div>
-          </fieldset>
-        ))}
-      </div>
 
-      <Field label="Recent performance (one entry per line)">
-        <textarea
-          className={`${inputClass} h-20 font-mono`}
-          value={draft.recentPerformance}
-          onChange={(e) => set("recentPerformance")(e.target.value)}
-          placeholder={"64 (41)\n2/24 (4)"}
-        />
-      </Field>
 
       <div className="flex gap-2">
         <Button variant="primary" type="submit" disabled={pending}>

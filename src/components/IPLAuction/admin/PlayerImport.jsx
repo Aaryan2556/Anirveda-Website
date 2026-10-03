@@ -73,9 +73,8 @@ export default function PlayerImport({ state, send, pending }) {
     <div className="grid gap-3 text-sm">
       <p className="text-xs text-slate-400">
         Paste CSV (with a header row) or JSON, or load a file. Columns: <code>name, role, basePrice</code> (lakhs),{" "}
-        <code>isOverseas</code>, and optionally <code>nationality, age, battingStyle, bowlingStyle, image, dataSource,
-        recentPerformance</code> (separate entries with <code>|</code>) and stats such as <code>batting.runs</code>,{" "}
-        <code>bowling.wickets</code>, <code>keeping.catches</code>. Roles: batter, bowler, all-rounder, wicketkeeper (or wk).
+        <code>isOverseas</code>, and optionally <code>nationality, age, battingStyle, bowlingStyle, image, dataSource</code>.
+        Roles: batter, bowler, all-rounder, wicketkeeper (or wk).
       </p>
       <p className="text-xs text-amber-300/80">
         Every player needs a data source. Only import real statistics from a source you have checked, and mark

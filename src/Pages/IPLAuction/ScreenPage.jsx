@@ -16,7 +16,6 @@ import {
   FictionalNotice,
   PurseStrip,
   RecentSales,
-  UpcomingPlayers,
 } from "../../components/IPLAuction/ui/auction";
 
 const SOLD_BANNER_MS = 6000;
@@ -107,9 +106,6 @@ function BigScreen() {
               ) : (
                 <p className="text-sm text-slate-500">No players sold yet.</p>
               )}
-            </Panel>
-            <Panel title="Up next">
-              <UpcomingPlayers state={state} limit={6} />
             </Panel>
             <Panel title="Recent sales" className="hidden xl:block">
               <RecentSales state={state} limit={5} />

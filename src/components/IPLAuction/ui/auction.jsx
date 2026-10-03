@@ -12,7 +12,6 @@ import {
   getTeamPurchaseHistory,
   getTeamStats,
   getTeamsInOrder,
-  getUpcomingPlayers,
 } from "../../../lib/iplAuction/engine";
 import { useConnectionStatus } from "../../../lib/iplAuction/hooks/useConnectionStatus";
 import { formatLakhs } from "../../../lib/iplAuction/money";
@@ -136,75 +135,20 @@ export function PlayerTags({ player }) {
   );
 }
 
-function StatGrid({ title, stats, large }) {
-  if (!stats) return null;
-  return (
-    <div className="min-w-0">
-      <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">{title}</div>
-      <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-slate-800 bg-slate-800 sm:grid-cols-4">
-        {Object.entries(stats).map(([key, value]) => (
-          <div key={key} className="bg-obsidian-800 px-2 py-1.5">
-            <dt className="truncate text-[10px] uppercase tracking-wider text-slate-500">{STAT_FIELD_LABELS[key] ?? key}</dt>
-            <dd className={`font-mono font-bold leading-tight text-slate-100 ${large ? "text-2xl" : "text-lg"}`}>{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
-  );
-}
 
-/** Statistics by group; each title says "(fictional)" or names the source. */
-export function PlayerStats({ player, large = false }) {
-  const note = isFictional(player) ? " · fictional" : "";
-  const groups = Object.entries(STAT_GROUPS).filter(([group]) => player.stats?.[group]);
-  return (
-    <div className="space-y-3">
-      {groups.length === 0 && <Empty>No statistics entered.</Empty>}
-      {groups.map(([group, { label }]) => (
-        <StatGrid key={group} title={`${label}${note}`} stats={player.stats[group]} large={large} />
-      ))}
-      {player.recentPerformance?.length > 0 && (
-        <div>
-          <div className="mb-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Recent form{note}</div>
-          <div className="flex flex-wrap gap-1.5">
-            {player.recentPerformance.map((entry, index) => (
-              <span key={index} className="rounded-3xl border border-slate-800 px-2.5 py-0.5 text-xs text-slate-100">
-                {entry}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-      {!isFictional(player) && player.dataSource && (
-        <div className="text-[10px] uppercase tracking-wider text-slate-500">Source: {player.dataSource}</div>
-      )}
-    </div>
-  );
-}
 
-/** Name, tags, nationality, styles and base price. */
+/** Name only. */
 export function PlayerIdentity({ player, large = false }) {
-  const details = [
-    player.nationality,
-    player.age != null ? `Age ${player.age}` : null,
-    player.battingStyle,
-    player.bowlingStyle,
-  ].filter(Boolean);
   return (
     <div className="space-y-2">
-      <PlayerTags player={player} />
       <h3 className={`font-Bebas font-bold uppercase leading-none tracking-tight text-slate-100 ${large ? "text-5xl xl:text-6xl" : "text-3xl sm:text-4xl"}`}>
         {player.name}
       </h3>
-      {details.length > 0 && <p className="font-sans text-slate-400 sm:text-lg">{details.join(" · ")}</p>}
-      <p className="text-sm text-slate-400">
-        Base price <span className="font-mono text-lg font-bold text-gold">{formatLakhs(player.basePrice)}</span>
-      </p>
     </div>
   );
 }
 
-/** Photo + identity + statistics: the "on the block" hero. */
+/** Photo + identity: the "on the block" hero. */
 export function PlayerHero({ player, large = false }) {
   return (
     <div className={`grid gap-5 ${large ? "md:grid-cols-[minmax(0,20rem)_1fr]" : "sm:grid-cols-[minmax(0,11rem)_1fr]"}`}>
@@ -213,7 +157,6 @@ export function PlayerHero({ player, large = false }) {
       </div>
       <div className="min-w-0 space-y-4">
         <PlayerIdentity player={player} large={large} />
-        <PlayerStats player={player} large={large} />
       </div>
     </div>
   );
@@ -295,30 +238,7 @@ export function RecentSales({ state, limit = 10, highlightTeamId, renderAction }
   );
 }
 
-/** Players still to come, in auction order. */
-export function UpcomingPlayers({ state, limit = 8 }) {
-  const upcoming = getUpcomingPlayers(state);
-  if (!upcoming.length) return <Empty>No players left in the sequence.</Empty>;
-  return (
-    <ol className="divide-y divide-slate-800 text-sm">
-      {upcoming.slice(0, limit).map((player, index) => (
-        <li key={player.id} className="flex items-center justify-between gap-2 py-2">
-          <span className="min-w-0 truncate">
-            <span className="mr-2 font-mono text-xs text-slate-500">{String(index + 1).padStart(2, "0")}</span>
-            <span className="text-slate-100">{player.name}</span>
-            <span className="text-slate-400">
-              {" "}
-              · {ROLE_LABELS[player.role]}
-              {player.isOverseas ? " · OS" : ""}
-            </span>
-          </span>
-          <span className="whitespace-nowrap text-slate-400">{formatLakhs(player.basePrice)}</span>
-        </li>
-      ))}
-      {upcoming.length > limit && <li className="py-2 text-slate-500">+ {upcoming.length - limit} more</li>}
-    </ol>
-  );
-}
+
 
 export function ActivityLog({ state, limit = 40 }) {
   const entries = state.activity.slice(-limit).reverse();
