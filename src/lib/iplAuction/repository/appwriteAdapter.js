@@ -328,6 +328,16 @@ export function createAppwriteRepository({
     },
 
     async dispatch(command) {
+      if (command.type === COMMANDS.UPDATE_BID) {
+        const result = reduce(state, { ...command, at: command.at ?? now() });
+        if (result.ok) {
+          const writes = diffToWrites(state, result.state);
+          if (isNewer(result.state, state)) setState(result.state);
+          commit(writes).catch(() => {});
+        }
+        return result;
+      }
+
       for (let attempt = 1; attempt <= MAX_COMMIT_ATTEMPTS; attempt += 1) {
         let latest;
         try {
