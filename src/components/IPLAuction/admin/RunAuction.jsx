@@ -111,10 +111,7 @@ export function OnTheBlock({ state, send, actor, pending }) {
 
   useEffect(() => {
     if (!lotId || !salePrice) return;
-    const timeoutId = setTimeout(() => {
-      send({ type: COMMANDS.UPDATE_BID, price: Number(salePrice), teamId: saleTeamId });
-    }, 400);
-    return () => clearTimeout(timeoutId);
+    send({ type: COMMANDS.UPDATE_BID, price: Number(salePrice), teamId: saleTeamId });
   }, [salePrice, saleTeamId, lotId, send]);
 
   const saleCommand = lot

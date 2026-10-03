@@ -178,10 +178,10 @@ export function CurrentLot({ state, large = false }) {
       <div className="mb-3 flex items-center justify-between">
         <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-gold"><span className="h-2 w-2 rounded-full bg-gold motion-safe:animate-pulse" />Live Bid</p>
         {state.lot.currentBid != null && (
-          <p className="font-mono text-xl font-bold text-gold">
+          <p className={`font-mono font-bold text-gold ${large ? "text-5xl" : "text-3xl"}`}>
             {formatLakhs(state.lot.currentBid)}
             {state.lot.currentBidTeamId && state.teams[state.lot.currentBidTeamId] && (
-              <span className="text-sm text-slate-400 ml-2">({state.teams[state.lot.currentBidTeamId].shortName})</span>
+              <span className={`text-slate-400 ml-2 ${large ? "text-2xl" : "text-lg"}`}>({state.teams[state.lot.currentBidTeamId].shortName})</span>
             )}
           </p>
         )}
