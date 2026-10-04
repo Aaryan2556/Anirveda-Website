@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, Terminal } from "lucide-react";
 
 import Navbar from "../components/Navbar";
@@ -12,11 +12,13 @@ import SponsorCard from "../components/Sponsors/SponsorCard";
 import SponsorModal from "../components/Sponsors/SponsorModal";
 import AmbientGridCanvas from "../components/Sponsors/AmbientGridCanvas";
 
-// Dedicated Sponsors Page Component
 export default function Sponsors() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSponsor, setSelectedSponsor] = useState(null);
+
+  // Active hover card state for mobile single-card active management
+  const [activeCardId, setActiveCardId] = useState(null);
 
   // Filter sponsors
   const filteredSponsors = sponsorsData.filter((s) => {
@@ -37,11 +39,11 @@ export default function Sponsors() {
       <AnnouncementBar />
       <Navbar />
 
-      {/* Main Content Layout - Reduced mobile top padding from py-12 to pt-2 sm:pt-12 pb-12 */}
+      {/* Main Content Layout */}
       <main className="relative z-10 pt-2 sm:pt-12 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <AmbientGridCanvas />
 
-        {/* Hero Header - Reduced mobile top padding from pt-8 to pt-2 sm:pt-8 */}
+        {/* Hero Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -134,9 +136,13 @@ export default function Sponsors() {
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {filteredSponsors.map((sponsor, idx) => (
               <SponsorCard
-                key={sponsor.id}
+                key={sponsor.id || idx}
                 sponsor={sponsor}
                 index={idx}
+                isActiveMobile={activeCardId === (sponsor.id || idx)}
+                onToggleActiveMobile={() =>
+                  setActiveCardId((prev) => (prev === (sponsor.id || idx) ? null : sponsor.id || idx))
+                }
                 onSelectModal={(sp) => setSelectedSponsor(sp)}
               />
             ))}
@@ -152,10 +158,12 @@ export default function Sponsors() {
       {/* Footer */}
       <ContactUs />
 
-      {/* Telemetry Inspection Modal */}
-      {selectedSponsor && (
-        <SponsorModal sponsor={selectedSponsor} onClose={() => setSelectedSponsor(null)} />
-      )}
+      {/* Telemetry Inspection Modal (Screen Centered) */}
+      <AnimatePresence>
+        {selectedSponsor && (
+          <SponsorModal sponsor={selectedSponsor} onClose={() => setSelectedSponsor(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
