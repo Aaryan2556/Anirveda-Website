@@ -30,7 +30,7 @@ export default function Departments() {
           </div>
 
           <div className="flex items-center gap-3">
-            <h2 className="font-Bebas text-5xl sm:text-7xl md:text-8xl uppercase text-primary tracking-wide">
+            <h2 className="font-Bebas text-3xl xs:text-4xl sm:text-7xl md:text-8xl uppercase text-primary tracking-wide leading-tight break-words max-w-full">
               Departments
             </h2>
             <motion.span animate={open ? { rotate: 180 } : { rotate: 0 }} transition={{ duration: 0.3 }}>

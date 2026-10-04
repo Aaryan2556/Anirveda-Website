@@ -60,7 +60,7 @@ export default function Sponsors() {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-muted border border-primary/40 text-primary font-mono text-[10px] sm:text-xs font-bold tracking-widest uppercase mb-4 sm:mb-6 shadow-md"
           >
-            <span>EMPOWERING INNOVATION & GROWTH // SPONSOR ECOSYSTEM</span>
+            <span>EMPOWERING INNOVATION & GROWTH</span>
           </motion.div>
 
           {/* Primary-Colored Heading */}

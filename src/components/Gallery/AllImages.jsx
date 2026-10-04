@@ -53,10 +53,10 @@ export default function AllImages() {
                 transform:
                   "scale(calc(0.92 + 0.08 * min(1, var(--gallery-progress, 0) / 0.85))) translateZ(0)",
                 opacity:
-                  "calc(0.08 + 0.10 * min(1, var(--gallery-progress, 0) / 0.85))",
+                  "calc(0.28 + 0.14 * min(1, var(--gallery-progress, 0) / 0.85))",
                 willChange: "transform, opacity",
               }}
-              className="font-Bebas text-4xl xs:text-6xl sm:text-8xl md:text-[12rem] lg:text-[15rem] text-foreground/15 leading-none select-none pointer-events-none tracking-tight text-center uppercase max-w-full break-words"
+              className="font-Bebas text-5xl xs:text-7xl sm:text-8xl md:text-[12rem] lg:text-[15rem] text-foreground/40 sm:text-foreground/25 leading-none select-none pointer-events-none tracking-wider text-center uppercase max-w-full break-words"
             >
               ANIRVEDA
             </h1>
@@ -105,9 +105,9 @@ export default function AllImages() {
         </div>
       </section>
 
-      {/* 2. CONTINUOUS STREAM: Calibrated gentle offset to align flush with standard grid rhythm */}
+      {/* 2. CONTINUOUS STREAM: Calibrated mobile negative margin pulls cards flush */}
       {filteredData.length > 6 && (
-        <section className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-8 -mt-4 sm:-mt-6 pb-16 font-sans">
+        <section className="relative z-20 w-full max-w-7xl mx-auto px-3 sm:px-8 -mt-20 sm:-mt-6 pb-16 font-sans">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredData.slice(6).map((item, sliceIdx) => {
               const globalIdx = sliceIdx + 6;
@@ -124,7 +124,6 @@ export default function AllImages() {
           </div>
         </section>
       )}
-
       {/* Contact Footer */}
       <ContactUs />
 
