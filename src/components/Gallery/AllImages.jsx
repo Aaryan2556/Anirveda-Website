@@ -107,7 +107,7 @@ export default function AllImages() {
 
       {/* 2. CONTINUOUS STREAM: Calibrated mobile negative margin pulls cards flush */}
       {filteredData.length > 6 && (
-        <section className="relative z-20 w-full max-w-7xl mx-auto px-3 sm:px-8 -mt-20 sm:-mt-6 pb-16 font-sans">
+        <section className="relative z-20 w-full max-w-7xl mx-auto px-3 sm:px-8 -mt-36 sm:-mt-6 pb-16 font-sans">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredData.slice(6).map((item, sliceIdx) => {
               const globalIdx = sliceIdx + 6;
