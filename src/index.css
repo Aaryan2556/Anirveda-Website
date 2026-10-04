@@ -5,10 +5,20 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-[#07090E] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-gold/30 selection:text-gold-light;
+  html, body {
+    @apply bg-[#07090E] text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-gold/30 selection:text-gold-light max-w-full;
     background-color: #07090E;
   }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 /* Custom Metallic Gold Text Shimmer Shader */

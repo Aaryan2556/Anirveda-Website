@@ -21,17 +21,17 @@ const images = [
 ];
 
   return (
-    <div className="bg-black font-Lato">
+    <div className="bg-black font-sans min-h-screen w-full relative overflow-x-hidden">
       <AnnouncementBar />
       <Navbar className = ""/>
       <section 
-        className="relative flex min-h-screen items-center justify-center bg-cover bg-center  bg-no-repeat"
+        className="relative flex min-h-[60vh] sm:min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat overflow-hidden px-4"
         style={{ 
           backgroundImage: "linear-gradient(to bottom, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://res.cloudinary.com/duygdcgj3/image/upload/v1756113471/breach2025_igls9m.png')"
         }}
       >
-        <div className="relative text-center px-4 animate-fade-in-up">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 text-primary animate-slide-in-left">
+        <div className="relative text-center px-4 animate-fade-in-up max-w-5xl mx-auto">
+          <h1 className="font-Bebas text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl uppercase tracking-tight sm:tracking-wider text-primary leading-[0.95] mb-4 drop-shadow-lg max-w-full break-words">
             <span className="text-secondary bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">ECONOMANIA 2026</span>
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-secondary animate-slide-in-right">

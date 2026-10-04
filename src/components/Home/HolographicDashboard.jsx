@@ -28,7 +28,7 @@ export default function HolographicDashboard() {
       {/* Main HUD Command Center Container */}
       <div className="relative w-full h-[480px] sm:h-[620px] rounded-2xl bg-background overflow-hidden flex items-center justify-center border border-border/80">
         {/* Fixed-Size Centered Globe Wrapper */}
-        <div className="w-[280px] h-[300px] sm:w-[500px] sm:h-[500px] pointer-events-auto z-10 relative flex items-center justify-center">
+        <div className="w-[260px] xs:w-[280px] sm:w-[500px] h-[280px] sm:h-[500px] max-w-full pointer-events-auto z-10 relative flex items-center justify-center">
           <Suspense
             fallback={
               <div className="w-full h-full bg-background rounded-full border border-primary/20 animate-pulse flex items-center justify-center font-mono text-xs text-primary/70">

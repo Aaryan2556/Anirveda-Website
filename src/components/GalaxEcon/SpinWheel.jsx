@@ -52,12 +52,12 @@ const SpinWheel = ({ round, onBack }) => {
   };
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center font-Bebas">
-      <h1 className="text-5xl font-bold text-shadow mb-8 text-primary">
+    <div className="bg-black text-white min-h-screen max-w-full overflow-x-hidden relative flex flex-col items-center justify-center font-Bebas px-2">
+      <h1 className="text-3xl xs:text-4xl sm:text-5xl font-bold text-shadow mb-4 sm:mb-8 text-primary text-center">
         {round} - Spin the Wheel!
       </h1>
-      <div className="relative flex flex-col items-center">
-        <div className="relative mb-4 shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out">
+      <div className="relative flex flex-col items-center max-w-full overflow-hidden">
+        <div className="relative mb-2 sm:mb-4 shadow-xl flex justify-center max-w-full overflow-hidden scale-[0.58] xs:scale-75 sm:scale-90 md:scale-100 transform origin-center -my-16 xs:-my-8 sm:my-0">
           <Wheel
             mustStartSpinning={mustSpin}
             prizeNumber={prizeNumber}

@@ -7,17 +7,17 @@ export default function ProfileCard(props) {
   const [current, setCurrent] = useState(0);
 
   return (
-    <div className="w-full py-10 bg-background text-foreground">
-      <h2 className="py-8 text-center font-Bebas text-5xl sm:text-7xl md:text-8xl font-normal uppercase text-primary tracking-wide">
+    <div className="w-full py-10 bg-background text-foreground overflow-hidden">
+      <h2 className="py-6 sm:py-8 text-center font-Bebas text-3xl xs:text-4xl sm:text-6xl md:text-8xl font-normal uppercase text-primary tracking-wide leading-[0.95] max-w-full break-words px-4">
         {heading}
       </h2>
 
-      <div className="relative mt-6 flex items-center justify-between gap-4 px-4 sm:px-8 md:mt-0 md:justify-center">
+      <div className="relative mt-4 flex items-center justify-between gap-2 px-2 sm:px-8 md:mt-0 md:justify-center">
         {/* Mobile Left Chevron */}
-        <div className="ml-1 md:hidden z-10">
+        <div className="ml-1 md:hidden z-10 shrink-0">
           <button
             onClick={() => setCurrent((prev) => (prev === 0 ? data.length - 1 : prev - 1))}
-            className="p-2 rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
             aria-label="Previous Profile"
           >
             <Icon icon="carbon:chevron-left" className="text-xl" />
@@ -134,10 +134,10 @@ export default function ProfileCard(props) {
         </div>
 
         {/* Mobile Right Chevron */}
-        <div className="mr-1 md:hidden z-10">
+        <div className="mr-1 md:hidden z-10 shrink-0">
           <button
             onClick={() => setCurrent((prev) => (prev === data.length - 1 ? 0 : prev + 1))}
-            className="p-2 rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
+            className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-muted border border-border text-foreground hover:text-primary hover:border-primary/40 transition-all"
             aria-label="Next Profile"
           >
             <Icon icon="carbon:chevron-right" className="text-xl" />

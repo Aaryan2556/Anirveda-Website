@@ -72,7 +72,7 @@ export default function Main() {
             {/* Main Title: Bebas Primary Font */}
             <motion.h1
               variants={itemVariants}
-              className="font-Bebas text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-[-0.04em] leading-none text-primary uppercase mt-0 mb-1 sm:mb-2 select-none drop-shadow-[0_0_35px_rgba(var(--primary-rgb),0.35)]"
+              className="font-Bebas text-5xl xs:text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight sm:tracking-wider leading-[0.95] text-primary uppercase mt-0 mb-1 sm:mb-2 select-none drop-shadow-[0_0_35px_rgba(var(--primary-rgb),0.35)] max-w-full break-words"
             >
               ANIRVEDA
             </motion.h1>
@@ -80,7 +80,7 @@ export default function Main() {
             {/* Subtitle */}
             <motion.h2
               variants={itemVariants}
-              className="font-sans text-lg sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground mb-2 sm:mb-4 drop-shadow-md"
+              className="font-sans text-base sm:text-2xl lg:text-3xl font-bold tracking-tight text-foreground mb-2 sm:mb-4 drop-shadow-md"
             >
               The Techno-Economics Club
             </motion.h2>
@@ -104,7 +104,7 @@ export default function Main() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm sm:text-base shadow-lg shadow-primary/20 flex items-center justify-center space-x-2 font-mono uppercase tracking-wider transition-shadow"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm sm:text-base shadow-lg shadow-primary/20 flex items-center justify-center space-x-2 font-mono uppercase tracking-wider transition-shadow min-h-[44px]"
                   >
                     <span>Committee</span>
                     <Icon className="text-lg" icon="carbon:arrow-right" />
@@ -118,7 +118,7 @@ export default function Main() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl bg-card/80 backdrop-blur-md border border-border text-foreground hover:text-primary hover:border-primary/40 font-bold text-xs sm:text-sm sm:text-base transition-all duration-300 font-mono uppercase tracking-wider flex items-center justify-center space-x-2"
+                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3.5 rounded-xl bg-card/80 backdrop-blur-md border border-border text-foreground hover:text-primary hover:border-primary/40 font-bold text-xs sm:text-sm sm:text-base transition-all duration-300 font-mono uppercase tracking-wider flex items-center justify-center space-x-2 min-h-[44px]"
                   >
                     <Icon className="text-lg text-primary" icon="carbon:events" />
                     <span>Events</span>
@@ -131,10 +131,10 @@ export default function Main() {
       </div>
 
       {/* STANDALONE 3D GLOBE SECTION BELOW THE HERO BANNER */}
-      <div className="relative w-full px-4">
+      <div className="relative w-full px-2 sm:px-4 max-w-full overflow-hidden">
         {/* Ambient Backlights */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 right-1/4 translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 sm:w-96 h-80 sm:h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 translate-x-1/2 -translate-y-1/2 w-80 sm:w-96 h-80 sm:h-96 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Globe Canvas Container */}
         <HolographicDashboard />

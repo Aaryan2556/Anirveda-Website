@@ -32,13 +32,13 @@ export default function LightboxModal({ item, items, onClose, onPrev, onNext }) 
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-background/90 backdrop-blur-2xl select-none">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-6 bg-background/90 backdrop-blur-2xl select-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.92, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-5xl max-h-[90vh] rounded-3xl bg-card border border-primary/40 p-4 sm:p-6 shadow-2xl overflow-hidden flex flex-col lg:flex-row items-stretch gap-6 transform-gpu"
+          className="relative w-full max-w-5xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-card border border-primary/40 p-4 sm:p-6 shadow-2xl flex flex-col lg:flex-row items-stretch gap-6 transform-gpu"
         >
           {/* Top Shimmer Accent Line */}
           <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-secondary via-primary to-accent" />
@@ -46,7 +46,7 @@ export default function LightboxModal({ item, items, onClose, onPrev, onNext }) 
           {/* Close Action */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-30 p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground hover:bg-border transition-colors font-mono text-xs flex items-center gap-1"
+            className="absolute top-4 right-4 z-30 min-h-[44px] px-3 py-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground hover:bg-border transition-colors font-mono text-xs flex items-center gap-1"
           >
             <span>[ESC]</span>
             <X className="w-4 h-4" />

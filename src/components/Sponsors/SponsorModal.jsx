@@ -7,12 +7,12 @@ export default function SponsorModal({ sponsor, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/85 backdrop-blur-lg">
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-background/85 backdrop-blur-lg">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-xl rounded-2xl bg-card border border-primary/40 p-6 sm:p-8 shadow-2xl overflow-hidden"
+          className="relative w-full max-w-xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-2xl bg-card border border-primary/40 p-5 sm:p-8 shadow-2xl"
         >
           {/* Header Bar */}
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
@@ -24,7 +24,7 @@ export default function SponsorModal({ sponsor, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-muted text-muted-foreground hover:text-foreground hover:bg-border transition-colors font-mono text-xs"
+              className="p-2 min-h-[44px] rounded-lg bg-muted text-muted-foreground hover:text-foreground hover:bg-border transition-colors font-mono text-xs flex items-center justify-center"
             >
               ✕ CLOSE [ESC]
             </button>

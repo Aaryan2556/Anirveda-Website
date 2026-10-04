@@ -113,7 +113,7 @@ export default function Committee() {
             initial={{ opacity: 0, y: 25, letterSpacing: "0.02em" }}
             animate={{ opacity: 1, y: 0, letterSpacing: "0.05em" }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="font-Bebas text-6xl sm:text-8xl md:text-9xl uppercase tracking-wider text-primary leading-none mb-6 select-none drop-shadow-[0_0_40px_rgba(var(--primary-rgb),0.4)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
+            className="font-Bebas text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl uppercase tracking-tight sm:tracking-wider text-primary leading-[0.95] mb-6 select-none drop-shadow-[0_0_40px_rgba(var(--primary-rgb),0.4)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] max-w-full break-words"
           >
             GOVERNANCE & COMMITTEE
           </motion.h1>
@@ -132,7 +132,7 @@ export default function Committee() {
 
       {/* 2. INTERACTIVE DOMAIN TABS */}
       <section ref={contentSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 relative z-20">
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 p-2 rounded-2xl bg-card/80 border border-border backdrop-blur-xl shadow-lg">
+        <div className="flex flex-nowrap overflow-x-auto no-scrollbar items-center justify-start sm:justify-center gap-2 sm:gap-3 p-2 rounded-2xl bg-card/80 border border-border backdrop-blur-xl shadow-lg touch-pan-x w-full min-h-[44px]">
           {DOMAIN_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const count =
@@ -148,7 +148,7 @@ export default function Committee() {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 ${isActive
+                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl font-mono text-xs sm:text-sm font-bold tracking-wider transition-all duration-300 flex-shrink-0 whitespace-nowrap min-h-[44px] ${isActive
                     ? "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary-hsl)/0.3)]"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}

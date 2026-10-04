@@ -9,18 +9,29 @@ export default function BlogsGridCanvas() {
     const ctx = canvas.getContext("2d");
     let animationFrameId;
 
-    let width = (canvas.width = canvas.parentElement?.offsetWidth || window.innerWidth);
-    let height = (canvas.height = canvas.parentElement?.offsetHeight || 1200);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const isMobile = window.innerWidth < 768;
+
+    let width = canvas.parentElement?.offsetWidth || window.innerWidth;
+    let height = canvas.parentElement?.offsetHeight || 1200;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
 
     const handleResize = () => {
       if (!canvas || !canvas.parentElement) return;
-      width = canvas.width = canvas.parentElement.offsetWidth;
-      height = canvas.height = canvas.parentElement.offsetHeight;
+      width = canvas.parentElement.offsetWidth;
+      height = canvas.parentElement.offsetHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
     };
 
     window.addEventListener("resize", handleResize);
 
-    const count = Math.min(Math.floor(width / 35), 35);
+    const maxParticles = isMobile ? 12 : 35;
+    const count = Math.min(Math.floor(width / 35), maxParticles);
     const particles = Array.from({ length: count }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,

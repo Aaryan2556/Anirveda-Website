@@ -27,9 +27,9 @@ export default function About() {
   return (
     <section className="relative w-full py-20 px-4 sm:px-6 lg:px-8 bg-[#07090E] overflow-hidden">
       {/* Background Ambient Radial Gradients */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-10 -right-32 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[160px] pointer-events-none" />
+      <div className="absolute top-1/4 -left-32 w-80 sm:w-96 h-80 sm:h-96 bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-10 -right-32 w-80 sm:w-96 h-80 sm:h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 sm:w-[600px] h-80 sm:h-[600px] max-w-full bg-amber-500/5 rounded-full blur-[160px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* 1. Top Section Header */}
@@ -65,15 +65,15 @@ export default function About() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}
-            className="md:col-span-7 group relative flex flex-col justify-between h-full gap-6 p-7 sm:p-9 rounded-3xl bg-slate-950/70 backdrop-blur-xl border border-amber-500/20 hover:border-amber-500/40 transition-all duration-500 shadow-xl hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] overflow-hidden"
+            className="md:col-span-7 group relative flex flex-col justify-between h-full gap-6 p-5 xs:p-7 sm:p-9 rounded-3xl bg-slate-950/70 backdrop-blur-xl border border-amber-500/20 hover:border-amber-500/40 transition-all duration-500 shadow-xl hover:shadow-[0_0_30px_rgba(212,175,55,0.2)] overflow-hidden"
           >
             {/* Subtle Gradient Accent Line */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
 
             <div className="space-y-4">
               {/* Highlight Tag */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-400 font-mono text-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-950/40 border border-amber-500/30 text-amber-400 font-mono text-xs max-w-full flex-wrap">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping shrink-0" />
                 <span>Official Techno-Economics Club • PDEU | Founded 2016</span>
               </div>
 
@@ -108,18 +108,18 @@ export default function About() {
             </div>
 
             {/* 2. Mini Milestone / Impact Counter Strip */}
-            <div className="grid grid-cols-3 gap-3 py-5 px-6 rounded-2xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-sm">
-              <div className="flex flex-col border-r border-slate-700/60 pr-2">
+            <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 py-4 px-4 sm:px-6 rounded-2xl bg-slate-800/40 border border-slate-700/60 backdrop-blur-sm">
+              <div className="flex flex-col xs:border-r border-slate-700/60 pr-2">
                 <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Founded</span>
                 <span className="font-mono text-base sm:text-lg font-bold text-primary mt-1">2016</span>
                 <span className="text-xs text-muted-foreground font-sans mt-0.5">8+ Years Active</span>
               </div>
-              <div className="flex flex-col border-r border-slate-700/60 pr-2 pl-2 sm:pl-4">
+              <div className="flex flex-col xs:border-r border-slate-700/60 pr-2 xs:pl-2 sm:pl-4 border-t xs:border-t-0 pt-2 xs:pt-0">
                 <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Publications</span>
                 <span className="font-mono text-base sm:text-lg font-bold text-primary mt-1">50+ Releases</span>
                 <span className="text-xs text-muted-foreground font-sans mt-0.5">Podcasts & Papers</span>
               </div>
-              <div className="flex flex-col pl-2 sm:pl-4">
+              <div className="flex flex-col xs:pl-2 sm:pl-4 border-t xs:border-t-0 pt-2 xs:pt-0">
                 <span className="font-mono text-xs text-muted-foreground uppercase tracking-wider">Focus Areas</span>
                 <span className="font-mono text-base sm:text-lg font-bold text-primary mt-1">FinTech • AI</span>
                 <span className="text-xs text-muted-foreground font-sans mt-0.5">Macroeconomics</span>

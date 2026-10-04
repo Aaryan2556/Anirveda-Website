@@ -16,18 +16,18 @@ export default function DepartmentPage(props) {
   }
 
   return (
-    <div className="bg-black font-Lato">
-      <div className="flex min-h-[80vh] flex-col bg-black">
+    <div className="bg-black font-sans overflow-x-hidden min-h-screen w-full relative">
+      <div className="flex min-h-[50vh] sm:min-h-[60vh] flex-col bg-black">
         <AnnouncementBar />
         <Navbar />
         <div
           className={`
-        mt-44 bg-black px-3 sm:mt-72
-        ${heading.length === 2 ? "btwnMdAndLg:mt-24" : "btwnMdAndLg:mt-40"}
+        mt-24 sm:mt-36 bg-black px-4 sm:px-8
+        ${heading.length === 2 ? "btwnMdAndLg:mt-24" : "btwnMdAndLg:mt-32"}
          btwnMdAndLg:px-12 lg:px-16 xl:px-20`}
         >
-          <div className="text-center ">
-            <h1 className=" font-Bebas text-[5.5rem] uppercase text-primary sm:text-9xl md:pt-2 btwnMdAndLg:text-[9rem] xl:text-[10rem]">
+          <div className="text-center max-w-7xl mx-auto">
+            <h1 className="font-Bebas text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] tracking-tight sm:tracking-wider leading-[0.95] uppercase text-primary text-center max-w-full break-words">
               {heading.length === 2 ? (
                 <>
                   {heading[0]}

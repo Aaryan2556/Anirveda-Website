@@ -11,11 +11,11 @@ const Registration = () => {
 
   return (
     <>
-      <div className="bg-black font-Lato">
+      <div className="bg-black font-sans overflow-x-hidden min-h-screen w-full relative">
         <Navbar />
-        <div className="relative mt-8 overflow-hidden pb-8 lg:px-14 lg:pb-5 xl:px-20">
+        <div className="relative mt-8 overflow-hidden pb-8 px-4 sm:px-6 lg:px-14 lg:pb-5 xl:px-20 max-w-7xl mx-auto">
           <div className="lg:mt-14 xl:ml-7">
-            <h1 className="text-center font-Bebas text-5xl uppercase text-primary btwnMdAndLg:text-6xl lg:text-left lg:text-[70px]">
+            <h1 className="text-center font-Bebas text-3xl xs:text-4xl sm:text-5xl btwnMdAndLg:text-6xl lg:text-left lg:text-[70px] leading-tight uppercase text-primary max-w-full break-words">
               <span className="border-b-2 border-secondary">
                 {location.state?.event ||
                   location.search.split("&")[1].split("=")[1]}

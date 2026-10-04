@@ -7,14 +7,8 @@ import HeroGpuCardNode from "./HeroGpuCardNode";
 import GalleryGridCard from "./GalleryGridCard";
 import LightboxModal from "./LightboxModal";
 
-// Full gallery photo dataset
 const dataset = galleryImages || [];
 
-/**
- * Clean Orchestrator Gallery Component
- * Composes 120 FPS passive scroll pipeline, search HUD, sticky assembly runway,
- * continuous media stream, Lightbox dossier modal, and contact footer.
- */
 export default function AllImages() {
   const [selectedIdx, setSelectedIdx] = useState(null);
 
@@ -39,8 +33,8 @@ export default function AllImages() {
   };
 
   return (
-    <>
-      {/* HERO SECTION: Sticky 3D Assembly Runway (First 6 Photos) */}
+    <div className="w-full bg-background min-h-screen text-foreground font-sans relative overflow-x-hidden">
+      {/* 1. HERO ASSEMBLY RUNWAY: Tightened to eliminate vertical overscroll dead zone */}
       <section
         ref={sectionRef}
         style={{
@@ -48,50 +42,55 @@ export default function AllImages() {
           "--assembly-factor": "1",
           "--badge-opacity": "0",
         }}
-        className="relative w-full h-[220vh] bg-background font-sans select-none will-change-transform"
+        className="relative w-full h-[105vh] sm:h-[112vh] bg-background font-sans select-none will-change-transform"
       >
-        {/* Sticky Viewport Container: Top-aligned flush structure */}
-        <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-center overflow-hidden px-4 sm:px-8 select-none">
+        {/* Sticky Viewport Container: Top aligned to keep the card block compact */}
+        <div className="sticky top-0 w-full h-screen flex flex-col items-center justify-start pt-10 sm:pt-16 overflow-hidden px-3 sm:px-8 select-none">
           {/* Giant Typographic Backdrop Layer */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
             <h1
               style={{
                 transform:
-                  "scale(calc(0.92 + 0.08 * min(1, var(--gallery-progress, 0) / 0.65))) translateZ(0)",
+                  "scale(calc(0.92 + 0.08 * min(1, var(--gallery-progress, 0) / 0.85))) translateZ(0)",
                 opacity:
-                  "calc(0.15 + 0.10 * min(1, var(--gallery-progress, 0) / 0.65))",
+                  "calc(0.08 + 0.10 * min(1, var(--gallery-progress, 0) / 0.85))",
                 willChange: "transform, opacity",
-                backfaceVisibility: "hidden",
               }}
-              className="font-Bebas text-7xl sm:text-9xl md:text-[12rem] lg:text-[15rem] text-foreground/15 leading-none select-none pointer-events-none tracking-tight text-center uppercase transform-gpu"
+              className="font-Bebas text-4xl xs:text-6xl sm:text-8xl md:text-[12rem] lg:text-[15rem] text-foreground/15 leading-none select-none pointer-events-none tracking-tight text-center uppercase max-w-full break-words"
             >
               ANIRVEDA
             </h1>
           </div>
 
-          {/* Outer Wrapper with Search HUD & Chassis */}
-          <div className="relative z-10 w-full max-w-6xl flex flex-col pb-0">
-            {/* SINGLE Global HUD Filter & Search Bar */}
-            <div className="relative z-20 w-full flex items-center justify-between gap-4 pb-4 sm:pb-6">
-              <div className="font-mono text-xs text-primary font-bold tracking-widest uppercase flex items-center gap-2 bg-card/80 border border-border px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+          {/* Outer Wrapper with Search HUD */}
+          <div className="relative z-10 w-full max-w-6xl flex flex-col">
+            {/* Filter & Search HUD */}
+            <div className="relative z-20 w-full flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-2.5 sm:gap-4 pb-2.5 sm:pb-4">
+              <div className="font-mono text-[10px] sm:text-xs text-primary font-bold tracking-widest uppercase flex items-center justify-center gap-2 bg-card/80 border border-border px-3 py-1.5 rounded-full backdrop-blur-md shadow-sm w-fit self-center xs:self-auto">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-accent animate-pulse" />
                 <span>SPATIAL ASSEMBLY MATRIX</span>
               </div>
 
-              <div className="relative w-48 sm:w-72 select-text">
+              <div className="relative w-full xs:w-48 sm:w-72 select-text">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none z-10" />
                 <input
                   type="text"
                   placeholder="Filter photos..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-card/90 border border-border font-mono text-xs text-secondary placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:text-primary caret-primary backdrop-blur-md select-text relative z-0"
+                  className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-card/90 border border-border font-mono text-base sm:text-xs text-secondary placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:text-primary caret-primary backdrop-blur-md select-text relative z-0"
                 />
               </div>
             </div>
 
-            {/* Hero Assembly Grid: First 6 Cards */}
-            <div className="relative z-10 w-full grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+            {/* Top 6 Cards Grid: Translates seamlessly down into the feed */}
+            <div
+              style={{
+                transform: "translate3d(0, calc(var(--gallery-progress, 0) * 12px), 0)",
+                transition: "transform 0.1s ease-out",
+              }}
+              className="relative z-10 w-full grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-6"
+            >
               {filteredData.slice(0, 6).map((item, idx) => (
                 <HeroGpuCardNode
                   key={item.id || idx}
@@ -106,10 +105,10 @@ export default function AllImages() {
         </div>
       </section>
 
-      {/* CONTINUOUS EXTENDED STREAM (Cards 6+): Expands bottom cards to match the top row width */}
-{filteredData.length > 6 && (
-  <section className="relative z-10 w-full max-w-6xl mx-auto pb-12 font-sans">
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
+      {/* 2. CONTINUOUS STREAM: Calibrated gentle offset to align flush with standard grid rhythm */}
+      {filteredData.length > 6 && (
+        <section className="relative z-20 w-full max-w-6xl mx-auto px-3 sm:px-8 -mt-4 sm:-mt-6 pb-16 font-sans">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-6">
             {filteredData.slice(6).map((item, sliceIdx) => {
               const globalIdx = sliceIdx + 6;
               return (
@@ -139,6 +138,6 @@ export default function AllImages() {
           onNext={handleNext}
         />
       )}
-    </>
+    </div>
   );
 }

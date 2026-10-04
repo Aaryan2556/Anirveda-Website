@@ -111,7 +111,7 @@ export default function Form({ showStrip, setStripText }) {
               id="firstName"
               required
               placeholder="Yourname"
-              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
               onChange={handleChange}
               value={formData.firstName}
             />
@@ -127,7 +127,7 @@ export default function Form({ showStrip, setStripText }) {
               name="lastName"
               id="lastName"
               placeholder=""
-              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
               onChange={handleChange}
               value={formData.lastName}
             />
@@ -146,7 +146,7 @@ export default function Form({ showStrip, setStripText }) {
               id="email"
               required
               placeholder="@gmail.com"
-              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
               onChange={handleChange}
               value={formData.email}
             />
@@ -163,7 +163,7 @@ export default function Form({ showStrip, setStripText }) {
               id="phone"
               required
               placeholder=""
-              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+              className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
               onChange={handleChange}
               value={formData.phone}
             />
@@ -181,7 +181,7 @@ export default function Form({ showStrip, setStripText }) {
             id="subject"
             required
             placeholder="Sponsorship / Partnership / Event Query"
-            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
             onChange={handleChange}
             value={formData.subject}
           />
@@ -198,7 +198,7 @@ export default function Form({ showStrip, setStripText }) {
             id="message"
             required
             placeholder="Tell us about your proposal or message..."
-            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
+            className="w-full rounded-xl bg-black/50 border border-slate-800 focus:border-amber-400 text-slate-100 placeholder-slate-600 px-4 py-3 text-base sm:text-sm outline-none transition-all focus:ring-1 focus:ring-amber-400/50"
             onChange={handleChange}
             value={formData.message}
           />

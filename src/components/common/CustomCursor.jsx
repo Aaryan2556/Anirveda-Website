@@ -6,6 +6,11 @@ export default function CustomCursor() {
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
+    // Disable window mouse event listeners on touch/mobile devices to eliminate touch lag
+    if (typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window)) {
+      return;
+    }
+
     const handleMouseMove = (e) => {
       setMousePos({ x: e.clientX, y: e.clientY });
     };

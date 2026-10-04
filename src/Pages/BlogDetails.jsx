@@ -50,7 +50,7 @@ const BlogDetails = () => {
         </div>
 
         {/* Title */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-Bebas text-primary mb-6 leading-none drop-shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]">
+        <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-Bebas text-primary mb-6 leading-tight drop-shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)] max-w-full break-words">
           {blog.title}
         </h1>
 
@@ -88,7 +88,7 @@ const BlogDetails = () => {
         </div>
 
         {/* Article Body */}
-        <article className="bg-card border border-border rounded-2xl p-6 sm:p-10 md:p-12 mb-12 shadow-xl">
+        <article className="bg-card border border-border rounded-2xl p-4 xs:p-6 sm:p-10 md:p-12 mb-12 shadow-xl">
           {/* Excerpt Intro */}
           <p className="text-lg sm:text-xl text-secondary italic mb-8 leading-relaxed font-sans border-l-2 border-primary pl-4">
             {blog.excerpt}

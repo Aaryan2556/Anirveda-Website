@@ -3,16 +3,9 @@ import { Maximize2 } from "lucide-react";
 import { getOptimizedCloudinaryUrl } from "../../utils/cloudinary";
 
 /**
- * Optimized ArchivalPhotoCard / GalleryGridCard Component
- * Features Cloudinary 600px 4:3 WebP/AVIF thumbnail optimization,
- * [content-visibility:auto], [contain-intrinsic-size:300px_225px] for zero off-screen GPU overhead,
- * lightweight async decoding, and instant Tailwind shimmer placeholder.
- *
- * @param {Object} props
- * @param {Object} props.item - Gallery item object
- * @param {number} props.globalIdx - Global dataset index
- * @param {boolean} props.isTouchDevice - Mobile / touch flag
- * @param {Function} props.onSelect - Click handler to open Lightbox Modal
+ * GalleryGridCard Component
+ * Structurally and dimensionally identical (1:1) to HeroGpuCardNode.
+ * Uses exact aspect-[4/3], matching border curvature, and permanent caption frame.
  */
 const GalleryGridCard = memo(function GalleryGridCard({
   item,
@@ -26,7 +19,7 @@ const GalleryGridCard = memo(function GalleryGridCard({
   return (
     <div
       onClick={onSelect}
-      className="group relative rounded-2xl overflow-hidden bg-card border border-border/80 hover:border-primary/80 shadow-xl cursor-pointer select-none w-full aspect-[4/3] flex flex-col justify-between transition-all duration-300 hover:scale-[1.03] hover:z-30 [content-visibility:auto] [contain-intrinsic-size:300px_225px]"
+      className="group relative rounded-2xl overflow-hidden bg-card border border-border/80 hover:border-primary/80 shadow-xl cursor-pointer select-none w-full aspect-[4/3] flex flex-col justify-between transition-all duration-300 hover:scale-[1.03] hover:z-30"
     >
       {/* Pure Hover Specular Sheen Overlay */}
       {!isTouchDevice && (
@@ -38,14 +31,14 @@ const GalleryGridCard = memo(function GalleryGridCard({
         <div className="absolute inset-0 bg-muted/70 animate-pulse rounded-xl z-10" />
       )}
 
-      {/* Node Badge */}
-      <div className="absolute top-2 left-2 z-20 pointer-events-none">
-        <span className="px-2 py-0.5 rounded-full bg-primary/90 text-primary-foreground font-mono text-[9px] font-bold uppercase shadow-sm backdrop-blur-md">
-          {item.nodeId || `NODE_${item.id}`}
+      {/* Node Telemetry Badge */}
+      <div className="absolute top-2 left-2 z-20 pointer-events-none flex items-center justify-between">
+        <span className="px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-mono text-[9px] font-extrabold tracking-wider uppercase shadow-md">
+          {item.nodeId || `NODE_${globalIdx ?? item.id}`}
         </span>
       </div>
 
-      {/* Media Image with 600px Cloudinary Thumbnail & Async Decoding */}
+      {/* Media Image with 600px Cloudinary Thumbnail */}
       <div className="relative w-full h-full overflow-hidden bg-muted/40">
         <img
           src={thumbnailUrl}
@@ -66,7 +59,7 @@ const GalleryGridCard = memo(function GalleryGridCard({
           <h4 className="font-Bebas text-lg sm:text-xl text-foreground group-hover:text-primary transition-colors leading-none truncate">
             {item.title || ""}
           </h4>
-          <div className="p-1.5 rounded-lg bg-primary/90 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-sm">
+          <div className="p-1.5 rounded-lg bg-primary/90 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md">
             <Maximize2 className="w-3.5 h-3.5" />
           </div>
         </div>

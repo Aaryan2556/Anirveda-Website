@@ -7,9 +7,9 @@ import CustomCursor from "../components/common/CustomCursor";
 
 const Gallery = () => {
   return (
-    <div className="bg-black font-Lato">
+    <div className="bg-black font-sans min-h-screen w-full relative overflow-x-hidden">
       <CustomCursor/>
-      <div className="h-[80vh]flex flex-col">
+      <div className="flex flex-col">
         <AnnouncementBar />
         <Navbar />
         <AllImages />

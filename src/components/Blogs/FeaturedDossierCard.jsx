@@ -55,7 +55,7 @@ export default function FeaturedDossierCard({ blog }) {
       className="group relative w-full rounded-3xl select-none mb-14 cursor-pointer"
     >
       {/* Deep, Clean Solid Card Surface */}
-      <div className="relative h-full w-full rounded-3xl bg-card border border-border p-8 sm:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
+      <div className="relative h-full w-full rounded-3xl bg-card border border-border p-4 xs:p-6 sm:p-8 lg:p-10 flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 overflow-hidden transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10">
         
         {/* Soft Ambient Backlight Glow in Top-Right */}
         <div className="pointer-events-none absolute -top-24 -right-24 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
@@ -74,7 +74,7 @@ export default function FeaturedDossierCard({ blog }) {
           </div>
 
           {/* Title */}
-          <h2 className="font-Bebas text-4xl sm:text-5xl lg:text-6xl text-foreground group-hover:text-primary transition-colors leading-tight tracking-wide mb-4">
+          <h2 className="font-Bebas text-3xl xs:text-4xl sm:text-5xl lg:text-6xl text-foreground group-hover:text-primary transition-colors leading-tight tracking-wide mb-4 max-w-full break-words">
             {blog.title}
           </h2>
 

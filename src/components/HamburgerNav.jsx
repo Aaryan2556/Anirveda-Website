@@ -28,96 +28,100 @@ export default function HamburgerNav() {
   return (
     <div>
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-5">
-        <div>
-          <Link to="/">
-            <img
-              src="./images/logos/logo.webp"
-              alt="Anirveda Logo"
-              className="w-1/4"
-            />
-          </Link>
-        </div>
-        <div className="cursor-pointer">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2">
+        <Link to="/" className="flex items-center min-h-[44px] min-w-[44px]">
+          <img
+            src="./images/logos/logo.webp"
+            alt="Anirveda Logo"
+            className="h-8 w-auto object-contain"
+          />
+        </Link>
+        <button
+          onClick={handleHamburgerClick}
+          aria-label="Open Navigation Menu"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-primary hover:bg-card/80 transition-colors"
+        >
           <Icon
             icon="charm:menu-hamburger"
-            color={"#B69575"}
-            className="text-4xl"
-            onClick={handleHamburgerClick}
+            color={"#D4AF37"}
+            className="text-3xl sm:text-4xl"
           />
-        </div>
+        </button>
       </div>
 
       {/* Hamburger bar items */}
       <div
-        className={`fixed inset-0 z-50 h-full w-full bg-secondary-opacity px-5 pt-3 font-Lato text-secondary transition-transform duration-300 ease-in  
+        className={`fixed inset-0 z-50 h-full w-full bg-obsidian-900/95 backdrop-blur-2xl px-5 pt-4 pb-8 font-sans text-slate-100 overflow-y-auto transition-transform duration-300 ease-in-out  
     ${isOpen ? "translate-x-0" : "translate-x-[-100%]"}`}
       >
         {/* Top Bar inside drawer */}
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex items-center justify-between border-b border-border/80 pb-3">
+          <Link to="/" onClick={handleHamburgerClick} className="flex items-center min-h-[44px]">
             <img
               src="./images/logos/logo_white.webp"
               alt="Anirveda Logo"
-              className="w-1/4"
+              className="h-8 w-auto object-contain"
             />
-          </div>
-          <div className="cursor-pointer">
+          </Link>
+          <button
+            onClick={handleHamburgerClick}
+            aria-label="Close Navigation Menu"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 rounded-xl text-primary hover:bg-card/80 transition-colors"
+          >
             <Icon
               icon="akar-icons:cross"
-              color={"#B69575"}
-              className="text-4xl"
-              onClick={handleHamburgerClick}
+              color={"#D4AF37"}
+              className="text-2xl"
             />
-          </div>
+          </button>
         </div>
 
         {/* Links */}
-        <div className="mt-4 text-center text-2xl">
-          <Link to="/" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Home</h1>
+        <div className="mt-6 flex flex-col items-center space-y-2 text-xl font-mono">
+          <Link to="/" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Home</span>
           </Link>
-          <Link to="/events" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Events</h1>
+          <Link to="/events" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Events</span>
           </Link>
-          <Link to="/gallery" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Gallery</h1>
+          <Link to="/gallery" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Gallery</span>
           </Link>
-          <Link to="/committee" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Committee</h1>
+          <Link to="/committee" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Committee</span>
           </Link>
-          <Link to="/sponsors" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Sponsors</h1>
+          <Link to="/sponsors" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Sponsors</span>
           </Link>
-          <Link to="/blogs" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Blogs</h1>
+          <Link to="/blogs" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Blogs</span>
           </Link>
-          <a href="#contact" onClick={handleHamburgerClick}>
-            <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Contact</h1>
+          <a href="#contact" onClick={handleHamburgerClick} className="w-full text-center py-2.5 min-h-[44px] flex items-center justify-center rounded-xl hover:bg-card/60 transition-colors">
+            <span className="uppercase text-foreground hover:text-primary">Contact</span>
           </a>
 
           {/* Collapsible More */}
-          <div
-            className="flex cursor-pointer items-center justify-center gap-1 hover:text-primary"
+          <button
             onClick={handleMoreClick}
+            className="w-full min-h-[44px] py-2.5 flex items-center justify-center gap-1.5 uppercase text-foreground hover:text-primary hover:bg-card/60 rounded-xl transition-colors"
           >
-            <h1 className="mt-3 uppercase">More</h1>
+            <span>More</span>
             {isMoreClicked ? (
-              <Icon icon="carbon:chevron-up" color="#B69575" className="mt-3 text-3xl" />
+              <Icon icon="carbon:chevron-up" className="text-xl text-primary" />
             ) : (
-              <Icon icon="carbon:chevron-down" color="#B69575" className="mt-3 text-3xl" />
+              <Icon icon="carbon:chevron-down" className="text-xl text-primary" />
             )}
-          </div>
+          </button>
           {isMoreClicked && (
-            <div>
-              <Link to="/economania" onClick={handleHamburgerClick}>
-                <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">Economania</h1>
+            <div className="w-full flex flex-col items-center space-y-1 bg-card/40 rounded-2xl p-2 border border-border">
+              <Link to="/economania" onClick={handleHamburgerClick} className="w-full text-center py-2 min-h-[44px] flex items-center justify-center rounded-lg hover:bg-card">
+                <span className="uppercase text-sm text-foreground hover:text-primary">Economania</span>
               </Link>
-              <Link to={"/galaxecon"} onClick={handleHamburgerClick}>
-                <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">GalaxEcon</h1>
+              <Link to="/galaxecon" onClick={handleHamburgerClick} className="w-full text-center py-2 min-h-[44px] flex items-center justify-center rounded-lg hover:bg-card">
+                <span className="uppercase text-sm text-foreground hover:text-primary">GalaxEcon</span>
               </Link>
-              <Link to={"/mock-rbi"} onClick={handleHamburgerClick}>
-                <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">MockRBI</h1>
+              <Link to="/mock-rbi" onClick={handleHamburgerClick} className="w-full text-center py-2 min-h-[44px] flex items-center justify-center rounded-lg hover:bg-card">
+                <span className="uppercase text-sm text-foreground hover:text-primary">MockRBI</span>
               </Link>
               <Link to={"/ipl-auction"} onClick={handleHamburgerClick}>
                 <h1 className="mt-3 cursor-pointer uppercase hover:text-primary">IPL Auction</h1>
@@ -126,16 +130,16 @@ export default function HamburgerNav() {
           )}
 
           {/* ✅ Join Us Button */}
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-center w-full pt-4 border-t border-border/80">
             <a
               href="https://docs.google.com/forms/d/e/1FAIpQLSfeI3Bi013_xIiV8P3sNSc6wa46X52Qy3gCDdDjCfDD3MfnNw/viewform"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-lg uppercase text-primary shadow-md transition-all duration-300 hover:scale-105 hover:border-primary hover:text-accent hover:shadow-lg hover:shadow-primary/20"
+              className="w-full max-w-xs min-h-[44px] flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary text-primary-foreground font-bold text-sm uppercase shadow-lg shadow-primary/20 transition-all duration-300 hover:scale-[1.02] active:scale-95"
               onClick={handleHamburgerClick}
             >
               <OrgLogo />
-              Join Us
+              <span>Join Us</span>
             </a>
           </div>
         </div>

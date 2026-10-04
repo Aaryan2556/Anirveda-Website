@@ -76,21 +76,21 @@ export default function UpcomingEventCards() {
 
   return (
     <div className="w-full text-foreground py-6">
-      {/* Filter / Category Tabs */}
+      {/* Filter / Category Tabs Touch-First Swipe Rail */}
       <div className="flex items-center justify-between flex-wrap gap-4 mb-8 pb-4 border-b border-border">
         <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs uppercase tracking-wider">
           <Filter className="w-4 h-4 text-primary" />
           <span>Filter Initiatives:</span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-nowrap overflow-x-auto no-scrollbar items-center gap-2 touch-pan-x min-h-[44px] py-1 px-0.5 w-full sm:w-auto">
           {categories.map((cat) => {
             const isActive = selectedCategory === cat;
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-mono tracking-wide transition-all duration-300 ${
+                className={`px-4 py-2 rounded-xl text-xs font-mono tracking-wide transition-all duration-300 flex-shrink-0 whitespace-nowrap min-h-[44px] ${
                   isActive
                     ? "bg-primary text-primary-foreground font-bold border border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
                     : "bg-card text-muted-foreground hover:text-primary border border-border hover:border-primary/40"
@@ -219,12 +219,12 @@ export default function UpcomingEventCards() {
       {/* Detail Modal */}
       <AnimatePresence>
         {activeModalEvent && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-background/80 backdrop-blur-md">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg rounded-3xl bg-card border border-border p-6 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-card border border-border p-5 sm:p-6 shadow-2xl"
             >
               <button
                 onClick={() => setActiveModalEvent(null)}
