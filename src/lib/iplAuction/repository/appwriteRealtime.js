@@ -42,7 +42,7 @@ export function toAuctionEvent(message) {
   const tableId = tableFromChannels(message?.channels);
   const payload = message?.payload ?? {};
   const auctionId = tableId === TABLES.AUCTIONS ? payload.$id ?? null : payload.auctionId ?? null;
-  return { tableId, auctionId, events: message?.events ?? [] };
+  return { tableId, auctionId, events: message?.events ?? [], payload };
 }
 
 /**

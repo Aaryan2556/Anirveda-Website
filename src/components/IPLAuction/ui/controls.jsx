@@ -185,7 +185,7 @@ export function Tabs({ tabs, current, onSelect, label, trailing }) {
 }
 
 /** Email + password sign-in, used for admin and team accounts. */
-export function SignInPanel({ title, auth, note }) {
+export function SignInPanel({ title, auth, note, useUsername = false }) {
   return (
     <Panel title={title}>
       {note && <p className="mb-4 text-sm text-slate-400">{note}</p>}
@@ -193,13 +193,17 @@ export function SignInPanel({ title, auth, note }) {
         onSubmit={async (event) => {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
-          await auth.signIn(String(form.get("email")), String(form.get("password")));
+          const emailOrUser = String(form.get("loginId"));
+          const email = useUsername ? `${emailOrUser}@anirveda.com` : emailOrUser;
+          await auth.signIn(email, String(form.get("password")));
         }}
         className="grid gap-4"
       >
         <label className="grid gap-1.5">
-          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">Email</span>
-          <input name="email" required type="email" autoComplete="username" className={`${inputClass} py-2.5`} />
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            {useUsername ? "Username" : "Email"}
+          </span>
+          <input name="loginId" required type={useUsername ? "text" : "email"} autoComplete="username" className={`${inputClass} py-2.5`} />
         </label>
         <label className="grid gap-1.5">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">Password</span>

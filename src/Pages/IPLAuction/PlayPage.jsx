@@ -82,7 +82,7 @@ function TeamDashboard() {
   } else if (needsLogin) {
     body = (
       <div className="mx-auto max-w-md">
-        <SignInPanel title="Team login" auth={auth} note="Sign in with the team account the organisers gave you." />
+        <SignInPanel title="Team login" auth={auth} note="Sign in with the team account the organisers gave you." useUsername={true} />
       </div>
     );
   } else if (!team) {
