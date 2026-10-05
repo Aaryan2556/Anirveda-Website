@@ -17,7 +17,13 @@ import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { formatLakhs } from "../../lib/iplAuction/money";
 import { AUCTION_MODES, getAuctionMode } from "../../lib/iplAuction/repository";
 import { Button, Page, PageHeader, Panel, SignInPanel, Spinner, Tabs } from "../../components/IPLAuction/ui/controls";
-import { AuctionStatus, FictionalNotice, LocalModeNotice } from "../../components/IPLAuction/ui/auction";
+import {
+  AuctionStatus,
+  FictionalNotice,
+  LocalModeNotice,
+  SoldBanner,
+  useSoldAnnouncement,
+} from "../../components/IPLAuction/ui/auction";
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
 import MarketPanel from "../../components/IPLAuction/play/MarketPanel";
@@ -75,6 +81,8 @@ function TeamDashboard() {
   const selectTab = (id) => setParams((current) => ({ ...Object.fromEntries(current), tab: id }));
   const loadingData = state.teamOrder.length === 0; // the database read is still in flight
   const needsLogin = kind !== "local" && !auth.user;
+  const sold = useSoldAnnouncement(state);
+  const mySold = sold && sold.teamId === teamId ? sold : null;
 
   let body;
   if (identity.status === "loading" || (loadingData && !needsLogin)) {
@@ -128,6 +136,7 @@ function TeamDashboard() {
       <LocalModeNotice kind={kind} />
       {team && <FictionalNotice state={state} />}
       {body}
+      <SoldBanner sale={mySold} />
     </Page>
   );
 }

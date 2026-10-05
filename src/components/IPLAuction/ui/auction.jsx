@@ -3,6 +3,8 @@
  * screen and summary. Presentation only: every number comes from the engine's
  * selectors and rules (src/lib/iplAuction/engine).
  */
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ROLE_LABELS, ROLE_LIST } from "../../../lib/iplAuction/config";
 import {
   AUCTION_STATUS,
@@ -163,7 +165,7 @@ export function PlayerHero({ player, large = false }) {
 }
 
 /** The player on the block, or a waiting message. */
-export function CurrentLot({ state, large = false }) {
+export function CurrentLot({ state, large = false, hideLiveBid = false }) {
   if (!state.lot) {
     const message =
       state.status === AUCTION_STATUS.COMPLETED
@@ -176,18 +178,78 @@ export function CurrentLot({ state, large = false }) {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-gold"><span className="h-2 w-2 rounded-full bg-gold motion-safe:animate-pulse" />Live Bid</p>
-        {state.lot.currentBid != null && (
-          <p className={`font-mono font-bold text-gold ${large ? "text-5xl" : "text-3xl"}`}>
-            {formatLakhs(state.lot.currentBid)}
-            {state.lot.currentBidTeamId && state.teams[state.lot.currentBidTeamId] && (
-              <span className={`text-slate-400 ml-2 ${large ? "text-2xl" : "text-lg"}`}>({state.teams[state.lot.currentBidTeamId].shortName})</span>
+        {!hideLiveBid ? (
+          <>
+            <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-gold">
+              <span className="h-2 w-2 rounded-full bg-gold motion-safe:animate-pulse" />Live Bid
+            </p>
+            {state.lot.currentBid != null && (
+              <p className={`font-mono font-bold text-gold ${large ? "text-5xl" : "text-3xl"}`}>
+                {formatLakhs(state.lot.currentBid)}
+                {state.lot.currentBidTeamId && state.teams[state.lot.currentBidTeamId] && (
+                  <span className={`text-slate-400 ml-2 ${large ? "text-2xl" : "text-lg"}`}>({state.teams[state.lot.currentBidTeamId].shortName})</span>
+                )}
+              </p>
             )}
-          </p>
+          </>
+        ) : (
+          <>
+            <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">Base Price</p>
+            <p className={`font-mono font-bold text-gold ${large ? "text-5xl" : "text-3xl"}`}>
+              {formatLakhs(state.players[state.lot.playerId].basePrice)}
+            </p>
+          </>
         )}
       </div>
       <PlayerHero player={state.players[state.lot.playerId]} large={large} />
     </div>
+  );
+}
+
+const SOLD_BANNER_MS = 6000;
+
+export function useSoldAnnouncement(state) {
+  const [latest] = getRecentSales(state, 1);
+  const latestSeq = latest?.seq ?? 0;
+  const latestRef = useRef(latest);
+  latestRef.current = latest;
+  const seenSeq = useRef(latestSeq);
+  const [shown, setShown] = useState(null);
+
+  useEffect(() => {
+    if (latestSeq <= seenSeq.current) return undefined;
+    seenSeq.current = latestSeq;
+    setShown(latestRef.current);
+    const timer = setTimeout(() => setShown(null), SOLD_BANNER_MS);
+    return () => clearTimeout(timer);
+  }, [latestSeq]);
+
+  return shown && state.purchases.some((purchase) => purchase.id === shown.id) ? shown : null;
+}
+
+export function SoldBanner({ sale }) {
+  return (
+    <AnimatePresence>
+      {sale && (
+        <motion.div
+          key={sale.id}
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.35 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-6"
+        >
+          <div className="w-full max-w-4xl rounded-xl border-2 border-primary bg-obsidian-800 px-8 py-10 text-center">
+            <p className="font-Bebas text-[6rem] font-bold uppercase leading-none tracking-[-0.04em] text-primary drop-shadow-[0_0_35px_rgba(212,175,55,0.45)] sm:text-[9rem]">Sold</p>
+            <p className="mt-2 font-Bebas text-4xl font-bold uppercase tracking-tight text-slate-100 sm:text-5xl">{sale.player.name}</p>
+            <p className="mt-4 font-sans text-2xl text-slate-400 sm:text-3xl">
+              to <span className="text-slate-100">{sale.team.name}</span> for{" "}
+              <span className="font-mono text-4xl font-bold text-gold sm:text-5xl">{formatLakhs(sale.price)}</span>
+            </p>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

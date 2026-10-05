@@ -101,7 +101,7 @@ export default function LivePanel({ state, teamId }) {
     <div className="space-y-4">
       <LatestSale state={state} teamId={teamId} />
       <Panel title="On the block">
-        <CurrentLot state={state} />
+        <CurrentLot state={state} hideLiveBid={true} />
         {state.lot && <BuyingPower state={state} teamId={teamId} />}
       </Panel>
       <Panel title="My team">
