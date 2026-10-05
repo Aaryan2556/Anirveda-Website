@@ -194,7 +194,11 @@ export function SignInPanel({ title, auth, note, useUsername = false }) {
           event.preventDefault();
           const form = new FormData(event.currentTarget);
           const emailOrUser = String(form.get("loginId"));
-          const email = useUsername ? `${emailOrUser}@anirveda.com` : emailOrUser;
+          let email = emailOrUser;
+          if (useUsername) {
+            const sanitizedUsername = emailOrUser.toLowerCase().replace(/[^a-z0-9]/g, "");
+            email = `${sanitizedUsername}@anirveda.com`;
+          }
           await auth.signIn(email, String(form.get("password")));
         }}
         className="grid gap-4"
