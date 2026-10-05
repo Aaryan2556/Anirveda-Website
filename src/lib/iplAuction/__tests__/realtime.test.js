@@ -117,7 +117,7 @@ describe("realtime: channels and events", () => {
       events: ["x.update"],
       payload: { $id: "a1" },
     });
-    assert.deepEqual(auction, { tableId: TABLES.AUCTIONS, auctionId: "a1", events: ["x.update"] });
+    assert.deepEqual(auction, { tableId: TABLES.AUCTIONS, auctionId: "a1", events: ["x.update"], payload: { $id: "a1" } });
     const purchase = toAuctionEvent({
       channels: [`databases.ipl-dev.collections.${TABLES.PURCHASES}.documents`],
       events: [],
@@ -361,7 +361,7 @@ describe("realtime: SDK wrapper", () => {
     sdk.drop();
     sdk.open();
     assert.deepEqual(statuses, ["connecting", "open", "closed", "open"]);
-    assert.deepEqual(events, [{ tableId: TABLES.PLAYERS, auctionId: "a", events: [] }]);
+    assert.deepEqual(events, [{ tableId: TABLES.PLAYERS, auctionId: "a", events: [], payload: { auctionId: "a" } }]);
     off();
     await settle(2);
     assert.equal(sdk.closed, 1);

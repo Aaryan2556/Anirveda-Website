@@ -10,7 +10,7 @@ function fakeAccount({ user = null } = {}) {
       if (!current) throw Object.assign(new Error("missing scope"), { code: 401 });
       return current;
     },
-    async createEmailPasswordSession({ email, password }) {
+    async createEmailPasswordSession(email, password) {
       if (password !== "right") throw Object.assign(new Error("Invalid credentials"), { code: 401 });
       current = { $id: "u1", name: "Admin", email, labels: email.startsWith("admin") ? [ADMIN_LABEL] : [] };
     },

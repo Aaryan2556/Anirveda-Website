@@ -41,7 +41,7 @@ export function createAppwriteAdminAuth({ account }) {
     kind: "appwrite",
     getSession,
     async signIn(email, password) {
-      await account.createEmailPasswordSession({ email, password });
+      await account.createEmailPasswordSession(email, password);
       return getSession();
     },
     async signOut() {

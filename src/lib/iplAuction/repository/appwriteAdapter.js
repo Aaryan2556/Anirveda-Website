@@ -27,7 +27,7 @@
  * transaction operations — it would store the literal text as the row ID.
  */
 import { DEV_DEFAULT_CONFIG } from "../config.js";
-import { ERROR, SCHEMA_VERSION, createInitialState, reduce } from "../engine/index.js";
+import { ERROR, SCHEMA_VERSION, createInitialState, reduce, COMMANDS } from "../engine/index.js";
 import { TABLES } from "./appwriteSchema.js";
 import { diffToWrites, rowsToState } from "./appwriteMapper.js";
 import { isNewer } from "./isNewer.js";

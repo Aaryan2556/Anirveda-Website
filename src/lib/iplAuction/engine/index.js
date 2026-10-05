@@ -255,8 +255,8 @@ const handlers = {
   },
 
   [COMMANDS.ADD_TEAM](state, { team: input }) {
-    const completed = requireNotCompleted(state);
-    if (completed) return completed;
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
     const { team, error } = normalizeTeam(input);
     if (error) return { error };
     if (state.teams[team.id]) return rejected(ERROR.DUPLICATE_ID, `Team id "${team.id}" already exists.`);
@@ -267,8 +267,8 @@ const handlers = {
   },
 
   [COMMANDS.UPDATE_TEAM](state, { teamId, changes }) {
-    const completed = requireNotCompleted(state);
-    if (completed) return completed;
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
     const current = state.teams[teamId];
     if (!current) return rejected(ERROR.NOT_FOUND, "Unknown team.");
     const { team, error } = normalizeTeam({ ...current, ...changes, id: current.id });
@@ -281,8 +281,8 @@ const handlers = {
 
   /** Can be removed anytime before auction ends, as long as it has no purchases. */
   [COMMANDS.REMOVE_TEAM](state, { teamId }) {
-    const completed = requireNotCompleted(state);
-    if (completed) return completed;
+    const notSetup = requireSetup(state);
+    if (notSetup) return notSetup;
     const team = state.teams[teamId];
     if (!team) return rejected(ERROR.NOT_FOUND, "Unknown team.");
     if (state.purchases.some((p) => p.teamId === teamId)) {
@@ -410,7 +410,7 @@ const handlers = {
       {
         ...state,
         counters: { ...state.counters, lot: lotSeq },
-        lot: { id: `lot-${lotSeq}`, playerId, openedAt: at ?? null },
+        lot: { id: `lot-${lotSeq}`, playerId, openedAt: at ?? null, currentBid: null, currentBidTeamId: null },
       },
       playerId,
       { status: PLAYER_STATUS.ON_BLOCK }
