@@ -29,6 +29,7 @@ import RulesForm from "../../components/IPLAuction/admin/RulesForm";
 import { AuctionControls, OnTheBlock } from "../../components/IPLAuction/admin/RunAuction";
 import RequireAdmin from "../../components/IPLAuction/admin/RequireAdmin";
 import TeamManager from "../../components/IPLAuction/admin/TeamManager";
+import TeamCredentials from "../../components/IPLAuction/admin/TeamCredentials";
 import { ConfirmButton } from "../../components/IPLAuction/admin/fields";
 
 const TABS = [
@@ -139,9 +140,14 @@ function AdminConsole({ identity }) {
         )}
 
         {tab === "teams" && (
-          <Panel title="Teams">
-            <TeamManager state={state} send={send} pending={pending} />
-          </Panel>
+          <>
+            <Panel title="Teams">
+              <TeamManager state={state} send={send} pending={pending} />
+            </Panel>
+            <Panel title="Team login credentials">
+              <TeamCredentials state={state} />
+            </Panel>
+          </>
         )}
 
         {tab === "rules" && (

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { resolveTeamFromLabels } from "../auth/teamAuth.js";
 import { ACTOR_ROLES } from "../engine/index.js";
 import { useAdminAuth } from "./useAdminAuth.js";
+import { useTeamAuth } from "./useTeamAuth.js";
 
 /**
  * Who is acting on an auction page. Both hooks return the same shape:
@@ -31,29 +31,43 @@ export function useAdminActor() {
 /**
  * Team dashboard: which single team this viewer is.
  *
- * - Appwrite mode: the team comes from the signed-in account's team label
- *   (auth/teamAuth.js), so a team only ever sees its own dashboard. `?team=` is
- *   ignored for teams; an IPL admin may use it to look at any team.
+ * - Appwrite mode: the team is identified by the DB-based team auth session
+ *   (auth/dbTeamAuth.js). The team signed in using username + password and
+ *   their teamId is stored in localStorage.
  * - Local development mode (no logins): the team comes from `?team=`.
  *
- * Returns { actor, isAdmin, teamId, status, reason, auth }. `reason` explains a
- * signed-in account with no team. Teams are view-only; the engine rejects every
- * command a TEAM actor might send.
+ * Returns { actor, isAdmin, teamId, status, reason, auth }.
  */
 export function useTeamActor(state) {
-  const auth = useAdminAuth();
+  const adminAuth = useAdminAuth();
+  const teamAuth = useTeamAuth();
   const [params] = useSearchParams();
   const requested = params.get("team");
-  const teamIds = state.teamOrder;
 
   let teamId = null;
   let reason = null;
-  if (auth.kind === "local" || auth.isAdmin) {
+  let auth = teamAuth;
+
+  if (adminAuth.kind === "local") {
+    // Local dev mode: no login needed; team comes from ?team= query param.
     teamId = requested;
-  } else if (auth.user) {
-    ({ teamId, reason } = resolveTeamFromLabels(auth.user.labels, teamIds));
+    auth = adminAuth; // expose signOut etc. from a compatible shape
+  } else if (adminAuth.isAdmin) {
+    // Admin is viewing a team dashboard (for debugging); use ?team= param.
+    teamId = requested;
+    auth = adminAuth;
+  } else if (teamAuth.teamId) {
+    // Normal team login via DB auth.
+    teamId = teamAuth.teamId;
+    // Verify the teamId actually exists in the current auction state.
+    if (teamId && state.teamOrder.length > 0 && !state.teams[teamId]) {
+      reason = "This account is not linked to a team in this auction.";
+      teamId = null;
+    }
+  } else if (teamAuth.status === "ready" && !teamAuth.teamId) {
+    reason = "Please sign in with your team credentials.";
   }
 
   const actor = useMemo(() => (teamId ? { role: ACTOR_ROLES.TEAM, teamId } : null), [teamId]);
-  return { actor, isAdmin: auth.isAdmin, teamId, status: auth.status, reason, auth };
+  return { actor, isAdmin: adminAuth.isAdmin, teamId, status: teamAuth.status, reason, auth };
 }

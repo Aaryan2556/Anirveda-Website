@@ -81,8 +81,14 @@ export const SCHEMA = Object.freeze([
       str("name", L.name, true),
       str("shortName", L.shortName, true),
       str("logo", L.url),
+      // Team login credentials (database-based auth; no Appwrite user accounts needed).
+      str("username", 64),
+      str("password", 128),
     ],
-    indexes: [index("auctionId", ["auctionId"])],
+    indexes: [
+      index("auctionId", ["auctionId"]),
+      index("username", ["username"]),
+    ],
   },
   {
     id: TABLES.PLAYERS,

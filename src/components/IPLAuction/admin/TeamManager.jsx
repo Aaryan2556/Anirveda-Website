@@ -3,7 +3,6 @@
  * only allows these before the auction starts.
  */
 import { useState } from "react";
-import { teamLabel } from "../../../lib/iplAuction/auth/teamAuth";
 import { AUCTION_STATUS, COMMANDS, getTeamsInOrder } from "../../../lib/iplAuction/engine";
 import { makeId } from "../../../lib/iplAuction/repository/mockSeed";
 import { Button, table } from "../ui/controls";
@@ -59,61 +58,51 @@ export default function TeamManager({ state, send, pending }) {
   return (
     <div className="space-y-4 text-sm">
       {!isSetup && <p className="text-xs text-slate-400">Teams are locked once the auction has started.</p>}
-      <div className="rounded-xl border border-gold/30 bg-gold/5 px-4 py-3 text-xs text-slate-300">
-        <strong className="font-mono uppercase tracking-wider text-gold">Team logins.</strong> For each team, create a user in
-        the Appwrite console (Auth → Users → Create user, email + password), open it → Labels, add the team&apos;s{" "}
-        <em>login label</em> below and press Update. Give the team that email and password; it signs in at{" "}
-        <span className="font-mono text-slate-100">/ipl-auction/play</span> and sees only its own team.
-      </div>
       <div className={table.wrap}>
-      <table className={table.table}>
-        <thead className={table.thead}>
-          <tr>
-            <th className={table.th}>Team</th>
-            <th className={table.th}>Short</th>
-            <th className={table.th}>Logo</th>
-            <th className={table.th}>Login label</th>
-            <th className={table.th}>Actions</th>
-          </tr>
-        </thead>
-        <tbody className={table.tbody}>
-          {teams.map((team) =>
-            editingId === team.id ? (
-              <tr key={team.id}>
-                <td colSpan={5} className={table.td}>
-                  <TeamForm
-                    initial={{ name: team.name, shortName: team.shortName, logo: team.logo ?? "" }}
-                    submitLabel="Save"
-                    pending={pending}
-                    onSubmit={(changes) => updateTeam(team.id, changes)}
-                    onCancel={() => setEditingId(null)}
-                  />
-                </td>
-              </tr>
-            ) : (
-              <tr key={team.id}>
-                <td className={table.td}>{team.name}</td>
-                <td className={table.td}>{team.shortName}</td>
-                <td className={`${table.td} max-w-[16rem] truncate text-slate-400`}>{team.logo ?? "—"}</td>
-                <td className={`${table.td} whitespace-nowrap font-mono text-gold`}>
-                  {teamLabel(team.id) ?? <span className="text-red-300">ID too long for a label</span>}
-                </td>
-                <td className={`${table.td} space-x-1 whitespace-nowrap`}>
-                  <Button disabled={!isSetup} onClick={() => setEditingId(team.id)}>
-                    Edit
-                  </Button>
-                  <ConfirmButton
-                    label="Remove"
-                    confirmLabel={`Remove ${team.name}`}
-                    disabled={!isSetup || pending}
-                    onConfirm={() => send({ type: COMMANDS.REMOVE_TEAM, teamId: team.id }, { success: `${team.name} removed.` })}
-                  />
-                </td>
-              </tr>
-            )
-          )}
-        </tbody>
-      </table>
+        <table className={table.table}>
+          <thead className={table.thead}>
+            <tr>
+              <th className={table.th}>Team</th>
+              <th className={table.th}>Short</th>
+              <th className={table.th}>Logo</th>
+              <th className={table.th}>Actions</th>
+            </tr>
+          </thead>
+          <tbody className={table.tbody}>
+            {teams.map((team) =>
+              editingId === team.id ? (
+                <tr key={team.id}>
+                  <td colSpan={4} className={table.td}>
+                    <TeamForm
+                      initial={{ name: team.name, shortName: team.shortName, logo: team.logo ?? "" }}
+                      submitLabel="Save"
+                      pending={pending}
+                      onSubmit={(changes) => updateTeam(team.id, changes)}
+                      onCancel={() => setEditingId(null)}
+                    />
+                  </td>
+                </tr>
+              ) : (
+                <tr key={team.id}>
+                  <td className={table.td}>{team.name}</td>
+                  <td className={table.td}>{team.shortName}</td>
+                  <td className={`${table.td} max-w-[16rem] truncate text-slate-400`}>{team.logo ?? "—"}</td>
+                  <td className={`${table.td} space-x-1 whitespace-nowrap`}>
+                    <Button disabled={!isSetup} onClick={() => setEditingId(team.id)}>
+                      Edit
+                    </Button>
+                    <ConfirmButton
+                      label="Remove"
+                      confirmLabel={`Remove ${team.name}`}
+                      disabled={!isSetup || pending}
+                      onConfirm={() => send({ type: COMMANDS.REMOVE_TEAM, teamId: team.id }, { success: `${team.name} removed.` })}
+                    />
+                  </td>
+                </tr>
+              )
+            )}
+          </tbody>
+        </table>
       </div>
       {isSetup && (
         <div className="border-t border-slate-800 pt-3">

@@ -80,7 +80,8 @@ function TeamDashboard() {
   const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "live";
   const selectTab = (id) => setParams((current) => ({ ...Object.fromEntries(current), tab: id }));
   const loadingData = state.teamOrder.length === 0; // the database read is still in flight
-  const needsLogin = kind !== "local" && !auth.user;
+  // In appwrite mode a team must be signed in via DB auth before we show the dashboard.
+  const needsLogin = kind !== "local" && !identity.isAdmin && !identity.teamId;
   const sold = useSoldAnnouncement(state);
   const mySold = sold && sold.teamId === teamId ? sold : null;
 

@@ -14,6 +14,7 @@
 import { Realtime } from "appwrite";
 import { ID, IPL_AUCTION_DATABASE_ID, Query, account, client, tablesDB } from "../../../config/appwrite.js";
 import { createAppwriteAdminAuth, createLocalAdminAuth } from "../auth/adminAuth.js";
+import { createDbTeamAuth } from "../auth/dbTeamAuth.js";
 import { createAppwriteRepository } from "./appwriteAdapter.js";
 import { createAppwriteRealtimeSource } from "./appwriteRealtime.js";
 import { createLocalRepository } from "./localAdapter.js";
@@ -31,6 +32,7 @@ const useAppwrite = auctionMode.mode === AUCTION_MODES.APPWRITE;
 
 let repository = null;
 let adminAuth = null;
+let teamAuth = null;
 
 /** `{ mode: "appwrite" | "local" | "disabled", reason }`, fixed for the build. */
 export function getAuctionMode() {
@@ -70,4 +72,20 @@ export function getAdminAuth() {
     adminAuth = useAppwrite ? createAppwriteAdminAuth({ account }) : createLocalAdminAuth();
   }
   return adminAuth;
+}
+
+/** Database-based team auth (no Appwrite user accounts required). Local mode always returns a no-op. */
+export function getTeamAuth() {
+  if (!teamAuth) {
+    assertEnabled();
+    teamAuth = useAppwrite
+      ? createDbTeamAuth({ tablesDB, Query, databaseId: IPL_AUCTION_DATABASE_ID })
+      : {
+          kind: "local",
+          getSession: async () => ({ teamId: null, user: null }),
+          signIn: async () => ({ teamId: null, user: null }),
+          signOut: async () => {},
+        };
+  }
+  return teamAuth;
 }
