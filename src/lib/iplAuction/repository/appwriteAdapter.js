@@ -99,7 +99,7 @@ export function createAppwriteRepository({
   auctionId = null,
   pollMs = 2000,
   realtime = null,
-  realtimePollMs = 10_000,
+  realtimePollMs = 300_000,
   refetchDebounceMs = 100,
   idleStopMs = 1000,
   watchLifecycle = browserLifecycle,
@@ -115,6 +115,7 @@ export function createAppwriteRepository({
 
   const listeners = new Set();
   let state = placeholderState("Loading auction from Appwrite…");
+  let cachedRows = null;
   let loaded = false;
   let timer = null;
   let inFlight = null;
@@ -176,11 +177,19 @@ export function createAppwriteRepository({
       if (auction.schemaVersion !== SCHEMA_VERSION) {
         throw new Error(`Stored auction uses schema v${auction.schemaVersion}; this app expects v${SCHEMA_VERSION}.`);
       }
-      const [teams, players, purchases, activity] = await Promise.all(
-        [TABLES.TEAMS, TABLES.PLAYERS, TABLES.PURCHASES, TABLES.ACTIVITY].map((tableId) => listAll(tableId, auction.$id))
+      const [teams, players, purchases] = await Promise.all(
+        [TABLES.TEAMS, TABLES.PLAYERS, TABLES.PURCHASES].map((tableId) => listAll(tableId, auction.$id))
       );
+      const { rows: activity } = await tablesDB.listRows({
+        databaseId,
+        tableId: TABLES.ACTIVITY,
+        queries: [Query.equal("auctionId", auction.$id), Query.orderDesc("seq"), Query.limit(100)],
+      });
       const check = await tablesDB.getRow({ databaseId, tableId: TABLES.AUCTIONS, rowId: auction.$id });
-      if (check.version === auction.version) return rowsToState({ auction, teams, players, purchases, activity });
+      if (check.version === auction.version) {
+        cachedRows = { auction, teams, players, purchases, activity };
+        return rowsToState(cachedRows);
+      }
     }
     throw new Error("The auction kept changing while it was being read. Will retry on the next poll.");
   }
@@ -227,12 +236,44 @@ export function createAppwriteRepository({
     }, refetchDebounceMs);
   }
 
-  function onRealtimeEvent({ tableId, auctionId: rowAuctionId }) {
+  function onRealtimeEvent({ tableId, auctionId: rowAuctionId, payload, events }) {
     const pinned = auctionId ?? (loaded ? state.auctionId : null);
-    // Without a pinned auction, a new auction row may be a newer auction to switch to.
     const maybeNewAuction = !auctionId && tableId === TABLES.AUCTIONS;
     if (pinned && rowAuctionId && rowAuctionId !== pinned && !maybeNewAuction) return;
-    scheduleRefresh();
+
+    if (!cachedRows || !payload) {
+      scheduleRefresh();
+      return;
+    }
+
+    const isDelete = events.some((e) => e.includes(".delete"));
+    const listKey =
+      tableId === TABLES.TEAMS ? "teams" :
+      tableId === TABLES.PLAYERS ? "players" :
+      tableId === TABLES.PURCHASES ? "purchases" :
+      tableId === TABLES.ACTIVITY ? "activity" : null;
+
+    if (tableId === TABLES.AUCTIONS) {
+      if (!isDelete && (!cachedRows.auction || payload.version > cachedRows.auction.version)) {
+        cachedRows.auction = payload;
+      }
+    } else if (listKey) {
+      const list = cachedRows[listKey];
+      const idx = list.findIndex((r) => r.$id === payload.$id);
+      if (isDelete) {
+        if (idx >= 0) list.splice(idx, 1);
+      } else {
+        if (idx >= 0) list[idx] = payload;
+        else list.push(payload);
+      }
+    }
+
+    try {
+      const nextState = rowsToState(cachedRows);
+      if (isNewer(nextState, state)) setState(nextState);
+    } catch (err) {
+      scheduleRefresh();
+    }
   }
 
   function onRealtimeStatus(status) {
@@ -339,14 +380,16 @@ export function createAppwriteRepository({
       }
 
       for (let attempt = 1; attempt <= MAX_COMMIT_ATTEMPTS; attempt += 1) {
-        let latest;
-        try {
-          latest = await readConsistentState();
-        } catch (error) {
-          return { ok: false, state, error: toContractError(error) };
+        let latest = state;
+        if (attempt > 1 || !loaded) {
+          try {
+            latest = await readConsistentState();
+          } catch (error) {
+            return { ok: false, state, error: toContractError(error) };
+          }
+          if (!loaded || isNewer(latest, state)) setState(latest);
+          loaded = true;
         }
-        if (!loaded || isNewer(latest, state)) setState(latest);
-        loaded = true;
 
         const result = reduce(latest, { ...command, at: command.at ?? now() });
         if (!result.ok) return result;
