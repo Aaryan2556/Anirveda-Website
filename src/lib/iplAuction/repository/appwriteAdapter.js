@@ -247,7 +247,7 @@ export function createAppwriteRepository({
 
   /** Applies all writes atomically; rolls the transaction back if anything fails. */
   async function commit(writes) {
-    const transaction = await tablesDB.createTransaction({ ttl: TRANSACTION_TTL_SECONDS });
+    const transaction = await tablesDB.createTransaction();
     const transactionId = transaction.$id;
     try {
       await tablesDB.createOperations({
