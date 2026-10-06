@@ -44,7 +44,7 @@ const MAX_CONSISTENT_READ_ATTEMPTS = 3;
 const MAX_COMMIT_ATTEMPTS = 3;
 /** Stays under Appwrite's per-transaction operation limit. */
 const MAX_OPERATIONS_PER_COMMAND = 100;
-const TRANSACTION_TTL_SECONDS = 60;
+const TRANSACTION_TTL_SECONDS = 300;
 
 const failure = (state, code, message) => ({ ok: false, state, error: { code, message } });
 

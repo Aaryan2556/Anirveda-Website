@@ -18,7 +18,7 @@ function sanitizeUsername(raw) {
 }
 
 async function writeCredentials(teamId, username, password) {
-  const transaction = await tablesDB.createTransaction({ ttl: 30 });
+  const transaction = await tablesDB.createTransaction({ ttl: 300 });
   const transactionId = transaction.$id;
   try {
     await tablesDB.createOperations({
