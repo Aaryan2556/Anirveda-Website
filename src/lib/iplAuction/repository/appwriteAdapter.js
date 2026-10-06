@@ -4,7 +4,7 @@
  * Same contract as localAdapter.js (getSnapshot / subscribe / dispatch / destroy):
  * - Reads the auction from Appwrite TablesDB and maps it with appwriteMapper.js.
  * - While anything is subscribed: listens to Appwrite Realtime (Phase 6) and polls
- *   as a safety net (every 10 s with realtime, every 2 s without).
+ *   as a safety net (every 1 hour with realtime, every 2 s without).
  * - Realtime events are only "something changed" signals: a burst of events is
  *   collapsed into ONE full refetch (debounced), and an event that arrives while a
  *   read is in flight schedules another read afterwards, so a write that landed
@@ -99,7 +99,7 @@ export function createAppwriteRepository({
   auctionId = null,
   pollMs = 2000,
   realtime = null,
-  realtimePollMs = 300_000,
+  realtimePollMs = 3600_000,
   refetchDebounceMs = 100,
   idleStopMs = 1000,
   watchLifecycle = browserLifecycle,
@@ -183,7 +183,7 @@ export function createAppwriteRepository({
       const { rows: activity } = await tablesDB.listRows({
         databaseId,
         tableId: TABLES.ACTIVITY,
-        queries: [Query.equal("auctionId", auction.$id), Query.orderDesc("seq"), Query.limit(100)],
+        queries: [Query.equal("auctionId", auction.$id), Query.orderDesc("seq"), Query.limit(25)],
       });
       const check = await tablesDB.getRow({ databaseId, tableId: TABLES.AUCTIONS, rowId: auction.$id });
       if (check.version === auction.version) {
