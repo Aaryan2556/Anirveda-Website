@@ -305,10 +305,11 @@ export function createAppwriteRepository({
 
     try {
       const nextState = rowsToState(cachedRows);
-      if (isNewer(nextState, state)) {
-        setState(nextState);
-        saveToLocalStorage();
-      }
+      // We patched the cache with a real-time event. Even if the 'version' hasn't 
+      // bumped yet (because the auction row arrived after this child row), we 
+      // want to reflect the updated child row in the UI immediately.
+      setState(nextState);
+      saveToLocalStorage();
     } catch (err) {
       scheduleRefresh();
     }

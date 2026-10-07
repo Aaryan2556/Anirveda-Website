@@ -129,9 +129,10 @@ export function PlayerPhoto({ player, size = "md" }) {
 
 export function PlayerTags({ player }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 mt-2">
       <Tag tone="primary">{ROLE_LABELS[player.role]}</Tag>
-      {player.isOverseas && <Tag>Overseas</Tag>}
+      {player.nationality && <Tag tone="default">{player.nationality}</Tag>}
+      {player.isOverseas && <Tag tone="default">Overseas</Tag>}
       {isFictional(player) && <Tag tone="warning">Fictional</Tag>}
     </div>
   );
@@ -139,13 +140,13 @@ export function PlayerTags({ player }) {
 
 
 
-/** Name only. */
 export function PlayerIdentity({ player, large = false }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <h3 className={`font-Bebas font-bold uppercase leading-none tracking-tight text-slate-100 ${large ? "text-5xl xl:text-6xl" : "text-3xl sm:text-4xl"}`}>
         {player.name}
       </h3>
+      <PlayerTags player={player} />
     </div>
   );
 }
