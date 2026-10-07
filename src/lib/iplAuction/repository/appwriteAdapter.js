@@ -113,10 +113,41 @@ export function createAppwriteRepository({
   if (!tablesDB || !Query || !ID) throw new Error("createAppwriteRepository: tablesDB, Query and ID are required.");
   if (!databaseId) throw new Error("createAppwriteRepository: databaseId is required (VITE_IPL_AUCTION_DATABASE_ID).");
 
+  const LOCAL_STORAGE_KEY = `ipl_auction_cache_${databaseId}_${auctionId || 'latest'}`;
+
   const listeners = new Set();
-  let state = placeholderState("Loading auction from Appwrite…");
   let cachedRows = null;
   let loaded = false;
+  let state = placeholderState("Loading auction from Appwrite…");
+
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const stored = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.auction && parsed.auction.schemaVersion === SCHEMA_VERSION) {
+          const loadedState = rowsToState(parsed);
+          state = loadedState;
+          cachedRows = parsed;
+          loaded = true;
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to load auction from localStorage", err);
+    }
+  }
+
+  function saveToLocalStorage() {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    try {
+      if (cachedRows) {
+        window.localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cachedRows));
+      }
+    } catch (err) {
+      console.warn("Failed to save auction to localStorage", err);
+    }
+  }
+
   let timer = null;
   let inFlight = null;
   let rerun = false;
@@ -177,6 +208,9 @@ export function createAppwriteRepository({
       if (auction.schemaVersion !== SCHEMA_VERSION) {
         throw new Error(`Stored auction uses schema v${auction.schemaVersion}; this app expects v${SCHEMA_VERSION}.`);
       }
+      if (cachedRows && cachedRows.auction && cachedRows.auction.version === auction.version && cachedRows.auction.$id === auction.$id) {
+        return rowsToState(cachedRows);
+      }
       const [teams, players, purchases] = await Promise.all(
         [TABLES.TEAMS, TABLES.PLAYERS, TABLES.PURCHASES].map((tableId) => listAll(tableId, auction.$id))
       );
@@ -188,6 +222,7 @@ export function createAppwriteRepository({
       const check = await tablesDB.getRow({ databaseId, tableId: TABLES.AUCTIONS, rowId: auction.$id });
       if (check.version === auction.version) {
         cachedRows = { auction, teams, players, purchases, activity };
+        saveToLocalStorage();
         return rowsToState(cachedRows);
       }
     }
@@ -270,7 +305,10 @@ export function createAppwriteRepository({
 
     try {
       const nextState = rowsToState(cachedRows);
-      if (isNewer(nextState, state)) setState(nextState);
+      if (isNewer(nextState, state)) {
+        setState(nextState);
+        saveToLocalStorage();
+      }
     } catch (err) {
       scheduleRefresh();
     }
