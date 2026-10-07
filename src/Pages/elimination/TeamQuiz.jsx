@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { QUESTIONS } from '../../data/iplauction/elimination/questions';
+import { QUESTIONS } from '../../data/iplAuction/elimination/questions';
 import { databases, IPL_DATABASE_ID, COLLECTIONS } from '../../config/appwrite';
 import { ID } from 'appwrite';
 import { CheckCircle2, ChevronRight, Check, AlertCircle, Zap, Award, Sparkles, LogOut, Loader2, Clock } from 'lucide-react';
