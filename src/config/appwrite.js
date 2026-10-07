@@ -9,11 +9,12 @@ if (import.meta.env.VITE_APPWRITE_PROJECT_ID) client.setProject(import.meta.env.
 export const account = new Account(client);
 export const databases = new Databases(client);
 
+// SINGLE DECLARATION with fallback
 export const DATABASE_ID =
-  import.meta.env.VITE_APPWRITE_DATABASE_ID;
+  import.meta.env.VITE_APPWRITE_DATABASE_ID || "ipl_elimination_db";
 
 export const TEAMS_COLLECTION_ID =
-  import.meta.env.VITE_APPWRITE_TEAMS_COLLECTION_ID;
+  import.meta.env.VITE_APPWRITE_TEAMS_COLLECTION_ID || "teams";
 
 export const SITUATIONS_COLLECTION_ID =
   import.meta.env.VITE_APPWRITE_SITUATIONS_COLLECTION_ID;
@@ -23,9 +24,18 @@ export const RESPONSES_COLLECTION_ID =
 
 // IPL Auction (separate dev database; table IDs live in src/lib/iplAuction/repository/appwriteSchema.js)
 export const tablesDB = new TablesDB(client);
-export const IPL_AUCTION_DATABASE_ID = import.meta.env.VITE_IPL_AUCTION_DATABASE_ID;
+export const IPL_AUCTION_DATABASE_ID =
+  import.meta.env.VITE_IPL_AUCTION_DATABASE_ID || DATABASE_ID;
 
-export { ID, Query };
+// Target collections for Elimination Round
+export const IPL_DATABASE_ID ="ipl_elimination_db";
 
-// IPL Auction realtime (Phase 6) subscribes through the shared client.
-export { client };
+export const COLLECTIONS = {
+  TEAMS: "teams",
+  QUESTIONS: "questions",
+  SUBMISSIONS: "submissions",
+  LEADERBOARD: "leaderboard",
+};
+
+export default client;
+export { ID, Query, client };

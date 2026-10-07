@@ -48,6 +48,33 @@ const IPLAuctionPlay = lazy(() => import("./Pages/IPLAuction/PlayPage"));
 const IPLAuctionLobby = lazy(() => import("./Pages/IPLAuction/LobbyPage"));
 const IPLAuctionScreen = lazy(() => import("./Pages/IPLAuction/ScreenPage"));
 
+// IPL Elimination Round (3 files)
+const TeamLogin = lazy(() => import("./Pages/elimination/TeamLogin"));
+const TeamQuiz = lazy(() => import("./Pages/elimination/TeamQuiz"));
+const AdminReferee = lazy(() => import("./Pages/elimination/AdminReferee"));
+
+// Helper wrapper to switch between Login and Quiz for participants
+const EliminationPlayer = () => {
+  const [activeTeam, setActiveTeam] = useState(() => {
+    const saved = localStorage.getItem("ipl_active_team");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  if (!activeTeam) {
+    return <TeamLogin onLoginSuccess={(team) => setActiveTeam(team)} />;
+  }
+
+  return (
+    <TeamQuiz
+      team={activeTeam}
+      onExit={() => {
+        localStorage.removeItem("ipl_active_team");
+        setActiveTeam(null);
+      }}
+    />
+  );
+};
+
 
 
 const AppContent = ({ symbols, heading }) => {
@@ -184,6 +211,15 @@ const AppContent = ({ symbols, heading }) => {
             <Route path="/ipl-auction/admin" element={<Suspense fallback={null}><IPLAuctionAdmin /></Suspense>} />
             <Route path="/ipl-auction/admin/screen" element={<Suspense fallback={null}><IPLAuctionScreen /></Suspense>} />
             <Route path="/ipl-auction/play" element={<Suspense fallback={null}><IPLAuctionPlay /></Suspense>} />
+
+            {/* IPL Elimination Round */}
+            <Route path="/ipl-auction/elimination/play" element={<Suspense fallback={null}><EliminationPlayer /></Suspense>} />
+            <Route path="/ipl-auction/elimination/referee" element={<Suspense fallback={null}><AdminReferee /></Suspense>} />
+            <Route path="/ipl-auction/elimination/refree" element={<Suspense fallback={null}><AdminReferee /></Suspense>} />
+            <Route path="/elimination/play" element={<Suspense fallback={null}><EliminationPlayer /></Suspense>} />
+            <Route path="/elimination/quiz" element={<Suspense fallback={null}><EliminationPlayer /></Suspense>} />
+            <Route path="/elimination/referee" element={<Suspense fallback={null}><AdminReferee /></Suspense>} />
+            <Route path="/elimination/refree" element={<Suspense fallback={null}><AdminReferee /></Suspense>} />
           </Routes>
         </>
       )}
