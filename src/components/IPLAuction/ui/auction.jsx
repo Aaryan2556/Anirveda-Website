@@ -108,6 +108,8 @@ const PHOTO_SIZES = {
   sm: "h-10 w-10 text-lg",
   md: "aspect-[4/5] w-full text-6xl",
   lg: "aspect-[4/5] w-full text-8xl",
+  // Big screen: the parent sets the width in vh, so the initials scale with it.
+  xl: "aspect-[4/5] w-full text-[7vh]",
 };
 
 /** Player photo, or initials when there is none (fictional players have no photos). */
