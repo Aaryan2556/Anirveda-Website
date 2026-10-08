@@ -68,12 +68,10 @@ function BasePrice({ player }) {
 function CurrentPlayer({ player }) {
   return (
     <div className="flex w-full flex-col items-center px-4 text-center">
-      <div className="rounded-2xl border border-gold/40 bg-obsidian-800/60 p-1.5 shadow-goldGlow">
-        <div className="w-[min(38vh,72vw)]">
-          <PlayerPhoto player={player} size="xl" />
-        </div>
+      <div className="w-[min(38vh,72vw)]">
+        <PlayerPhoto player={player} size="xl" bare />
       </div>
-      <h2 className="mt-4 max-w-full truncate font-Bebas font-bold uppercase leading-none tracking-tight text-slate-100 text-[clamp(2.25rem,5.5vw,7.5rem)]">
+      <h2 className="mt-4 max-w-full truncate font-Bebas font-bold uppercase leading-none tracking-tight text-slate-100 drop-shadow-[0_2px_18px_rgba(0,0,0,0.75)] text-[clamp(2.25rem,5.5vw,7.5rem)]">
         {player.name}
       </h2>
       <div className="mt-3 sm:mt-4">
@@ -153,10 +151,17 @@ export default function BigScreen() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="fixed inset-0 flex flex-col overflow-hidden bg-obsidian-900 font-sans text-slate-100">
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[90vmin] w-[90vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/10 blur-[120px]"
-          aria-hidden="true"
-        />
+        {/* Night-stadium backdrop: slow pan, dark-blue grade, flickering floodlights. */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          <img
+            src="/images/stadium/night-stadium.png"
+            alt=""
+            className="h-full w-full animate-slowPan object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#040B1E]/75 via-[#071229]/70 to-[#07090E]/95" />
+          <div className="absolute -top-[12vmin] left-[6vw] h-[40vmin] w-[40vmin] rounded-full bg-[#CFE4FF]/25 blur-[90px] animate-lightFlicker" />
+          <div className="absolute -top-[12vmin] right-[6vw] h-[40vmin] w-[40vmin] rounded-full bg-[#BFD8FF]/20 blur-[90px] animate-lightFlickerAlt" />
+        </div>
 
         <header className="relative z-10 flex shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-slate-800/80 px-4 py-2.5 sm:px-8">
           <div className="flex min-w-0 items-center gap-3">

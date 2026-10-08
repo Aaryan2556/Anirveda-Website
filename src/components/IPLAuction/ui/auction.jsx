@@ -112,11 +112,14 @@ const PHOTO_SIZES = {
   xl: "aspect-[4/5] w-full text-[7vh]",
 };
 
-/** Player photo, or initials when there is none (fictional players have no photos). */
-export function PlayerPhoto({ player, size = "md" }) {
+/** Player photo, or initials when there is none (fictional players have no photos).
+ *  `bare` renders it frameless — no border, no gradient — for views where the
+ *  photo sits directly on a custom background (e.g. the big screen). */
+export function PlayerPhoto({ player, size = "md", bare = false }) {
+  const frame = bare ? "rounded-2xl" : "rounded-xl border border-slate-800 bg-gradient-to-b from-obsidian-700 to-obsidian-900";
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-800 bg-gradient-to-b from-obsidian-700 to-obsidian-900 ${PHOTO_SIZES[size]}`}
+      className={`relative flex shrink-0 items-center justify-center overflow-hidden ${frame} ${PHOTO_SIZES[size]}`}
     >
       {player.image ? (
         <img src={player.image} alt={player.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />

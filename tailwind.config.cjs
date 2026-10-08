@@ -57,6 +57,9 @@ module.exports = {
         marquee: "marquee 25s linear infinite",
         float: "float 6s ease-in-out infinite",
         spinSlow: "spin 20s linear infinite",
+        slowPan: "slowPan 40s ease-in-out infinite alternate",
+        lightFlicker: "lightFlicker 6s ease-in-out infinite",
+        lightFlickerAlt: "lightFlicker 8.5s ease-in-out infinite 2.5s",
       },
       keyframes: {
         moveShapes: {
@@ -78,6 +81,23 @@ module.exports = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        slowPan: {
+          "0%": { transform: "scale(1) translate3d(0, 0, 0)" },
+          "50%": { transform: "scale(1.06) translate3d(-1.5%, -1%, 0)" },
+          "100%": { transform: "scale(1.08) translate3d(1%, 1.5%, 0)" },
+        },
+        // Uneven stops so the floodlights flicker like a real stadium, not a shine.
+        lightFlicker: {
+          "0%, 100%": { opacity: "0.35" },
+          "8%": { opacity: "0.62" },
+          "16%": { opacity: "0.4" },
+          "27%": { opacity: "0.7" },
+          "38%": { opacity: "0.45" },
+          "52%": { opacity: "0.66" },
+          "64%": { opacity: "0.38" },
+          "78%": { opacity: "0.6" },
+          "89%": { opacity: "0.42" },
         },
       },
       boxShadow: {

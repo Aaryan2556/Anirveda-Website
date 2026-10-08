@@ -81,3 +81,11 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #D4AF37;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slowPan,
+  .animate-lightFlicker,
+  .animate-lightFlickerAlt {
+    animation: none !important;
+  }
+}
