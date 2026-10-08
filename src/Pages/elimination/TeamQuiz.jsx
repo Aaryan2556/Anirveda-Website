@@ -6,26 +6,36 @@ import { CheckCircle2, ChevronRight, Check, AlertCircle, Zap, Award, Sparkles, L
 
 // Fallback Answer Map if answer is not inline in questions array
 const ANSWER_MAP = {
-    1: "Mitchell Starc",
-    2: "Chennai Super Kings",
-    3: "Virat Kohli",
-    4: "Alzarri Joseph",
-    5: "Suresh Raina",
-    6: "Kolkata Knight Riders",
-    7: "Chris Gayle",
-    8: "Yuzvendra Chahal",
-    9: "David Warner",
-    10: "Punjab Kings",
-    11: "Shane Warne",
-    12: "Amit Mishra",
-    13: "Gujarat Titans",
-    14: "Yashasvi Jaiswal",
-    15: "Sunil Narine",
-    16: "Royal Challengers Bengaluru",
-    17: "Manish Pandey",
-    18: "Bhuvneshwar Kumar",
-    19: "Hardik Pandya",
-    20: "Sunrisers Hyderabad",
+    1: "Dwayne Bravo & Harshal Patel",
+    2: "Anil Kumble",
+    3: "David Warner",
+    4: "Krunal Pandya",
+    5: "KL Rahul — 152*",
+    6: "AB de Villiers",
+    7: "Manish Pandey",
+    8: "Lakshmipathy Balaji",
+    9: "Yuvraj Singh",
+    10: "6 wickets for 12 runs",
+    11: "Nat Sciver-Brunt",
+    12: "Issy Wong",
+    13: "Smriti Mandhana",
+    14: "Nat Sciver-Brunt — 523 runs",
+    15: "Mumbai Indians",
+    16: "Sunil Narine",
+    17: "KL Rahul",
+    18: "Harshal Patel",
+    19: "Punjab Kings",
+    20: "Mitchell Starc",
+    21: "Vaibhav Sooryavanshi",
+    22: "Vaibhav Sooryavanshi",
+    23: "Shubman Gill",
+    24: "Ravindra Jadeja",
+    25: "Punjab Kings",
+    26: "Amelia Kerr",
+    27: "Sophie Molineux",
+    28: "Gujarat Giants",
+    29: "Sophie Devine",
+    30: "Smriti Mandhana",
 };
 
 // Fisher-Yates unbiased shuffler
@@ -62,13 +72,13 @@ export default function TeamQuiz({ team, onExit }) {
         return localStorage.getItem(completedStorageKey) === 'true';
     });
 
-    // 1. Initialize shuffled questions with localStorage cache
+    // 1. Initialize shuffled questions with localStorage cache (limited to 15 questions)
     const [shuffledQuestions, setShuffledQuestions] = useState(() => {
         const cachedDeck = localStorage.getItem(deckStorageKey);
         if (cachedDeck) {
             try {
                 const parsed = JSON.parse(cachedDeck);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed.slice(0, 15);
             } catch (err) {
                 console.error('Failed to parse cached deck:', err);
             }
@@ -84,7 +94,7 @@ export default function TeamQuiz({ team, onExit }) {
                     answer: q.answer || ANSWER_MAP[qId] || '',
                 };
             });
-            const randomized = shuffleArray(normalized);
+            const randomized = shuffleArray(normalized).slice(0, 15);
             localStorage.setItem(deckStorageKey, JSON.stringify(randomized));
             return randomized;
         }
@@ -314,7 +324,7 @@ export default function TeamQuiz({ team, onExit }) {
                     </div>
                     <h2 className="text-3xl font-black uppercase text-amber-400 tracking-tight mb-2">Round Locked In!</h2>
                     <p className="text-slate-300 text-sm mb-6 leading-relaxed">
-                        All 20 responses recorded for <strong className="text-white font-bold">{team?.teamName || team?.name || 'Franchise'}</strong>. Stand by for final standings on the referee board.
+                        All {shuffledQuestions.length || 15} responses recorded for <strong className="text-white font-bold">{team?.teamName || team?.name || 'Franchise'}</strong>. Stand by for final standings on the referee board.
                     </p>
                     <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 mb-6 font-mono text-xs text-amber-400/90 flex items-center justify-center gap-2">
                         <Zap className="w-4 h-4 text-amber-400 animate-pulse" />
@@ -332,10 +342,11 @@ export default function TeamQuiz({ team, onExit }) {
     }
 
     const currentQ = shuffledQuestions[currentIndex] || {};
-    const progressPercent = ((currentIndex) / shuffledQuestions.length) * 100;
+    const progressPercent = ((currentIndex + 1) / (shuffledQuestions.length || 15)) * 100;
     const mins = Math.floor(timerSeconds / 60);
     const secs = timerSeconds % 60;
     const displayTime = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    const isFinalQuestion = currentIndex + 1 === shuffledQuestions.length;
 
     return (
         <div
@@ -466,7 +477,7 @@ export default function TeamQuiz({ team, onExit }) {
                         </>
                     ) : (
                         <>
-                            <span>Confirm & Lock Answer</span>
+                            <span>{isFinalQuestion ? "SUBMIT INNINGS / COMPLETE QUIZ" : "Confirm & Lock Answer"}</span>
                             <ChevronRight className="w-5 h-5" />
                         </>
                     )}

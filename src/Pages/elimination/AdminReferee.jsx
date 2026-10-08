@@ -16,7 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-const TOTAL_QUESTIONS_COUNT = 20;
+const TOTAL_QUESTIONS_COUNT = 15;
 
 // Format duration helper function
 const formatDuration = (seconds) => {

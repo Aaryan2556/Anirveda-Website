@@ -215,7 +215,6 @@ export default function TeamLogin({ onLoginSuccess }) {
                 {/* Footer info */}
                 <div className="mt-8 pt-4 border-t border-slate-800/80 text-center">
                     <p className="text-[11px] text-slate-400 uppercase tracking-widest font-mono flex items-center justify-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-400/70" />
                         Secure Arena Terminal • Single Device Lock Enforced
                     </p>
                 </div>
