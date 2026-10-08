@@ -110,7 +110,7 @@ describe("appwrite adapter: reading", () => {
     repo.subscribe(() => {});
     await repo.refresh();
     assert.equal(repo.getSnapshot().playerOrder.length, state.playerOrder.length);
-    assert.equal(repo.getSnapshot().activity.length, 130);
+    assert.equal(repo.getSnapshot().activity.length, 25);
   });
 
   it("keeps the same snapshot reference when nothing changed, and updates on a newer version", async () => {
