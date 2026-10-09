@@ -36,15 +36,22 @@ export function checkEligibility(state, teamId, player) {
 
   // After this purchase, are there still enough open slots to meet every role minimum?
   const slotsLeft = squad.max - (stats.count + 1);
-  let slotsNeeded = 0;
+  let roleSlotsNeeded = 0;
   for (const role of ROLE_LIST) {
     const have = stats.roles[role] + (role === player.role ? 1 : 0);
-    slotsNeeded += Math.max(0, roleLimits[role].min - have);
+    roleSlotsNeeded += Math.max(0, roleLimits[role].min - have);
   }
+  
+  const femaleMin = state.config.minFemale || 0;
+  const femaleHave = stats.female + (player.isFemale ? 1 : 0);
+  const femaleSlotsNeeded = Math.max(0, femaleMin - femaleHave);
+  
+  const slotsNeeded = Math.max(roleSlotsNeeded, femaleSlotsNeeded);
+
   if (slotsNeeded > slotsLeft) {
     return fail(
       ERROR.ROLE_MINIMUM_UNREACHABLE,
-      `Buying this ${ROLE_LABELS[player.role].toLowerCase()} would leave too few slots to meet the role minimums.`
+      `Buying this ${ROLE_LABELS[player.role].toLowerCase()} would leave too few slots to meet the minimum requirements.`
     );
   }
   return null;

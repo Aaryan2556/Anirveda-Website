@@ -68,6 +68,7 @@ function normalizePlayer(input) {
     return invalid("Base price must be a positive whole number of lakhs.");
   }
   if (typeof input.isOverseas !== "boolean") return invalid("isOverseas must be true or false.");
+  if (input.isFemale !== undefined && typeof input.isFemale !== "boolean") return invalid("isFemale must be true or false.");
 
   const textLimits = {
     nationality: TEXT_LIMITS.nationality,
@@ -101,6 +102,7 @@ function normalizePlayer(input) {
       name,
       role: input.role,
       isOverseas: input.isOverseas,
+      isFemale: input.isFemale ?? false,
       basePrice: input.basePrice,
       nationality: text.nationality,
       battingStyle: text.battingStyle,

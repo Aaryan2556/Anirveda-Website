@@ -99,6 +99,7 @@ export const SCHEMA = Object.freeze([
       str("name", L.name, true),
       enumeration("role", ROLE_LIST),
       bool("isOverseas"),
+      bool("isFemale", false),
       int("basePrice", { required: true, min: 1 }),
       str("nationality", L.nationality),
       // int("age"),

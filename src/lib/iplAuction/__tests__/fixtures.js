@@ -12,6 +12,7 @@ export function testConfig(overrides = {}) {
     initialPurse: 1000,
     squad: { min: 0, max: 4 },
     maxOverseas: 1,
+    minFemale: 0,
     roleLimits: {
       BATTER: { min: 0, max: 2 },
       BOWLER: { min: 0, max: 2 },

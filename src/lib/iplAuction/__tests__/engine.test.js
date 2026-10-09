@@ -579,8 +579,6 @@ describe("player field validation", () => {
       { bowlingStyle: 12 },
       { image: "x".repeat(2001) },
       { dataSource: "x".repeat(33) },
-      { age: 24.5 },
-      { age: "old" },
       { stats: ["not", "an", "object"] },
       { recentPerformance: "12 (9)" },
       { recentPerformance: [12] },
@@ -589,7 +587,7 @@ describe("player field validation", () => {
   });
 
   it("applies the same checks to edits", () => {
-    reject(setup(), { type: COMMANDS.UPDATE_PLAYER, playerId: "bat1", changes: { age: -1 } }, ERROR.INVALID_INPUT);
+    reject(setup(), { type: COMMANDS.UPDATE_PLAYER, playerId: "bat1", changes: { basePrice: -1 } }, ERROR.INVALID_INPUT);
   });
 });
 

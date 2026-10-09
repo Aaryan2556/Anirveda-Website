@@ -11,15 +11,17 @@ export function getTeamStats(state, teamId) {
   let spent = 0;
   let count = 0;
   let overseas = 0;
+  let female = 0;
   for (const purchase of state.purchases) {
     if (purchase.teamId !== teamId) continue;
     const player = state.players[purchase.playerId];
     spent += purchase.price;
     count += 1;
     if (player?.isOverseas) overseas += 1;
+    if (player?.isFemale) female += 1;
     if (player) roles[player.role] += 1;
   }
-  return { spent, purse: state.config.initialPurse - spent, count, overseas, roles };
+  return { spent, purse: state.config.initialPurse - spent, count, overseas, female, roles };
 }
 
 export function getSquad(state, teamId) {
@@ -73,6 +75,7 @@ export function getAuctionSummary(state) {
   const teams = getTeamsInOrder(state).map((team) => {
     const stats = getTeamStats(state, team.id);
     const rolesShort = ROLE_LIST.filter((role) => stats.roles[role] < roleLimits[role].min);
+    if ((state.config.minFemale || 0) > stats.female) rolesShort.push("FEMALE");
     return {
       team,
       stats,
@@ -135,6 +138,11 @@ export function getRoleNeeds(state, teamId) {
     slotsLeft: Math.max(0, squad.max - stats.count),
     squadShort: Math.max(0, squad.min - stats.count),
     overseasLeft: maxOverseas === null ? null : Math.max(0, maxOverseas - stats.overseas),
+    female: {
+      have: stats.female,
+      min: state.config.minFemale || 0,
+      need: Math.max(0, (state.config.minFemale || 0) - stats.female),
+    },
     roles,
   };
 }

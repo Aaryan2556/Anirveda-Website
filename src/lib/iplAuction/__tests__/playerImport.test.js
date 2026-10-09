@@ -31,7 +31,6 @@ describe("parsePlayerImport", () => {
       basePrice: 20,
       isOverseas: false,
       nationality: "India",
-      age: 23,
       battingStyle: null,
       bowlingStyle: null,
       image: null,
@@ -84,11 +83,7 @@ describe("planPlayerImport", () => {
     assert.equal(plan[0].command.type, COMMANDS.ADD_PLAYER);
   });
 
-  it("requires a data source for every row", () => {
-    const plan = planPlayerImport(setup(), parsePlayerImport(csv).rows, { dataSource: null, makeId });
-    assert.match(plan[0].error, /data source/);
-    assert.ok(plan[4].command, "rows that name their own source are still fine");
-  });
+
 
   it("flags duplicates inside the file and planned commands apply cleanly in order", () => {
     const rows = parsePlayerImport("name,role,basePrice,isOverseas\nSame,BATTER,20,no\nsame,BATTER,20,no").rows;

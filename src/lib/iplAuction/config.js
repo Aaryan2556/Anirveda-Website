@@ -41,13 +41,14 @@ export const ROLE_LABELS = Object.freeze({
  */
 export const DEV_DEFAULT_CONFIG = Object.freeze({
   initialPurse: 10000,
-  squad: { min: 1, max: 15 },
-  maxOverseas: 8,
+  squad: { min: 15, max: 15 },
+  maxOverseas: 5,
+  minFemale: 2,
   roleLimits: {
-    BATTER: { min: 1, max: 15 },
-    BOWLER: { min: 1, max: 15 },
-    ALL_ROUNDER: { min: 0, max: 15 },
-    WICKETKEEPER: { min: 1, max: 15 },
+    BATTER: { min: 4, max: 15 },
+    BOWLER: { min: 4, max: 15 },
+    ALL_ROUNDER: { min: 3, max: 15 },
+    WICKETKEEPER: { min: 2, max: 15 },
   },
   minimumReserve: { enabled: false, perSlot: 20 },
   allowUnsoldRelist: true,
@@ -74,6 +75,10 @@ export function validateConfig(config) {
     errors.push("maxOverseas must be a whole number or null.");
   }
 
+  if (config.minFemale !== undefined && !isInt(config.minFemale)) {
+    errors.push("minFemale must be a whole number.");
+  }
+
   const roleLimits = config.roleLimits;
   if (!roleLimits || typeof roleLimits !== "object") {
     errors.push("roleLimits must be an object.");
@@ -95,7 +100,8 @@ export function validateConfig(config) {
       }
       if (isInt(limit.min)) minTotal += limit.min;
     }
-    if (squad && isInt(squad.max) && minTotal > squad.max) {
+    const overallMin = Math.max(minTotal, config.minFemale || 0);
+    if (squad && isInt(squad.max) && overallMin > squad.max) {
       errors.push("The role minimums add up to more than squad.max.");
     }
   }
