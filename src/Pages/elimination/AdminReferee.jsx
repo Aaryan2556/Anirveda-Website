@@ -284,9 +284,12 @@ export default function AdminReferee() {
                       </span>
 
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-extrabold text-base sm:text-lg text-slate-100 block">
                             {team.teamName}
+                          </span>
+                          <span className="text-xs font-mono text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded border border-slate-700/50">
+                            ID: {team.teamId || team.$id || team.id}
                           </span>
                           {isTop8 && (
                             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 rounded-full">
