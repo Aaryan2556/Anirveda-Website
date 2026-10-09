@@ -66,9 +66,16 @@ export function createDbTeamAuth({ tablesDB, Query, databaseId }) {
   async function getSession() {
     const stored = loadSession();
     if (!stored) return { teamId: null, user: null };
-    // Verify the team still exists (handles case where it was deleted)
+    // Verify the team still exists and the device ID matches the one in DB
     try {
       const row = await tablesDB.getRow({ databaseId, tableId: TABLES.TEAMS, rowId: stored.teamId });
+      
+      // Enforce single active device: if the DB has a different device ID, log this device out.
+      if (row.activeDeviceId && stored.deviceId && row.activeDeviceId !== stored.deviceId) {
+        saveSession(null);
+        return { teamId: null, user: null };
+      }
+
       const user = makeUser(row);
       return { teamId: row.$id, user };
     } catch {
@@ -86,12 +93,41 @@ export function createDbTeamAuth({ tablesDB, Query, databaseId }) {
     const storedPassword = String(row.password);
     const givenPassword = String(password);
     if (storedPassword !== givenPassword) throw new Error("Incorrect password.");
+    
+    // Generate a unique device ID for this login session
+    const deviceId = Math.random().toString(36).substring(2, 15);
+    
+    // Update the active device ID in the database to lock out other devices
+    try {
+      await tablesDB.updateRow({ 
+        databaseId, 
+        tableId: TABLES.TEAMS, 
+        rowId: row.$id, 
+        data: { activeDeviceId: deviceId } 
+      });
+    } catch (e) {
+      console.warn("Could not update activeDeviceId", e);
+    }
+
     const user = makeUser(row);
-    saveSession({ teamId: row.$id, user });
+    saveSession({ teamId: row.$id, user, deviceId });
     return { teamId: row.$id, user };
   }
 
   async function signOut() {
+    const stored = loadSession();
+    if (stored && stored.teamId) {
+      try {
+        await tablesDB.updateRow({
+          databaseId,
+          tableId: TABLES.TEAMS,
+          rowId: stored.teamId,
+          data: { activeDeviceId: null }
+        });
+      } catch (e) {
+        // ignore
+      }
+    }
     saveSession(null);
   }
 
