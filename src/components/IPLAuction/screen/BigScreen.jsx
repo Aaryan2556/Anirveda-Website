@@ -154,7 +154,7 @@ export default function BigScreen() {
         {/* Night-stadium backdrop: slow pan, dark-blue grade, flickering floodlights. */}
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <img
-            src="/images/stadium/night-stadium.png"
+            src="/images/stadium/stadium-bg.png"
             alt=""
             className="h-full w-full animate-slowPan object-cover"
           />
