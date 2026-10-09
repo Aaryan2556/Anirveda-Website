@@ -7,12 +7,13 @@
  * team at the hammer price, or UNSOLD. Summary and exports at the end.
  * The big screen (/ipl-auction/sabka_malik/screen) and the summary are admin-only too.
  */
+import { Suspense, lazy } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useAuctionCommand } from "../../lib/iplAuction/hooks/useAuctionCommand";
 import { AUCTION_STATUS, COMMANDS } from "../../lib/iplAuction/engine";
-import { Button, Empty, Page, PageHeader, Panel, Tabs } from "../../components/IPLAuction/ui/controls";
+import { Button, Empty, Page, PageHeader, Panel, Tabs, Spinner } from "../../components/IPLAuction/ui/controls";
 import {
   ActivityLog,
   AuctionStatus,
@@ -23,16 +24,17 @@ import {
   TeamsTable,
 } from "../../components/IPLAuction/ui/auction";
 import { getTeamsInOrder } from "../../lib/iplAuction/engine";
-import AuctionSummary from "../../components/IPLAuction/admin/AuctionSummary";
-import PlayerEditor from "../../components/IPLAuction/admin/PlayerEditor";
-import PlayerImport from "../../components/IPLAuction/admin/PlayerImport";
-import PlayerSequence from "../../components/IPLAuction/admin/PlayerSequence";
-import RulesForm from "../../components/IPLAuction/admin/RulesForm";
 import { AuctionControls, OnTheBlock } from "../../components/IPLAuction/admin/RunAuction";
 import RequireAdmin from "../../components/IPLAuction/admin/RequireAdmin";
-import TeamManager from "../../components/IPLAuction/admin/TeamManager";
-import TeamCredentials from "../../components/IPLAuction/admin/TeamCredentials";
 import { ConfirmButton } from "../../components/IPLAuction/admin/fields";
+
+const AuctionSummary = lazy(() => import("../../components/IPLAuction/admin/AuctionSummary"));
+const PlayerEditor = lazy(() => import("../../components/IPLAuction/admin/PlayerEditor"));
+const PlayerImport = lazy(() => import("../../components/IPLAuction/admin/PlayerImport"));
+const PlayerSequence = lazy(() => import("../../components/IPLAuction/admin/PlayerSequence"));
+const RulesForm = lazy(() => import("../../components/IPLAuction/admin/RulesForm"));
+const TeamManager = lazy(() => import("../../components/IPLAuction/admin/TeamManager"));
+const TeamCredentials = lazy(() => import("../../components/IPLAuction/admin/TeamCredentials"));
 
 const TABS = [
   { id: "run", label: "Run auction" },
@@ -132,7 +134,7 @@ function AdminConsole({ identity }) {
         )}
 
         {tab === "players" && (
-          <>
+          <Suspense fallback={<Spinner label="Loading players section..." />}>
             <Panel title="Player sequence">
               <PlayerSequence state={state} send={send} pending={pending} renderSaleAction={cancelSaleAction} />
             </Panel>
@@ -142,30 +144,34 @@ function AdminConsole({ identity }) {
             <Panel title="Bulk import">
               {isCompleted ? <Empty>The auction has ended.</Empty> : <PlayerImport state={state} send={send} pending={pending} />}
             </Panel>
-          </>
+          </Suspense>
         )}
 
         {tab === "teams" && (
-          <>
+          <Suspense fallback={<Spinner label="Loading teams section..." />}>
             <Panel title="Teams">
               <TeamManager state={state} send={send} pending={pending} />
             </Panel>
             <Panel title="Team login credentials">
               <TeamCredentials state={state} />
             </Panel>
-          </>
+          </Suspense>
         )}
 
         {tab === "rules" && (
-          <Panel title="Auction rules">
-            <RulesForm state={state} send={send} pending={pending} />
-          </Panel>
+          <Suspense fallback={<Spinner label="Loading rules section..." />}>
+            <Panel title="Auction rules">
+              <RulesForm state={state} send={send} pending={pending} />
+            </Panel>
+          </Suspense>
         )}
 
         {tab === "summary" && (
-          <Panel title="Auction summary">
-            <AuctionSummary state={state} renderSaleAction={(sale) => cancelSaleAction(sale.playerId)} />
-          </Panel>
+          <Suspense fallback={<Spinner label="Loading summary section..." />}>
+            <Panel title="Auction summary">
+              <AuctionSummary state={state} renderSaleAction={(sale) => cancelSaleAction(sale.playerId)} />
+            </Panel>
+          </Suspense>
         )}
       </div>
     </Page>
