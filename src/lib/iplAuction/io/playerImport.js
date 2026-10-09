@@ -217,7 +217,6 @@ export function planPlayerImport(state, rows, { dataSource = null, makeId }) {
     const warnings = [];
     if (!input) return { line, name, error: "Row is not an object.", warnings };
     const source = input.dataSource ?? dataSource;
-    if (!source) return { line, name, error: "No data source: add a dataSource column or pick a default.", warnings };
 
     const key = name.trim().toLowerCase();
     if (key && seenNames.has(key)) warnings.push("A player with this name already exists.");
