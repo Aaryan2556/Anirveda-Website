@@ -112,7 +112,6 @@ function toPlayerInput(record) {
     basePrice: toInteger(fields.basePrice),
     isOverseas: toBoolean(fields.isOverseas),
     nationality: text(fields.nationality),
-    age: toInteger(fields.age),
     battingStyle: text(fields.battingStyle),
     bowlingStyle: text(fields.bowlingStyle),
     image: text(fields.image),

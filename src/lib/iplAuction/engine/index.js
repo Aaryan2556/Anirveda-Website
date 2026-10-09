@@ -82,10 +82,6 @@ function normalizePlayer(input) {
     if (text[field] === undefined) return invalid(`${field} must be text of at most ${maxLength} characters.`);
   }
   text.dataSource ??= "UNSPECIFIED";
-  const age = input.age ?? null;
-  if (age !== null && (!Number.isSafeInteger(age) || age < 0 || age > 100)) {
-    return invalid("Age must be a whole number between 0 and 100.");
-  }
   const stats = input.stats ?? null;
   if (stats !== null && (typeof stats !== "object" || Array.isArray(stats) || jsonLength(stats) > TEXT_LIMITS.stats)) {
     return invalid("Statistics must be an object (and not too large).");
@@ -107,7 +103,6 @@ function normalizePlayer(input) {
       isOverseas: input.isOverseas,
       basePrice: input.basePrice,
       nationality: text.nationality,
-      age,
       battingStyle: text.battingStyle,
       bowlingStyle: text.bowlingStyle,
       image: text.image,
