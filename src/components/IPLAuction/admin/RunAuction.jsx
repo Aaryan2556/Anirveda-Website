@@ -75,7 +75,7 @@ export function AuctionControls({ state, send, pending, reset }) {
         )}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-800 pt-3 text-xs text-slate-400">
-        <a href="/ipl-auction/admin/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
+        <a href="/ipl-auction/sabka_malik/screen" target="_blank" rel="noreferrer" className="text-primary underline-offset-2 hover:underline">
           Open big screen
         </a>
         <span className="uppercase tracking-wider">View as team (admin preview):</span>

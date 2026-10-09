@@ -1,11 +1,11 @@
 /**
- * /ipl-auction/admin — the admin console.
+ * /ipl-auction/sabka_malik — the admin console.
  * All business rules live in src/lib/iplAuction; this page only wires them up.
  *
  * Flow: set up rules, teams and players; start; players come up in sequence,
  * teams bid in the room, and the admin records each result here — SOLD to a
  * team at the hammer price, or UNSOLD. Summary and exports at the end.
- * The big screen (/ipl-auction/admin/screen) and the summary are admin-only too.
+ * The big screen (/ipl-auction/sabka_malik/screen) and the summary are admin-only too.
  */
 import { useSearchParams } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
@@ -74,7 +74,7 @@ function AdminConsole({ identity }) {
       <PageHeader title="Admin console">
         <AuctionStatus state={state} />
         <a
-          href="/ipl-auction/admin/screen"
+          href="/ipl-auction/sabka_malik/screen"
           target="_blank"
           rel="noreferrer"
           className="rounded-3xl border border-primary px-3 py-1 text-xs text-primary transition hover:bg-primary hover:text-slate-100"

@@ -2,7 +2,7 @@
  * /ipl-auction — public event page, laid out like the site's home hero (site
  * navbar, gold Space Grotesk title, monospace buttons, glass card). Its only
  * way in is Team login: each team signs in and sees only its own dashboard.
- * The big screen, summary and controls are admin-only (/ipl-auction/admin).
+ * The big screen, summary and controls are admin-only (/ipl-auction/sabka_malik).
  */
 import { Link } from "react-router-dom";
 import { ArrowRight, LayoutDashboard, Radio, Wallet } from "lucide-react";

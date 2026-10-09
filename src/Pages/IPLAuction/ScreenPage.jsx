@@ -1,5 +1,5 @@
 /**
- * /ipl-auction/admin/screen — admin-only projector view for the room: the
+ * /ipl-auction/sabka_malik/screen — admin-only projector view for the room: the
  * player on the block at room scale (photo, name, tags, base price) and the
  * SOLD announcement when the admin records a sale. Sends no commands; the
  * screen follows the admin console.
