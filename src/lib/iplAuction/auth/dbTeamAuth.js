@@ -44,7 +44,7 @@ export function createDbTeamAuth({ tablesDB, Query, databaseId }) {
 
   function loadSession() {
     try {
-      const raw = localStorage.getItem(IPL_TEAM_SESSION_KEY);
+      const raw = sessionStorage.getItem(IPL_TEAM_SESSION_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -53,9 +53,9 @@ export function createDbTeamAuth({ tablesDB, Query, databaseId }) {
 
   function saveSession(session) {
     if (session) {
-      localStorage.setItem(IPL_TEAM_SESSION_KEY, JSON.stringify(session));
+      sessionStorage.setItem(IPL_TEAM_SESSION_KEY, JSON.stringify(session));
     } else {
-      localStorage.removeItem(IPL_TEAM_SESSION_KEY);
+      sessionStorage.removeItem(IPL_TEAM_SESSION_KEY);
     }
   }
 

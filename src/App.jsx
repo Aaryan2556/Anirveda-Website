@@ -56,7 +56,7 @@ const AdminReferee = lazy(() => import("./Pages/elimination/AdminReferee"));
 // Helper wrapper to switch between Login and Quiz for participants
 const EliminationPlayer = () => {
   const [activeTeam, setActiveTeam] = useState(() => {
-    const saved = localStorage.getItem("ipl_active_team");
+    const saved = sessionStorage.getItem("ipl_active_team");
     return saved ? JSON.parse(saved) : null;
   });
 
@@ -68,7 +68,7 @@ const EliminationPlayer = () => {
     <TeamQuiz
       team={activeTeam}
       onExit={() => {
-        localStorage.removeItem("ipl_active_team");
+        sessionStorage.removeItem("ipl_active_team");
         setActiveTeam(null);
       }}
     />

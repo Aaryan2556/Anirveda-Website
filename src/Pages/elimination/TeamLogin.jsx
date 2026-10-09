@@ -69,7 +69,7 @@ export default function TeamLogin({ onLoginSuccess }) {
             // Check if current device is the one that previously logged in as this team
             let isSameDevice = false;
             try {
-                const saved = localStorage.getItem('ipl_current_team') || localStorage.getItem('ipl_active_team');
+                const saved = sessionStorage.getItem('ipl_current_team') || sessionStorage.getItem('ipl_active_team');
                 if (saved) {
                     const parsed = JSON.parse(saved);
                     if (parsed.docId === teamDoc.$id || String(parsed.teamId || '').toUpperCase() === cleanTeamId) {
@@ -109,8 +109,8 @@ export default function TeamLogin({ onLoginSuccess }) {
                 docId: teamDoc.$id,
             };
 
-            localStorage.setItem('ipl_current_team', JSON.stringify(sessionData));
-            localStorage.setItem('ipl_active_team', JSON.stringify(sessionData));
+            sessionStorage.setItem('ipl_current_team', JSON.stringify(sessionData));
+            sessionStorage.setItem('ipl_active_team', JSON.stringify(sessionData));
 
             if (onLoginSuccess) {
                 onLoginSuccess(sessionData);
