@@ -112,7 +112,6 @@ function toPlayerInput(record) {
     basePrice: toInteger(fields.basePrice),
     isOverseas: toBoolean(fields.isOverseas),
     nationality: text(fields.nationality),
-    age: toInteger(fields.age),
     battingStyle: text(fields.battingStyle),
     bowlingStyle: text(fields.bowlingStyle),
     image: text(fields.image),
@@ -142,11 +141,11 @@ export function parseCsv(text) {
     } else if (char === '"') {
       quoted = true;
     } else if (char === ",") {
-      row.push(field);
+      row.push(field.trim().toLowerCase() === "null" ? "" : field);
       field = "";
     } else if (char === "\n" || char === "\r") {
       if (char === "\r" && text[i + 1] === "\n") i += 1;
-      row.push(field);
+      row.push(field.trim().toLowerCase() === "null" ? "" : field);
       rows.push(row);
       row = [];
       field = "";
@@ -155,7 +154,7 @@ export function parseCsv(text) {
     }
   }
   if (field !== "" || row.length) {
-    row.push(field);
+    row.push(field.trim().toLowerCase() === "null" ? "" : field);
     rows.push(row);
   }
   return rows.filter((cells) => cells.some((cell) => cell.trim() !== ""));
@@ -217,7 +216,6 @@ export function planPlayerImport(state, rows, { dataSource = null, makeId }) {
     const warnings = [];
     if (!input) return { line, name, error: "Row is not an object.", warnings };
     const source = input.dataSource ?? dataSource;
-    if (!source) return { line, name, error: "No data source: add a dataSource column or pick a default.", warnings };
 
     const key = name.trim().toLowerCase();
     if (key && seenNames.has(key)) warnings.push("A player with this name already exists.");

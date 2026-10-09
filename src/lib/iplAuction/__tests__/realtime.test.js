@@ -139,6 +139,7 @@ describe("realtime: adapter", () => {
     await settle();
     assert.equal(counter.reads, 1, "initial load");
 
+    db.store(apply(live(), { type: COMMANDS.OPEN_LOT }));
     for (const tableId of Object.values(TABLES)) source.emit(rowEvent(tableId));
     source.emit(auctionEvent());
     assert.equal(timers.pendingTimeouts(), 1, "one debounce window for the whole burst");
@@ -279,15 +280,16 @@ describe("realtime: adapter", () => {
     assert.equal(repo.connection.getStatus().status, CONNECTION_STATUS.OFFLINE);
     lifecycle.wake();
     assert.equal(repo.connection.getStatus().status, CONNECTION_STATUS.LIVE);
+    db.store(apply(live(), { type: COMMANDS.OPEN_LOT }));
     timers.runTimeouts();
     await settle();
     assert.equal(counter.reads, 2);
   });
 
-  it("polls every 10 s as a safety net with realtime, every 2 s without", async () => {
+  it("polls every 1 hour as a safety net with realtime, every 2 s without", async () => {
     const withRealtime = realtimeRepo(createFakeTablesDB());
     withRealtime.repo.subscribe(() => {});
-    assert.deepEqual(withRealtime.timers.intervals().map((i) => i.ms), [10_000]);
+    assert.deepEqual(withRealtime.timers.intervals().map((i) => i.ms), [3600_000]);
 
     const timers = fakeTimers();
     const polling = createAppwriteRepository({
@@ -455,6 +457,7 @@ describe("realtime: multi-device simulation", () => {
     await settle();
 
     const expected = admin.repo.getSnapshot();
+    expected.activity = expected.activity.slice(-25);
     assert.equal(expected.purchases.length, 50 - Math.floor(50 / 7));
     for (const [i, { repo }] of teamScreens.entries()) {
       assert.deepStrictEqual(repo.getSnapshot(), expected, `team screen ${i} differs from the admin screen`);

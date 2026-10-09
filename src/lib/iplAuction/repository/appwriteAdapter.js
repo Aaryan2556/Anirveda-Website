@@ -208,7 +208,7 @@ export function createAppwriteRepository({
       if (auction.schemaVersion !== SCHEMA_VERSION) {
         throw new Error(`Stored auction uses schema v${auction.schemaVersion}; this app expects v${SCHEMA_VERSION}.`);
       }
-      if (cachedRows && cachedRows.auction && cachedRows.auction.version === auction.version && cachedRows.auction.$id === auction.$id) {
+      if (cachedRows && cachedRows.lastFullyFetchedVersion === auction.version && cachedRows.auction && cachedRows.auction.$id === auction.$id) {
         return rowsToState(cachedRows);
       }
       const [teams, players, purchases] = await Promise.all(
@@ -221,7 +221,7 @@ export function createAppwriteRepository({
       });
       const check = await tablesDB.getRow({ databaseId, tableId: TABLES.AUCTIONS, rowId: auction.$id });
       if (check.version === auction.version) {
-        cachedRows = { auction, teams, players, purchases, activity };
+        cachedRows = { auction, teams, players, purchases, activity, lastFullyFetchedVersion: auction.version };
         saveToLocalStorage();
         return rowsToState(cachedRows);
       }
@@ -300,6 +300,10 @@ export function createAppwriteRepository({
       } else {
         if (idx >= 0) list[idx] = payload;
         else list.push(payload);
+      }
+      if (listKey === "activity") {
+        list.sort((a, b) => b.seq - a.seq);
+        if (list.length > 25) list.splice(25);
       }
     }
 

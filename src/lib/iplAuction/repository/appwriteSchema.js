@@ -101,7 +101,7 @@ export const SCHEMA = Object.freeze([
       bool("isOverseas"),
       int("basePrice", { required: true, min: 1 }),
       str("nationality", L.nationality),
-      int("age"),
+      // int("age"),
       str("battingStyle", L.style),
       str("bowlingStyle", L.style),
       str("image", L.url),

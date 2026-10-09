@@ -116,13 +116,26 @@ const PHOTO_SIZES = {
  *  `bare` renders it frameless — no border, no gradient — for views where the
  *  photo sits directly on a custom background (e.g. the big screen). */
 export function PlayerPhoto({ player, size = "md", bare = false }) {
-  const frame = bare ? "rounded-2xl" : "rounded-xl border border-slate-800 bg-gradient-to-b from-obsidian-700 to-obsidian-900";
+  const frame = bare ? "" : "rounded-xl overflow-hidden border border-slate-800 bg-gradient-to-b from-obsidian-700 to-obsidian-900";
+  
+  let imageUrl = player.image;
+  // Cloudinary delivers JPEGs with a white background even if transparency was generated.
+  // Force PNG delivery for Cloudinary URLs to preserve the alpha channel.
+  if (imageUrl && imageUrl.includes("res.cloudinary.com")) {
+    imageUrl = imageUrl.replace(/\.jpe?g([?#]|$)/i, ".png$1");
+  }
+
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center overflow-hidden ${frame} ${PHOTO_SIZES[size]}`}
+      className={`relative flex shrink-0 items-center justify-center ${frame} ${PHOTO_SIZES[size]}`}
     >
-      {player.image ? (
-        <img src={player.image} alt={player.name} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      {imageUrl ? (
+        <img 
+          src={imageUrl} 
+          alt={player.name} 
+          loading="lazy" 
+          className={`absolute inset-0 h-full w-full ${bare ? "object-contain drop-shadow-2xl" : "object-cover"}`} 
+        />
       ) : (
         <span className="font-Bebas font-bold leading-none text-gold/60" aria-hidden="true">
           {initials(player.name)}
