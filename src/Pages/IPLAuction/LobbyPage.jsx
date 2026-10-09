@@ -11,8 +11,8 @@ import { ButtonLink, Divider } from "../../components/IPLAuction/ui/controls";
 
 const FEATURES = [
   { icon: Radio, title: "Live", text: "The player on the block and every sale, the moment the hammer falls." },
-  { icon: Wallet, title: "Your purse", text: "What you have left and the most you can pay for the next player." },
-  { icon: LayoutDashboard, title: "Your squad", text: "Players bought, role needs and the player market." },
+  { icon: Wallet, title: "Your purse", text: "Track your ₹100 Cr franchise budget and maximum bid capability in real time." },
+  { icon: LayoutDashboard, title: "Your squad", text: "Build your target 15-player roster with category breakdown and role requirements." },
 ];
 
 export default function LobbyPage() {

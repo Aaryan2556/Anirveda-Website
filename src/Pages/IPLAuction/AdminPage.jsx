@@ -17,10 +17,12 @@ import {
   ActivityLog,
   AuctionStatus,
   FictionalNotice,
+  FranchiseSummaryCard,
   LocalModeNotice,
   RecentSales,
   TeamsTable,
 } from "../../components/IPLAuction/ui/auction";
+import { getTeamsInOrder } from "../../lib/iplAuction/engine";
 import AuctionSummary from "../../components/IPLAuction/admin/AuctionSummary";
 import PlayerEditor from "../../components/IPLAuction/admin/PlayerEditor";
 import PlayerImport from "../../components/IPLAuction/admin/PlayerImport";
@@ -119,8 +121,12 @@ function AdminConsole({ identity }) {
                 <ActivityLog state={state} />
               </Panel>
             </div>
-            <Panel title="Teams">
-              <TeamsTable state={state} />
+            <Panel title="Franchise Summary">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {getTeamsInOrder(state).map((team) => (
+                  <FranchiseSummaryCard key={team.id} state={state} team={team} />
+                ))}
+              </div>
             </Panel>
           </>
         )}

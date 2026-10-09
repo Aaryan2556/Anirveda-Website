@@ -40,16 +40,16 @@ export const ROLE_LABELS = Object.freeze({
  * - undoDepth:               how many actions the admin can undo
  */
 export const DEV_DEFAULT_CONFIG = Object.freeze({
-  initialPurse: 2500,
-  squad: { min: 5, max: 8 },
-  maxOverseas: 3,
+  initialPurse: 10000,
+  squad: { min: 1, max: 15 },
+  maxOverseas: 8,
   roleLimits: {
-    BATTER: { min: 1, max: 4 },
-    BOWLER: { min: 1, max: 4 },
-    ALL_ROUNDER: { min: 0, max: 3 },
-    WICKETKEEPER: { min: 1, max: 2 },
+    BATTER: { min: 1, max: 15 },
+    BOWLER: { min: 1, max: 15 },
+    ALL_ROUNDER: { min: 0, max: 15 },
+    WICKETKEEPER: { min: 1, max: 15 },
   },
-  minimumReserve: { enabled: true, perSlot: 20 },
+  minimumReserve: { enabled: false, perSlot: 20 },
   allowUnsoldRelist: true,
   undoDepth: 50,
 });

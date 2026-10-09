@@ -172,7 +172,8 @@ export function PlayerHero({ player, large = false }) {
 
 /** The player on the block, or a waiting message. */
 export function CurrentLot({ state, large = false, hideLiveBid = false }) {
-  if (!state.lot) {
+  const lotPlayer = state.lot ? state.players[state.lot.playerId] ?? null : null;
+  if (!state.lot || !lotPlayer) {
     const message =
       state.status === AUCTION_STATUS.COMPLETED
         ? "The auction is complete."
@@ -202,12 +203,12 @@ export function CurrentLot({ state, large = false, hideLiveBid = false }) {
           <>
             <p className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-400">Base Price</p>
             <p className={`font-mono font-bold text-gold ${large ? "text-5xl" : "text-3xl"}`}>
-              {formatLakhs(state.players[state.lot.playerId].basePrice)}
+              {formatLakhs(lotPlayer.basePrice)}
             </p>
           </>
         )}
       </div>
-      <PlayerHero player={state.players[state.lot.playerId]} large={large} />
+      <PlayerHero player={lotPlayer} large={large} />
     </div>
   );
 }
@@ -234,27 +235,26 @@ export function useSoldAnnouncement(state) {
 }
 
 export function SoldBanner({ sale }) {
+  if (!sale || !sale.player || !sale.team) return null;
   return (
     <AnimatePresence>
-      {sale && (
-        <motion.div
-          key={sale.id}
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-6"
-        >
-          <div className="w-full max-w-4xl rounded-xl border-2 border-primary bg-obsidian-800 px-8 py-10 text-center">
-            <p className="font-Bebas text-[6rem] font-bold uppercase leading-none tracking-[-0.04em] text-primary drop-shadow-[0_0_35px_rgba(212,175,55,0.45)] sm:text-[9rem]">Sold</p>
-            <p className="mt-2 font-Bebas text-4xl font-bold uppercase tracking-tight text-slate-100 sm:text-5xl">{sale.player.name}</p>
-            <p className="mt-4 font-sans text-2xl text-slate-400 sm:text-3xl">
-              to <span className="text-slate-100">{sale.team.name}</span> for{" "}
-              <span className="font-mono text-4xl font-bold text-gold sm:text-5xl">{formatLakhs(sale.price)}</span>
-            </p>
-          </div>
-        </motion.div>
-      )}
+      <motion.div
+        key={sale.id}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.35 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 px-6"
+      >
+        <div className="w-full max-w-4xl rounded-xl border-2 border-primary bg-obsidian-800 px-8 py-10 text-center">
+          <p className="font-Bebas text-[6rem] font-bold uppercase leading-none tracking-[-0.04em] text-primary drop-shadow-[0_0_35px_rgba(212,175,55,0.45)] sm:text-[9rem]">Sold</p>
+          <p className="mt-2 font-Bebas text-4xl font-bold uppercase tracking-tight text-slate-100 sm:text-5xl">{sale.player.name}</p>
+          <p className="mt-4 font-sans text-2xl text-slate-400 sm:text-3xl">
+            to <span className="text-slate-100">{sale.team.name}</span> for{" "}
+            <span className="font-mono text-4xl font-bold text-gold sm:text-5xl">{formatLakhs(sale.price)}</span>
+          </p>
+        </div>
+      </motion.div>
     </AnimatePresence>
   );
 }
@@ -264,7 +264,7 @@ export function SoldBanner({ sale }) {
 /** The most recent sale, called out when it was this team's. Announced to screen readers. */
 export function LatestSale({ state, teamId }) {
   const [sale] = getRecentSales(state, 1);
-  if (!sale) return null;
+  if (!sale || !sale.player || !sale.team) return null;
   const mine = teamId && sale.teamId === teamId;
   return (
     <div
@@ -283,7 +283,7 @@ export function LatestSale({ state, teamId }) {
 
 /** Latest sales first. `renderAction` adds a per-row control (the admin's cancel button). */
 export function RecentSales({ state, limit = 10, highlightTeamId, renderAction }) {
-  const sales = getRecentSales(state, limit);
+  const sales = getRecentSales(state, limit).filter((s) => s && s.player && s.team);
   if (!sales.length) return <Empty>No players sold yet.</Empty>;
   return (
     <ol className="divide-y divide-slate-800 text-sm">
@@ -477,6 +477,72 @@ export function TeamSquadCard({ state, team, mine = false, footer }) {
             ))}
           </ul>
         )}
+      </div>
+      {footer}
+    </section>
+  );
+}
+
+/** Summary-only Franchise Card: category counts, purse remaining out of 100 Cr, squad count out of 15. */
+export function FranchiseSummaryCard({ state, team, mine = false, footer }) {
+  const config = state.config || {};
+  const maxSquad = config.squad?.max || 15;
+  const initialPurse = config.initialPurse || 10000;
+  const stats = getTeamStats(state, team.id);
+
+  const batCount = stats.roles?.BATTER || 0;
+  const bowlCount = stats.roles?.BOWLER || 0;
+  const arCount = stats.roles?.ALL_ROUNDER || 0;
+  const wkCount = stats.roles?.WICKETKEEPER || 0;
+  const osCount = stats.overseas || 0;
+
+  return (
+    <section className={`rounded-xl border bg-obsidian-800 p-4 transition ${mine ? "border-primary bg-primary/5" : "border-slate-800"}`}>
+      <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+        <div>
+          <h3 className="font-Bebas text-xl font-bold uppercase leading-none tracking-tight text-slate-100">
+            {team.name}
+            {mine && <Tag tone="primary" className="ml-2 align-middle">You</Tag>}
+          </h3>
+          <span className="font-mono text-[10px] text-slate-400">Code: <strong className="text-slate-200">{team.shortName}</strong></span>
+        </div>
+        <div className="text-right">
+          <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Purse Remaining</span>
+          <span className="font-mono text-lg font-bold leading-none text-gold">{formatLakhs(stats.purse)}</span>
+          <span className="block font-mono text-[9px] text-slate-500">of {formatLakhs(initialPurse)}</span>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg border border-slate-800/80 bg-obsidian-900/60 p-2 text-center">
+          <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Players Acquired</span>
+          <span className="font-mono text-base font-bold text-slate-100">{stats.count} / {maxSquad}</span>
+        </div>
+        <div className="rounded-lg border border-slate-800/80 bg-obsidian-900/60 p-2 text-center">
+          <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Spent Budget</span>
+          <span className="font-mono text-base font-bold text-primary">{formatLakhs(stats.spent)}</span>
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-1.5 border-t border-slate-800/80 pt-2.5">
+        <span className="block font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Role Breakdown</span>
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          <span className="inline-flex items-center rounded border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 font-mono text-[11px] text-slate-300">
+            <strong className="mr-1 text-gold">{batCount}</strong> BAT
+          </span>
+          <span className="inline-flex items-center rounded border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 font-mono text-[11px] text-slate-300">
+            <strong className="mr-1 text-gold">{bowlCount}</strong> BOWL
+          </span>
+          <span className="inline-flex items-center rounded border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 font-mono text-[11px] text-slate-300">
+            <strong className="mr-1 text-gold">{arCount}</strong> AR
+          </span>
+          <span className="inline-flex items-center rounded border border-slate-700/60 bg-slate-900/80 px-2 py-0.5 font-mono text-[11px] text-slate-300">
+            <strong className="mr-1 text-gold">{wkCount}</strong> WK
+          </span>
+          <span className="inline-flex items-center rounded border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-[11px] text-amber-300">
+            <strong className="mr-1 text-amber-400">{osCount}</strong> OS
+          </span>
+        </div>
       </div>
       {footer}
     </section>

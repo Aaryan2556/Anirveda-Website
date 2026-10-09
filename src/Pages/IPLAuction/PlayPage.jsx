@@ -11,7 +11,8 @@
  * mode there are no logins and the team comes from `?team=`.
  */
 import { useSearchParams } from "react-router-dom";
-import { getMaxBid, getTeamStats } from "../../lib/iplAuction/engine";
+import { ROLE_LABELS } from "../../lib/iplAuction/config";
+import { getMaxBid, getTeamStats, getTeamsInOrder } from "../../lib/iplAuction/engine";
 import { useAuction } from "../../lib/iplAuction/hooks/useAuction";
 import { useTeamActor } from "../../lib/iplAuction/hooks/useAuctionActor";
 import { formatLakhs } from "../../lib/iplAuction/money";
@@ -26,23 +27,137 @@ import {
 } from "../../components/IPLAuction/ui/auction";
 import HistoryPanel from "../../components/IPLAuction/play/HistoryPanel";
 import LivePanel from "../../components/IPLAuction/play/LivePanel";
-import MarketPanel from "../../components/IPLAuction/play/MarketPanel";
 import TeamsPanel from "../../components/IPLAuction/play/TeamsPanel";
 
 const TABS = [
   { id: "live", label: "Live" },
   { id: "teams", label: "Teams" },
-  { id: "market", label: "Market" },
+  { id: "leaderboard", label: "Leaderboard " },
   { id: "history", label: "History" },
 ];
+
+/** Real-time Auction Leaderboard: Top 10 Most Expensive Players & Franchise Spend Rankings */
+function LeaderboardPanel({ state }) {
+  const maxSquad = state.config?.squad?.max || 15;
+
+  const expensivePlayers = [...(state.purchases || [])]
+    .map((p) => ({
+      ...p,
+      player: state.players[p.playerId],
+      team: state.teams[p.teamId],
+    }))
+    .filter((p) => p.player && p.team)
+    .sort((a, b) => b.price - a.price)
+    .slice(0, 10);
+
+  const topSpenders = getTeamsInOrder(state)
+    .map((team) => ({
+      team,
+      stats: getTeamStats(state, team.id),
+    }))
+    .sort((a, b) => b.stats.spent - a.stats.spent);
+
+  const getRankBadgeStyle = (rank) => {
+    if (rank === 1) return "border-gold/60 bg-gold/20 text-gold font-bold shadow-goldGlow";
+    if (rank === 2) return "border-slate-300/60 bg-slate-300/15 text-slate-200 font-bold";
+    if (rank === 3) return "border-amber-700/60 bg-amber-700/15 text-amber-400 font-bold";
+    return "border-slate-800 bg-obsidian-900 text-slate-400 font-medium";
+  };
+
+  const getRankIcon = (rank) => {
+    if (rank === 1) return "🏆 1";
+    if (rank === 2) return "🥈 2";
+    if (rank === 3) return "🥉 3";
+    return `#${rank}`;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Left Column: Top 10 Most Expensive Players */}
+        <Panel title="🏆 Most Expensive Players">
+          {expensivePlayers.length === 0 ? (
+            <p className="py-8 text-center font-mono text-xs text-slate-500">No players sold yet.</p>
+          ) : (
+            <ol className="divide-y divide-slate-800/80 text-sm">
+              {expensivePlayers.map((item, index) => {
+                const rank = index + 1;
+                return (
+                  <li key={item.id} className="flex items-center justify-between gap-3 py-2.5 transition hover:bg-slate-900/50">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`flex h-7 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg border px-1 font-mono text-xs ${getRankBadgeStyle(rank)}`}>
+                        {getRankIcon(rank)}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate font-Bebas text-lg font-bold uppercase tracking-tight text-slate-100 sm:text-xl">
+                            {item.player.name}
+                          </span>
+                          <span className="shrink-0 rounded border border-slate-700/60 bg-slate-900/80 px-1.5 py-0.5 font-mono text-[10px] uppercase text-slate-300">
+                            {ROLE_LABELS[item.player.role] || item.player.role}
+                          </span>
+                        </div>
+                        <p className="truncate font-mono text-xs text-slate-400">
+                          Franchise: <strong className="text-primary">{item.team.name}</strong> ({item.team.shortName})
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="font-mono text-base font-bold text-gold drop-shadow-[0_0_12px_rgba(212,175,55,0.25)] sm:text-lg">
+                        {formatLakhs(item.price)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </Panel>
+
+        {/* Right Column: Teams Spending Leaderboard */}
+        <Panel title="💰 Franchise Spend Leaderboard">
+          <ol className="divide-y divide-slate-800/80 text-sm">
+            {topSpenders.map(({ team, stats }, index) => {
+              const rank = index + 1;
+              return (
+                <li key={team.id} className="flex items-center justify-between gap-3 py-2.5 transition hover:bg-slate-900/50">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`flex h-7 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg border px-1 font-mono text-xs ${getRankBadgeStyle(rank)}`}>
+                      {getRankIcon(rank)}
+                    </span>
+                    <div className="min-w-0">
+                      <h4 className="truncate font-Bebas text-lg font-bold uppercase tracking-tight text-slate-100 sm:text-xl">
+                        {team.name}
+                      </h4>
+                      <p className="font-mono text-xs text-slate-400">
+                        Purse Left: <span className="text-gold font-bold">{formatLakhs(stats.purse)}</span> · Squad: <span className="text-slate-200">{stats.count}/{maxSquad}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Total Spent</span>
+                    <span className="font-mono text-base font-bold text-primary sm:text-lg">
+                      {formatLakhs(stats.spent)}
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </Panel>
+      </div>
+    </div>
+  );
+}
 
 /** The team's own numbers, pinned to the top of the screen. */
 function PurseBar({ state, teamId }) {
   const stats = getTeamStats(state, teamId);
+  const maxSquad = state.config?.squad?.max || 15;
   const items = [
     { label: "Purse left", value: formatLakhs(stats.purse), accent: true },
     { label: "Max next", value: formatLakhs(getMaxBid(state, teamId)) },
-    { label: "Squad", value: `${stats.count}/${state.config.squad.max}` },
+    { label: "Squad", value: `${stats.count}/${maxSquad}` },
   ];
   return (
     <div className="sticky top-0 z-10 -mx-4 mb-5 border-b border-gold/20 bg-obsidian-900/90 px-4 py-2.5 backdrop-blur-2xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -112,11 +227,7 @@ function TeamDashboard() {
       <>
         <Tabs tabs={TABS} current={tab} onSelect={selectTab} label="Dashboard sections" />
         {tab === "live" && <LivePanel state={state} teamId={teamId} />}
-        {tab === "market" && (
-          <Panel title="Player market">
-            <MarketPanel state={state} teamId={teamId} />
-          </Panel>
-        )}
+        {tab === "leaderboard" && <LeaderboardPanel state={state} />}
         {tab === "teams" && <TeamsPanel state={state} teamId={teamId} />}
         {tab === "history" && <HistoryPanel state={state} teamId={teamId} />}
       </>

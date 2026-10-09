@@ -25,15 +25,16 @@ export function getTeamStats(state, teamId) {
 export function getSquad(state, teamId) {
   return state.purchases
     .filter((purchase) => purchase.teamId === teamId)
-    .map((purchase) => ({ ...state.players[purchase.playerId], price: purchase.price }));
+    .map((purchase) => ({ ...state.players[purchase.playerId], price: purchase.price }))
+    .filter((p) => p && p.name);
 }
 
 export function getTeamsInOrder(state) {
-  return state.teamOrder.map((id) => state.teams[id]);
+  return state.teamOrder.map((id) => state.teams[id]).filter(Boolean);
 }
 
 export function getPlayersInOrder(state) {
-  return state.playerOrder.map((id) => state.players[id]);
+  return state.playerOrder.map((id) => state.players[id]).filter(Boolean);
 }
 
 /** Description of the action the next UNDO would reverse, or null. */
@@ -53,10 +54,14 @@ export function getNextPlayerInSequence(state) {
 
 /** Latest sales first, each with its player and team. */
 export function getRecentSales(state, limit = Infinity) {
-  return state.purchases
+  return (state.purchases || [])
     .slice(-limit)
     .reverse()
-    .map((purchase) => ({ ...purchase, player: state.players[purchase.playerId], team: state.teams[purchase.teamId] }));
+    .map((purchase) => ({
+      ...purchase,
+      player: state.players[purchase.playerId] ?? null,
+      team: state.teams[purchase.teamId] ?? null,
+    }));
 }
 
 /**

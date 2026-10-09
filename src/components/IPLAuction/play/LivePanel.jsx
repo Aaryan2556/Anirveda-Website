@@ -38,59 +38,150 @@ export function BuyingPower({ state, teamId }) {
   );
 }
 
-/** Purse, spend, squad size, what the team still needs, and its squad. */
+/** Full-width stacked view: 15-slot compact squad grid on top, broadcast summary strip on bottom. */
 export function MyTeam({ state, teamId }) {
-  const { config } = state;
+  const config = state.config || {};
+  const team = state.teams[teamId];
+  const initialPurse = config.initialPurse || 10000;
+  const maxSquad = config.squad?.max || 15;
   const stats = getTeamStats(state, teamId);
-  const needs = getRoleNeeds(state, teamId);
   const history = getTeamPurchaseHistory(state, teamId);
+  const maxBid = getMaxBid(state, teamId);
+
+  const batCount = stats.roles?.BATTER || 0;
+  const bowlCount = stats.roles?.BOWLER || 0;
+  const arCount = stats.roles?.ALL_ROUNDER || 0;
+  const wkCount = stats.roles?.WICKETKEEPER || 0;
+  const osCount = stats.overseas || 0;
+
+  // Build 15-slot canvas array
+  const slots = Array.from({ length: maxSquad }, (_, i) => history[i] || null);
+
+  const getRoleShort = (role) => {
+    switch (role) {
+      case "BATTER": return "BAT";
+      case "BOWLER": return "BOWL";
+      case "ALL_ROUNDER": return "AR";
+      case "WICKETKEEPER": return "WK";
+      default: return role;
+    }
+  };
+
+  const getRoleBadgeStyle = (role) => {
+    switch (role) {
+      case "BATTER": return "border-blue-500/40 bg-blue-500/10 text-blue-300";
+      case "BOWLER": return "border-emerald-500/40 bg-emerald-500/10 text-emerald-300";
+      case "ALL_ROUNDER": return "border-purple-500/40 bg-purple-500/10 text-purple-300";
+      case "WICKETKEEPER": return "border-amber-500/40 bg-amber-500/10 text-amber-300";
+      default: return "border-slate-700 bg-slate-800 text-slate-300";
+    }
+  };
+
   return (
-    <div className="space-y-5 text-sm">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <StatTile label="Purse left" value={formatLakhs(stats.purse)} accent />
-        <StatTile label="Max price next" value={formatLakhs(getMaxBid(state, teamId))} />
-        <StatTile label="Spent" value={formatLakhs(stats.spent)} />
-        <StatTile label="Squad" value={`${stats.count}/${config.squad.max}`} hint={`min ${config.squad.min}`} />
-        <StatTile label="Overseas" value={`${stats.overseas}/${config.maxOverseas ?? "∞"}`} />
-        <StatTile label="Slots left" value={needs.slotsLeft} />
-      </div>
-
-      <div>
-        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">Still needed</div>
-        <p className="mb-3 text-xs text-slate-400">
-          {needs.squadShort > 0
-            ? `${needs.squadShort} more player${needs.squadShort === 1 ? "" : "s"} to reach the squad minimum of ${config.squad.min}. `
-            : "Squad minimum reached. "}
-          {needs.overseasLeft !== null && `${needs.overseasLeft} overseas slot${needs.overseasLeft === 1 ? "" : "s"} left.`}
-        </p>
-        <RoleMeters state={state} teamId={teamId} />
-      </div>
-
-      <div>
-        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Squad ({history.length}) in order bought
-        </div>
-        {history.length === 0 ? (
-          <Empty>No players bought yet.</Empty>
-        ) : (
-          <ol className="divide-y divide-slate-800">
-            {history.map((purchase, index) => (
-              <li key={purchase.id} className="flex justify-between gap-2 py-2">
-                <span className="min-w-0">
-                  <span className="mr-2 font-mono text-xs text-slate-500">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="text-slate-100">{purchase.player.name}</span>
-                  <span className="text-slate-400">
-                    {" "}
-                    · {ROLE_LABELS[purchase.player.role]}
-                    {purchase.player.isOverseas ? " · OS" : ""}
+    <div className="w-full flex flex-col gap-4 text-xs">
+      {/* 1. TOP BLOCK: "My Squad" (Full-Width Horizontal Multi-Column 15-Slot Grid) */}
+      <Panel title={`My Squad Roster (${history.length} Acquired · ${maxSquad - history.length} Open)`}>
+        <div className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2.5">
+          {slots.map((purchase, index) => {
+            const slotNum = index + 1;
+            if (purchase) {
+              const p = purchase.player;
+              return (
+                <div
+                  key={purchase.id || index}
+                  className="flex items-center justify-between gap-1.5 rounded-lg border border-slate-700/80 bg-obsidian-800 py-1.5 px-2.5 shadow-sm transition hover:border-gold/50 min-w-0"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className={`shrink-0 rounded border px-1 py-0.5 font-mono text-[9px] font-bold uppercase ${getRoleBadgeStyle(p.role)}`}>
+                      {getRoleShort(p.role)}
+                    </span>
+                    <span className="truncate font-sans text-xs font-semibold text-slate-100">
+                      {p.name}
+                    </span>
+                    {p.isOverseas && (
+                      <span className="shrink-0 rounded bg-amber-500/20 px-1 text-[9px] font-mono text-amber-300">
+                        OS
+                      </span>
+                    )}
+                  </div>
+                  <span className="shrink-0 font-mono text-xs font-bold text-gold">
+                    {formatLakhs(purchase.price)}
                   </span>
-                  {isFictional(purchase.player) && <span className="text-amber-300/80"> (fictional)</span>}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={`empty-slot-${slotNum}`}
+                className="flex items-center justify-between rounded-lg border border-dashed border-slate-800 bg-obsidian-900/40 py-1.5 px-2.5 text-slate-500 min-w-0"
+              >
+                <span className="font-mono text-[10px] text-slate-500 truncate">
+                  Slot {String(slotNum).padStart(2, "0")} · <span className="text-slate-600">Open</span>
                 </span>
-                <span className="whitespace-nowrap font-bold text-primary">{formatLakhs(purchase.price)}</span>
-              </li>
-            ))}
-          </ol>
-        )}
+                <span className="font-mono text-[9px] uppercase tracking-wider text-slate-600 shrink-0">
+                  Open
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
+
+      {/* 2. BOTTOM BLOCK: "My Team Summary" (Full-Width Expansive Broadcast HUD Strip) */}
+      <div className="w-full rounded-xl border border-gold/30 bg-obsidian-900/90 p-3.5 shadow-glassGlow flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+        {/* Left: Team Crest & Identity */}
+        <div className="flex items-center gap-3 shrink-0 min-w-0">
+          {team?.logo ? (
+            <img src={team.logo} alt={team.name} className="h-8 w-8 object-contain shrink-0" />
+          ) : (
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-gold/40 bg-gold/10 font-Bebas text-sm font-bold text-gold">
+              {team?.shortName || "TM"}
+            </span>
+          )}
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-Bebas text-xl font-bold uppercase leading-none tracking-tight text-slate-100 sm:text-2xl">
+                {team?.name || "My Franchise"}
+              </h3>
+              <span className="rounded border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-bold text-primary">
+                {stats.count} / {maxSquad} Players
+              </span>
+            </div>
+            <span className="font-mono text-[10px] text-slate-400">Code: <strong className="text-slate-200">{team?.shortName}</strong></span>
+          </div>
+        </div>
+
+        {/* Center: Category Breakdown Pill Strip */}
+        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] justify-center">
+          <span className="inline-flex items-center rounded-md border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-blue-300">
+            <strong className="mr-1.5 font-bold text-gold">{batCount}</strong> BAT
+          </span>
+          <span className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
+            <strong className="mr-1.5 font-bold text-gold">{bowlCount}</strong> BOWL
+          </span>
+          <span className="inline-flex items-center rounded-md border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-purple-300">
+            <strong className="mr-1.5 font-bold text-gold">{arCount}</strong> AR
+          </span>
+          <span className="inline-flex items-center rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-amber-300">
+            <strong className="mr-1.5 font-bold text-gold">{wkCount}</strong> WK
+          </span>
+          <span className="inline-flex items-center rounded-md border border-gold/40 bg-gold/10 px-2.5 py-1 text-gold">
+            <strong className="mr-1.5 font-bold text-amber-400">{osCount}</strong> OS
+          </span>
+        </div>
+
+        {/* Right: Purse & Max Bid Indicators */}
+        <div className="flex items-center gap-4 shrink-0 justify-end w-full sm:w-auto">
+          <div className="text-right">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Purse Remaining</span>
+            <div className="font-mono text-lg font-bold text-gold">{formatLakhs(stats.purse)} <span className="font-normal text-slate-500 text-xs">/ {formatLakhs(initialPurse)}</span></div>
+          </div>
+          <div className="h-8 w-px bg-slate-800" aria-hidden="true" />
+          <div className="text-right">
+            <span className="block font-mono text-[10px] uppercase tracking-wider text-slate-400">Max Next Bid</span>
+            <span className="font-mono text-base font-bold text-primary">{formatLakhs(maxBid)}</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -98,15 +189,13 @@ export function MyTeam({ state, teamId }) {
 
 export default function LivePanel({ state, teamId }) {
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       <LatestSale state={state} teamId={teamId} />
       <Panel title="On the block">
         <CurrentLot state={state} hideLiveBid={true} />
         {state.lot && <BuyingPower state={state} teamId={teamId} />}
       </Panel>
-      <Panel title="My team">
-        <MyTeam state={state} teamId={teamId} />
-      </Panel>
+      <MyTeam state={state} teamId={teamId} />
     </div>
   );
 }
