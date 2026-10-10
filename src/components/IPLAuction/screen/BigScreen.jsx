@@ -182,11 +182,7 @@ export default function BigScreen() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {hasFictionalPlayers(state) && (
-              <span className="hidden rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-wider text-amber-300 sm:inline-flex">
-                Fictional players
-              </span>
-            )}
+          
             <StatusBadge status={state.status} />
             <ConnectionIndicator />
           </div>
