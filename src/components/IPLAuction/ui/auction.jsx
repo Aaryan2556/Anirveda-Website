@@ -75,11 +75,6 @@ export function AuctionStatus({ state }) {
 /** Shown whenever fictional players are in the auction. */
 export function FictionalNotice({ state }) {
   if (!hasFictionalPlayers(state)) return null;
-  return (
-    <p className="mb-5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-xs text-amber-300">
-      Players marked <strong>FICTIONAL</strong> are invented for testing: their names and statistics are not real.
-    </p>
-  );
 }
 
 /** Local (browser-only) development mode. Never shown in production builds. */
