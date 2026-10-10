@@ -256,9 +256,9 @@ describe("purse and minimum reserve", () => {
     assert.equal(sell(state, "t1", 100).players.bat3.soldTo, "t1");
   });
 
-  it("the reserve is not applied when disabled", () => {
+  it("the reserve is always applied, even if disabled in config", () => {
     const config = testConfig({ initialPurse: 200, squad: { min: 3, max: 4 } });
-    assert.equal(getMaxBid(live({ config }), "t1"), 200);
+    assert.equal(getMaxBid(live({ config }), "t1"), 160);
   });
 });
 
