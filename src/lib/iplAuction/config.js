@@ -42,7 +42,7 @@ export const ROLE_LABELS = Object.freeze({
 export const DEV_DEFAULT_CONFIG = Object.freeze({
   initialPurse: 10000,
   squad: { min: 15, max: 15 },
-  maxOverseas: 5,
+  maxOverseas: null, // null = unlimited
   minFemale: 2,
   roleLimits: {
     BATTER: { min: 4, max: 15 },
