@@ -5,8 +5,7 @@ import { getTeamStats } from "./selectors.js";
 
 /** Lakhs a team must keep back to still reach squad.min after owning `squadCountAfter` players. */
 export function reserveRequired(config, squadCountAfter) {
-  if (!config.minimumReserve.enabled) return 0;
-  return Math.max(0, config.squad.min - squadCountAfter) * config.minimumReserve.perSlot;
+  return Math.max(0, config.squad.min - squadCountAfter) * (config.minimumReserve?.perSlot || 20);
 }
 
 /** Highest price a team may pay for its next player (purse minus minimum reserve). */
